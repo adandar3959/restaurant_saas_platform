@@ -5,26 +5,29 @@ const errorHandler = require('./utils/errorHandler');
 
 const app = express();
 
-// Connect to MongoDB
 connectDB();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
-// Routes — to be mounted as each module's router is built
-// app.use('/api/v1/auth',       require('./modules/user/user.routes'));
-// app.use('/api/v1/tenants',    require('./modules/tenant/tenant.routes'));
-// app.use('/api/v1/menu',       require('./modules/menu/menu.routes'));
-// app.use('/api/v1/orders',     require('./modules/order/order.routes'));
-// app.use('/api/v1/kitchen',    require('./modules/kitchen/kitchen.routes'));
-// app.use('/api/v1/tables',     require('./modules/table/table.routes'));
-// app.use('/api/v1/inventory',  require('./modules/inventory/inventory.routes'));
-// app.use('/api/v1/delivery',   require('./modules/delivery/delivery.routes'));
-// app.use('/api/v1/crm',        require('./modules/crm/crm.routes'));
+// ── Global routes ────────────────────────────────────────────
+app.use('/api/v1/auth', require('./modules/user/routes/user_routes'));
+app.use('/api/v1/tenants', require('./modules/tenant/routes/tenant_routes'));
+
+// ── Restaurant-scoped routes (/api/v1/restaurants/:restaurantId/...) ──
+const restaurantRouter = express.Router({ mergeParams: true });
+
+restaurantRouter.use('/menu', require('./modules/menu/routes/menu_routes'));
+restaurantRouter.use('/orders', require('./modules/order/routes/order_routes'));
+restaurantRouter.use('/kitchen', require('./modules/kitchen/routes/kitchen_routes'));
+restaurantRouter.use('/tables', require('./modules/table/routes/table_routes'));
+restaurantRouter.use('/inventory', require('./modules/inventory/routes/inventory_routes'));
+restaurantRouter.use('/delivery', require('./modules/delivery/routes/delivery_routes'));
+restaurantRouter.use('/crm', require('./modules/crm/routes/crm_routes'));
+
+app.use('/api/v1/restaurants/:restaurantId', restaurantRouter);
 
 // Global error handler — must be last
 app.use(errorHandler);

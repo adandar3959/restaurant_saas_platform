@@ -9,6 +9,7 @@ build/
 .env.*.local
 
 # IDE Settings
+API.md
 .vscode/
 .idea/
 *.suo
