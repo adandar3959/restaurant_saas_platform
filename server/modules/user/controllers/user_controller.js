@@ -13,6 +13,21 @@ exports.createStaff = asyncHandler(async (req, res) => {
   sendSuccess(res, user, 'Staff account created', 201);
 });
 
+exports.createInvite = asyncHandler(async (req, res) => {
+  const invite = await userService.createInvite(req.body.email, req.user._id);
+  sendSuccess(res, invite, 'Invite created', 201);
+});
+
+exports.getInvites = asyncHandler(async (req, res) => {
+  const invites = await userService.getInvites();
+  sendSuccess(res, invites);
+});
+
+exports.revokeInvite = asyncHandler(async (req, res) => {
+  await userService.revokeInvite(req.params.id);
+  sendSuccess(res, null, 'Invite revoked');
+});
+
 exports.login = asyncHandler(async (req, res) => {
   const { user, token } = await userService.login(req.body.email, req.body.password);
   sendSuccess(res, { user, token }, 'Login successful');

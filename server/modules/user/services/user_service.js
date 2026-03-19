@@ -1,26 +1,73 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user_model');
+const Invite = require('../models/invite_model');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
 exports.register = async (data) => {
-  // Public registration can only create Customer or Admin accounts.
-  // SuperAdmin is seeded directly in DB. Staff roles are created by Admin/Manager only.
-  const allowedPublicRoles = ['Customer', 'Admin'];
-  if (data.role && !allowedPublicRoles.includes(data.role)) {
-    throw Object.assign(new Error('You cannot self-assign this role'), { statusCode: 403 });
+  // Customer registers freely — no token needed
+  if (!data.role || data.role === 'Customer') {
+    data.role = 'Customer';
+    const existing = await User.findOne({ email: data.email });
+    if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
+    const user = await User.create(data);
+    const token = signToken(user._id);
+    user.passwordHash = undefined;
+    return { user, token };
   }
 
-  // Default to Customer if no role provided
-  if (!data.role) data.role = 'Customer';
+  // Admin registration requires a valid invite token
+  if (data.role === 'Admin') {
+    if (!data.inviteToken) {
+      throw Object.assign(new Error('An invite token is required to register as Admin'), { statusCode: 403 });
+    }
 
-  const existing = await User.findOne({ email: data.email });
-  if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
-  const user = await User.create(data);
-  const token = signToken(user._id);
-  user.passwordHash = undefined;
-  return { user, token };
+    const invite = await Invite.findOne({ token: data.inviteToken, usedAt: null });
+    if (!invite) throw Object.assign(new Error('Invalid or already used invite token'), { statusCode: 403 });
+    if (invite.expiresAt < new Date()) throw Object.assign(new Error('Invite token has expired'), { statusCode: 403 });
+    if (invite.email !== data.email.toLowerCase()) {
+      throw Object.assign(new Error('This invite token was issued for a different email'), { statusCode: 403 });
+    }
+
+    const existing = await User.findOne({ email: data.email });
+    if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
+
+    const user = await User.create(data);
+
+    // Mark invite as used
+    invite.usedAt = new Date();
+    await invite.save();
+
+    const token = signToken(user._id);
+    user.passwordHash = undefined;
+    return { user, token };
+  }
+
+  // Any other role is blocked from public registration
+  throw Object.assign(new Error('You cannot self-assign this role'), { statusCode: 403 });
+};
+
+// SuperAdmin generates an invite token for a specific email
+exports.createInvite = async (email, superAdminId) => {
+  // Invalidate any existing unused invite for this email
+  await Invite.deleteMany({ email: email.toLowerCase(), usedAt: null });
+
+  const token = Invite.generateToken();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  const invite = await Invite.create({ email, token, createdBy: superAdminId, expiresAt });
+  return invite;
+};
+
+// SuperAdmin lists all invites
+exports.getInvites = async () => Invite.find().populate('createdBy', 'name email').sort({ createdAt: -1 });
+
+// SuperAdmin revokes an invite
+exports.revokeInvite = async (id) => {
+  const invite = await Invite.findByIdAndDelete(id);
+  if (!invite) throw Object.assign(new Error('Invite not found'), { statusCode: 404 });
+  return invite;
 };
 
 // Called by Admin/Manager to create staff accounts (Waiter, Chef, Driver, Manager)
