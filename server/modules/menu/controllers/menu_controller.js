@@ -9,6 +9,11 @@ exports.createCategory = asyncHandler(async (req, res) => {
   sendSuccess(res, cat, 'Category created', 201);
 });
 
+exports.createManyCategories = asyncHandler(async (req, res) => {
+  const cats = await menuService.createManyCategories(req.body, req.params.restaurantId);
+  sendSuccess(res, cats, 'Categories created', 201);
+});
+
 exports.getCategories = asyncHandler(async (req, res) => {
   const cats = await menuService.getCategories(req.params.restaurantId);
   sendSuccess(res, cats);
@@ -33,6 +38,11 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
 exports.createItem = asyncHandler(async (req, res) => {
   const item = await menuService.createItem({ ...req.body, restaurantId: req.params.restaurantId });
   sendSuccess(res, item, 'Menu item created', 201);
+});
+
+exports.createManyItems = asyncHandler(async (req, res) => {
+  const items = await menuService.createManyItems(req.body, req.params.restaurantId);
+  sendSuccess(res, items, 'Menu items created', 201);
 });
 
 exports.getItems = asyncHandler(async (req, res) => {

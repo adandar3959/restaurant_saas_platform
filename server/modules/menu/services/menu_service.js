@@ -4,6 +4,11 @@ const MenuItem = require('../models/menuItem_model');
 // ── Categories ──────────────────────────────────────────────
 exports.createCategory = async (data) => MenuCategory.create(data);
 
+exports.createManyCategories = async (categories, restaurantId) => {
+  const docs = categories.map((cat, i) => ({ ...cat, restaurantId, displayOrder: cat.displayOrder ?? i + 1 }));
+  return MenuCategory.insertMany(docs);
+};
+
 exports.getCategories = async (restaurantId) =>
   MenuCategory.find({ restaurantId, deletedAt: null }).sort({ displayOrder: 1 });
 
@@ -31,6 +36,11 @@ exports.deleteCategory = async (id, restaurantId) => {
 
 // ── Menu Items ───────────────────────────────────────────────
 exports.createItem = async (data) => MenuItem.create(data);
+
+exports.createManyItems = async (items, restaurantId) => {
+  const docs = items.map((item) => ({ ...item, restaurantId }));
+  return MenuItem.insertMany(docs);
+};
 
 exports.getItems = async (restaurantId, filters, pagination) => {
   const query = { restaurantId, deletedAt: null };

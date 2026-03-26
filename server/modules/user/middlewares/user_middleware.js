@@ -15,6 +15,15 @@ exports.validateInvite = [
   validate,
 ];
 
+exports.validateOnboard = [
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('restaurantName').trim().notEmpty().withMessage('Restaurant name is required'),
+  body('planType').optional().isIn(['Free', 'Pro', 'Enterprise']).withMessage('Invalid plan type'),
+  validate,
+];
+
 exports.validateLogin = [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required'),

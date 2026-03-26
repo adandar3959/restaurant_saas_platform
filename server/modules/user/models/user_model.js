@@ -74,10 +74,9 @@ const userSchema = new mongoose.Schema(
 );
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('passwordHash')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('passwordHash')) return;
   this.passwordHash = await bcrypt.hash(this.passwordHash, 12);
-  next();
 });
 
 // Instance method to compare passwords
@@ -85,7 +84,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
-userSchema.index({ email: 1 });
 userSchema.index({ restaurantId: 1, role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

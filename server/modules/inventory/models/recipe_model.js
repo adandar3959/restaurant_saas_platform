@@ -28,6 +28,5 @@ const recipeSchema = new mongoose.Schema(
 );
 
 recipeSchema.index({ restaurantId: 1 });
-recipeSchema.index({ menuItemId: 1 });
 
 module.exports = mongoose.model('Recipe', recipeSchema);

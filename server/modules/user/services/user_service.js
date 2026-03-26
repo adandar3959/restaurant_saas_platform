@@ -48,7 +48,44 @@ exports.register = async (data) => {
   throw Object.assign(new Error('You cannot self-assign this role'), { statusCode: 403 });
 };
 
-// SuperAdmin generates an invite token for a specific email
+// Self-serve onboarding — creates Admin + Restaurant in one shot
+exports.onboard = async (data) => {
+  const existing = await User.findOne({ email: data.email });
+  if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
+
+  const Tenant = require('../../tenant/models/tenant_model');
+  const slugify = require('../../../utils/slugify');
+
+  // Create Admin user
+  const user = await User.create({
+    name: data.name,
+    email: data.email,
+    passwordHash: data.password,
+    role: 'Admin',
+    phone: data.phone || null,
+  });
+
+  // Create Restaurant linked to this Admin
+  const slug = slugify(data.restaurantName);
+  const tenant = await Tenant.create({
+    ownerId: user._id,
+    restaurantName: data.restaurantName,
+    slug,
+    subscription: {
+      planType: data.planType || 'Free',
+      status: data.planType && data.planType !== 'Free' ? 'Trial' : 'Active',
+      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+    },
+  });
+
+  // Link restaurantId back to the user
+  await User.findByIdAndUpdate(user._id, { restaurantId: tenant._id });
+  user.restaurantId = tenant._id;
+
+  const token = signToken(user._id);
+  user.passwordHash = undefined;
+  return { user, tenant, token };
+};
 exports.createInvite = async (email, superAdminId) => {
   // Invalidate any existing unused invite for this email
   await Invite.deleteMany({ email: email.toLowerCase(), usedAt: null });
@@ -90,8 +127,8 @@ exports.login = async (email, password) => {
   if (user.status !== 'Active') {
     throw Object.assign(new Error('Account is not active'), { statusCode: 403 });
   }
-  user.lastLoginAt = new Date();
-  await user.save({ validateBeforeSave: false });
+  // Use updateOne to avoid triggering the pre-save hook
+  await User.updateOne({ _id: user._id }, { lastLoginAt: new Date() });
   const token = signToken(user._id);
   user.passwordHash = undefined;
   return { user, token };

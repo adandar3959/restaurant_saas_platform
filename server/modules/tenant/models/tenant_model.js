@@ -109,7 +109,6 @@ const tenantSchema = new mongoose.Schema(
 
 // Index for geospatial queries
 tenantSchema.index({ 'address.coordinates': '2dsphere' });
-tenantSchema.index({ slug: 1 });
 tenantSchema.index({ ownerId: 1 });
 
 module.exports = mongoose.model('Tenant', tenantSchema);

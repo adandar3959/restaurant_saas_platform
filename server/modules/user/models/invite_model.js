@@ -15,7 +15,6 @@ const inviteSchema = new mongoose.Schema(
 // Static method to generate a secure token
 inviteSchema.statics.generateToken = () => crypto.randomBytes(32).toString('hex');
 
-inviteSchema.index({ token: 1 });
 inviteSchema.index({ email: 1 });
 
 module.exports = mongoose.model('Invite', inviteSchema);
