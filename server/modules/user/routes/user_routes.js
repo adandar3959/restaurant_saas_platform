@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/user_controller');
 const { protect, authorize } = require('../../../utils/auth.middleware');
-const { validateRegister, validateLogin, validateUpdateUser, validateInvite, validateOnboard } = require('../middlewares/user_middleware');
+const { validateRegister, validateLogin, validateUpdateUser, validateInvite, validateOnboard, validateStaff } = require('../middlewares/user_middleware');
 
 // Public
 router.post('/register', validateRegister, ctrl.register);
@@ -9,7 +9,7 @@ router.post('/login', validateLogin, ctrl.login);
 router.post('/onboard', validateOnboard, ctrl.onboard);
 
 // Admin/Manager creates staff (Chef, Waiter, Driver, Manager)
-router.post('/staff', protect, authorize('Admin', 'Manager'), validateRegister, ctrl.createStaff);
+router.post('/staff', protect, authorize('Admin', 'Manager'), validateStaff, ctrl.createStaff);
 
 // Invite management — SuperAdmin only
 router.post('/invites', protect, authorize('SuperAdmin'), ctrl.createInvite);

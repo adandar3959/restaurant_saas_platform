@@ -10,6 +10,14 @@ exports.validateRegister = [
   validate,
 ];
 
+exports.validateStaff = [
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('passwordHash').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('role').isIn(['Manager', 'Chef', 'Waiter', 'Driver']).withMessage('Invalid staff role'),
+  validate,
+];
+
 exports.validateInvite = [
   body('email').isEmail().withMessage('Valid email is required'),
   validate,

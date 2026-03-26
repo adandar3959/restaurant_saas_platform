@@ -23,10 +23,27 @@ exports.getOrderById = asyncHandler(async (req, res) => {
 });
 
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  const role = req.user.role;
+
+  const roleStatusMap = {
+    Accepted: ['Chef'],
+    Preparing: ['Chef'],
+    Ready: ['Chef'],
+    OutForDelivery: ['Driver'],
+    Completed: ['Waiter', 'Driver'],
+    Cancelled: ['Admin', 'Manager'],
+  };
+
+  const allowed = roleStatusMap[status];
+  if (allowed && !allowed.includes(role)) {
+    return res.status(403).json({ success: false, message: `Role '${role}' cannot set status to '${status}'` });
+  }
+
   const order = await orderService.updateOrderStatus(
     req.params.id,
     req.params.restaurantId,
-    req.body.status,
+    status,
     req.user._id
   );
   sendSuccess(res, order, 'Order status updated');
