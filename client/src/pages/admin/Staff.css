@@ -1,0 +1,35 @@
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+.staff-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative;
+}
+.staff-avatar-wrap {
+  position: relative;
+  align-self: flex-start;
+}
+.staff-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800;
+}
+.staff-status-dot {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 2px solid var(--bg-surface);
+}
+.staff-status-dot.online { background: var(--success); }
+.staff-name { font-size: 16px; font-weight: 700; }
+.staff-info { display: flex; flex-direction: column; gap: 2px; }
+.staff-meta { margin-top: var(--space-2); }
+.staff-actions { margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.mt-4 { margin-top: var(--space-4); }
