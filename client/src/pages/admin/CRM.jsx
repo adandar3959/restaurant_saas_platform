@@ -23,7 +23,7 @@ export default function CRM() {
         crmApi.getReviews(restaurantId),
         crmApi.getCoupons(restaurantId),
       ]);
-      setReviews(r.data?.data || []);
+      setReviews(r.data?.data?.reviews || r.data?.data || []);
       setCoupons(c.data?.data || []);
     } catch {}
     finally { setLoading(false); }

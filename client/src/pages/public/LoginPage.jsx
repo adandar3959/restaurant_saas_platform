@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import AuthLayout from '../components/AuthLayout';
+import { useAuth } from '../../context/AuthContext';
+import AuthLayout from '../../components/layout/AuthLayout';
 
 const ROLE_INFO = {
   SuperAdmin: { emoji: '👑', label: 'Platform Admin',    color: '#F59E0B' },

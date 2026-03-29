@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Check, ArrowRight, Zap, Building2, Sprout } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import PlanCard from '../components/PlanCard';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/layout/Footer';
+import PlanCard from '../../components/shared/PlanCard';
 import './PricingPage.css';
 
 // Plans mirroring SubscriptionPlan model

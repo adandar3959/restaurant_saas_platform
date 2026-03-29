@@ -26,7 +26,7 @@ export default function Delivery() {
       ]);
       setZones(z.data?.data || []);
       setDrivers(d.data?.data || []);
-      setDispatches(dp.data?.data || []);
+      setDispatches(dp.data?.data?.dispatches || dp.data?.data || []);
     } catch {}
     finally { setLoading(false); }
   };

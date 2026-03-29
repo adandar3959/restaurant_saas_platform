@@ -25,7 +25,7 @@ export default function Tables() {
         tablesApi.getReservations(restaurantId),
       ]);
       setTables(t.data?.data || []);
-      setRes(r.data?.data || []);
+      setRes(r.data?.data?.reservations || r.data?.data || []);
     } catch {}
     finally { setLoading(false); }
   };

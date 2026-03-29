@@ -3,33 +3,31 @@ import axios from 'axios';
 
 const API_BASE = 'http://localhost:5000/api/v1';
 
-// ─── Context ───────────────────────────────────────────────────────────────
+// API response shape from this backend:
+//   { success: true, message: "...", data: { user: {...}, token: "..." } }
+// So we always destructure as:  const { user, token } = response.data.data
+
 const AuthContext = createContext(null);
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
 const initialState = {
-  user: null,
-  token: null,
-  isLoading: false,
-  error: null,
+  user:       null,
+  token:      null,
+  isLoading:  false,
+  error:      null,
+  isHydrated: false,
 };
 
 function authReducer(state, action) {
   switch (action.type) {
-    case 'LOADING':
-      return { ...state, isLoading: true, error: null };
-    case 'LOGIN_SUCCESS':
-      return { ...state, isLoading: false, user: action.payload.user, token: action.payload.token, error: null };
-    case 'LOGOUT':
-      return { ...initialState };
-    case 'ERROR':
-      return { ...state, isLoading: false, error: action.payload };
-    case 'CLEAR_ERROR':
-      return { ...state, error: null };
-    case 'UPDATE_USER':
-      return { ...state, user: { ...state.user, ...action.payload } };
-    default:
-      return state;
+    case 'LOADING':      return { ...state, isLoading: true, error: null };
+    case 'LOGIN_SUCCESS':return { ...state, isLoading: false, error: null, user: action.payload.user, token: action.payload.token };
+    case 'LOGOUT':       return { ...initialState, isHydrated: true };
+    case 'ERROR':        return { ...state, isLoading: false, error: action.payload };
+    case 'CLEAR_ERROR':  return { ...state, error: null };
+    case 'UPDATE_USER':  return { ...state, user: { ...state.user, ...action.payload } };
+    case 'SET_HYDRATED': return { ...state, isHydrated: true };
+    default:             return state;
   }
 }
 
@@ -37,29 +35,45 @@ function authReducer(state, action) {
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Rehydrate from localStorage on mount
+  // Rehydrate from localStorage — SET_HYDRATED must always fire so guards unblock
   useEffect(() => {
-    const token = localStorage.getItem('rms_token');
-    const user  = localStorage.getItem('rms_user');
-    if (token && user) {
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: JSON.parse(user) } });
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+      const token = localStorage.getItem('rms_token');
+      const raw   = localStorage.getItem('rms_user');
+      if (token && raw) {
+        const user = JSON.parse(raw);
+        // Validate that the stored object really is a user (has role)
+        if (user && user.role) {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user } });
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } else {
+          // Stale / corrupted data — clear it
+          localStorage.removeItem('rms_token');
+          localStorage.removeItem('rms_user');
+        }
+      }
+    } catch {
+      localStorage.removeItem('rms_token');
+      localStorage.removeItem('rms_user');
+    } finally {
+      dispatch({ type: 'SET_HYDRATED' });
     }
   }, []);
 
   // ── Login ──────────────────────────────────────────────────────────────
+  // Backend: POST /auth/login → { success, message, data: { user, token } }
   const login = async (email, password) => {
     dispatch({ type: 'LOADING' });
     try {
-      const { data } = await axios.post(`${API_BASE}/auth/login`, { email, password });
-      const { token, data: userData } = data;
+      const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
+      const { user, token } = res.data.data; // ← correct extraction
 
       localStorage.setItem('rms_token', token);
-      localStorage.setItem('rms_user', JSON.stringify(userData));
+      localStorage.setItem('rms_user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: userData } });
-      return { success: true, role: userData.role, restaurantId: userData.restaurantId };
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user } });
+      return { success: true, role: user.role, restaurantId: user.restaurantId };
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';
       dispatch({ type: 'ERROR', payload: msg });
@@ -68,21 +82,18 @@ export function AuthProvider({ children }) {
   };
 
   // ── Customer Signup ────────────────────────────────────────────────────
+  // Backend: POST /auth/register → { success, message, data: { user, token } }
   const register = async (name, email, password) => {
     dispatch({ type: 'LOADING' });
     try {
-      const { data } = await axios.post(`${API_BASE}/auth/register`, {
-        name,
-        email,
-        passwordHash: password,
-      });
-      const { token, data: userData } = data;
+      const res = await axios.post(`${API_BASE}/auth/register`, { name, email, passwordHash: password });
+      const { user, token } = res.data.data;
 
       localStorage.setItem('rms_token', token);
-      localStorage.setItem('rms_user', JSON.stringify(userData));
+      localStorage.setItem('rms_user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: userData } });
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user } });
       return { success: true };
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -91,25 +102,23 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ── Restaurant Onboarding (Admin + Restaurant in one shot) ─────────────
+  // ── Onboard (Admin + Restaurant) ───────────────────────────────────────
+  // Backend: POST /auth/onboard → { success, message, data: { user, tenant, token } }
   const onboard = async ({ name, email, password, restaurantName, planType }) => {
     dispatch({ type: 'LOADING' });
     try {
-      const { data } = await axios.post(`${API_BASE}/auth/onboard`, {
-        name,
-        email,
-        password,
-        restaurantName,
-        planType,
+      const res = await axios.post(`${API_BASE}/auth/onboard`, {
+        name, email, password, restaurantName, planType,
       });
-      const { token, data: userData } = data;
+      const { user, token } = res.data.data;
+      // user.restaurantId is populated by the backend after tenant creation
 
       localStorage.setItem('rms_token', token);
-      localStorage.setItem('rms_user', JSON.stringify(userData));
+      localStorage.setItem('rms_user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user: userData } });
-      return { success: true };
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user } });
+      return { success: true, restaurantId: user.restaurantId };
     } catch (err) {
       const msg = err.response?.data?.message || 'Onboarding failed. Please try again.';
       dispatch({ type: 'ERROR', payload: msg });
@@ -127,18 +136,17 @@ export function AuthProvider({ children }) {
 
   const clearError = () => dispatch({ type: 'CLEAR_ERROR' });
 
-  // ── Role-based route helper ────────────────────────────────────────────
+  // ── Role-based route helper (case-insensitive) ─────────────────────────
   const getDashboardRoute = (role, restaurantId) => {
-    switch (role) {
-      case 'SuperAdmin': return '/superadmin/dashboard';
-      case 'Admin':      return `/admin/${restaurantId}/dashboard`;
-      case 'Manager':    return `/manager/${restaurantId}/dashboard`;
-      case 'Chef':       return `/kitchen/${restaurantId}`;
-      case 'Waiter':     return `/waiter/${restaurantId}`;
-      case 'Driver':     return `/driver/${restaurantId}`;
-      case 'Customer':   return '/account';
-      default:           return '/';
-    }
+    const r = (role || '').toLowerCase();
+    if (r === 'superadmin')  return '/superadmin';
+    if (r === 'admin')       return `/admin/${restaurantId}`;
+    if (r === 'manager')     return `/admin/${restaurantId}`;
+    if (r === 'chef')        return `/kitchen/${restaurantId}`;
+    if (r === 'waiter')      return `/waiter/${restaurantId}`;
+    if (r === 'driver')      return `/driver/${restaurantId}`;
+    if (r === 'customer')    return '/account';
+    return '/';
   };
 
   return (

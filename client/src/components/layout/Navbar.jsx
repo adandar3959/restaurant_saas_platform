@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { UtensilsCrossed, Menu, X, ChevronRight, LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
 const navLinks = [
   { label: 'Features', href: '/#features' },
-  { label: 'Pricing',  href: '/pricing' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'How It Works', href: '/#how-it-works' },
 ];
 
 export default function Navbar() {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { user, logout, getDashboardRoute } = useAuth();
   const navigate = useNavigate();
 

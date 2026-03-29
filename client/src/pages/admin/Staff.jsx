@@ -18,7 +18,7 @@ export default function Staff() {
     setLoading(true);
     try {
       const res = await authApi.getStaff({ restaurantId });
-      setStaff(res.data?.data || []);
+      setStaff(res.data?.data?.users || []);
     } catch { setStaff([]); }
     finally { setLoading(false); }
   };

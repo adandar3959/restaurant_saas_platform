@@ -25,7 +25,7 @@ export default function MenuManagement() {
         menuApi.getItems(restaurantId),
       ]);
       setCategories(cRes.data?.data || []);
-      setItems(iRes.data?.data || []);
+      setItems(iRes.data?.data?.items || iRes.data?.data || []);
     } catch {}
     finally { setLoading(false); }
   };

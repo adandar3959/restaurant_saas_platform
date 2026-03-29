@@ -4,8 +4,8 @@ import {
   Check, ChevronRight, ChevronLeft, User, Mail, Lock, Store,
   MapPin, Phone, Loader
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import { useAuth } from '../../context/AuthContext';
+import Navbar from '../../components/layout/Navbar';
 import './OnboardingPage.css';
 
 const PLANS = [
@@ -45,12 +45,13 @@ const STEP_LABELS = ['Choose Plan', 'Your Account', 'Restaurant Info', 'All Done
 
 export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
-  const { onboard, isLoading, error } = useAuth();
+  const { onboard, isLoading, error, getDashboardRoute, user } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
   const [showPass, setShowPass] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [restaurantIdAfterOnboard, setRestaurantIdAfterOnboard] = useState(null);
 
   const [form, setForm] = useState({
     planType: searchParams.get('plan') || 'Pro',
@@ -100,6 +101,7 @@ export default function OnboardingPage() {
       planType: form.planType,
     });
     if (result.success) {
+      setRestaurantIdAfterOnboard(result.restaurantId);
       setStep(4);
       setCompleted(true);
     }
@@ -113,7 +115,9 @@ export default function OnboardingPage() {
 
   // ── Step 4 — success ──────────────────────────────────────────────────
   const handleGoToDashboard = () => {
-    navigate('/admin/dashboard');
+    // Use restaurantId from onboard response (or fall back to user state)
+    const rid = restaurantIdAfterOnboard || user?.restaurantId;
+    navigate(`/admin/${rid}`);
   };
 
   return (

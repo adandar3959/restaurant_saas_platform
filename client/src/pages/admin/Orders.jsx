@@ -29,7 +29,7 @@ export default function Orders() {
     setLoading(true);
     try {
       const res = await ordersApi.getOrders(restaurantId);
-      setOrders(res.data?.data || []);
+      setOrders(res.data?.data?.orders || []);
     } catch { setOrders([]); }
     finally { setLoading(false); }
   }, [restaurantId]);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
-import AuthLayout from '../components/AuthLayout';
+import AuthLayout from '../../components/layout/AuthLayout';
 
 export default function ForgotPasswordPage() {
   const [email, setSent] = useState('');

@@ -21,8 +21,8 @@ export default function Inventory() {
         inventoryApi.getIngredients(restaurantId),
         inventoryApi.getLowStock(restaurantId),
       ]);
-      setIngredients(ing.data?.data || []);
-      setLowStock(low.data?.data || []);
+      setIngredients(ing.data?.data?.ingredients || ing.data?.data || []);
+      setLowStock(low.data?.data?.ingredients || low.data?.data || []);
     } catch {}
     finally { setLoading(false); }
   };

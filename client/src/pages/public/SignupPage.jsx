@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import AuthLayout from '../components/AuthLayout';
+import { useAuth } from '../../context/AuthContext';
+import AuthLayout from '../../components/layout/AuthLayout';
 
 export default function SignupPage() {
   const { register, isLoading, error, clearError, getDashboardRoute } = useAuth();

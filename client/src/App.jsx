@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// ── Public pages (still in pages/ root, working fine)
-import LandingPage        from './pages/LandingPage';
-import PricingPage        from './pages/PricingPage';
-import OnboardingPage     from './pages/OnboardingPage';
-import LoginPage          from './pages/LoginPage';
-import SignupPage         from './pages/SignupPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
+// ── Public pages
+import LandingPage        from './pages/public/LandingPage';
+import PricingPage        from './pages/public/PricingPage';
+import OnboardingPage     from './pages/public/OnboardingPage';
+import LoginPage          from './pages/public/LoginPage';
+import SignupPage         from './pages/public/SignupPage';
+import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 
 // ── Admin layout + pages
 import AdminLayout     from './components/layout/AdminLayout';
@@ -23,14 +23,26 @@ import AdminSettings   from './pages/admin/AdminSettings';
 
 // ─── Route guards ───────────────────────────────────────────────────────────
 function RequireAuth({ children, allowedRoles }) {
-  const { user } = useAuth();
+  const { user, isHydrated } = useAuth();
+  // Wait for localStorage rehydration — prevents flash-redirect to /login
+  if (!isHydrated) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
+    </div>
+  );
   if (!user) return <Navigate to="/login" replace />;
-  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
+  // Case-insensitive role check
+  if (allowedRoles) {
+    const userRoleLower = (user.role || '').toLowerCase();
+    const allowed = allowedRoles.map(r => r.toLowerCase());
+    if (!allowed.includes(userRoleLower)) return <Navigate to="/" replace />;
+  }
   return children;
 }
 
 function GuestOnly({ children }) {
-  const { user, getDashboardRoute } = useAuth();
+  const { user, isHydrated, getDashboardRoute } = useAuth();
+  if (!isHydrated) return null;
   if (user) return <Navigate to={getDashboardRoute(user.role, user.restaurantId)} replace />;
   return children;
 }

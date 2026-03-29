@@ -30,7 +30,7 @@ export default function AdminDashboard() {
     else setRefreshing(true);
     try {
       const res = await ordersApi.getOrders(restaurantId, { limit: 20, page: 1 });
-      setOrders(res.data?.data || []);
+      setOrders(res.data?.data?.orders || []);
     } catch {
       setOrders([]);
     } finally {
