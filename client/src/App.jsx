@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Component } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // ── Public pages
@@ -20,6 +21,30 @@ import Inventory       from './pages/admin/Inventory';
 import Delivery        from './pages/admin/Delivery';
 import CRM             from './pages/admin/CRM';
 import AdminSettings   from './pages/admin/AdminSettings';
+
+// ─── Error Boundary ──────────────────────────────────────────────────────────
+class AdminErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(err) { return { error: err }; }
+  componentDidCatch(err, info) { console.error('[AdminErrorBoundary]', err, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32, background: 'var(--bg-base)' }}>
+          <div style={{ fontSize: 40 }}>💥</div>
+          <h2 style={{ color: 'var(--error)', fontWeight: 800 }}>Page Error</h2>
+          <pre style={{ background: 'var(--bg-surface)', border: '1px solid var(--error)', borderRadius: 8, padding: 16, color: '#FCA5A5', fontSize: 13, maxWidth: 640, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {this.state.error?.message}\n\n{this.state.error?.stack?.split('\n').slice(0,6).join('\n')}
+          </pre>
+          <button className="btn btn-outline btn-sm" onClick={() => this.setState({ error: null })}>
+            Try Again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── Route guards ───────────────────────────────────────────────────────────
 function RequireAuth({ children, allowedRoles }) {
@@ -66,15 +91,15 @@ function AppRoutes() {
         path="/admin/:restaurantId"
         element={<RequireAuth allowedRoles={['Admin','Manager']}><AdminLayout /></RequireAuth>}
       >
-        <Route index            element={<AdminDashboard />} />
-        <Route path="orders"    element={<Orders />} />
-        <Route path="menu"      element={<MenuManagement />} />
-        <Route path="tables"    element={<Tables />} />
-        <Route path="staff"     element={<Staff />} />
-        <Route path="inventory" element={<Inventory />} />
-        <Route path="delivery"  element={<Delivery />} />
-        <Route path="crm"       element={<CRM />} />
-        <Route path="settings"  element={<AdminSettings />} />
+        <Route index            element={<AdminErrorBoundary><AdminDashboard /></AdminErrorBoundary>} />
+        <Route path="orders"    element={<AdminErrorBoundary><Orders /></AdminErrorBoundary>} />
+        <Route path="menu"      element={<AdminErrorBoundary><MenuManagement /></AdminErrorBoundary>} />
+        <Route path="tables"    element={<AdminErrorBoundary><Tables /></AdminErrorBoundary>} />
+        <Route path="staff"     element={<AdminErrorBoundary><Staff /></AdminErrorBoundary>} />
+        <Route path="inventory" element={<AdminErrorBoundary><Inventory /></AdminErrorBoundary>} />
+        <Route path="delivery"  element={<AdminErrorBoundary><Delivery /></AdminErrorBoundary>} />
+        <Route path="crm"       element={<AdminErrorBoundary><CRM /></AdminErrorBoundary>} />
+        <Route path="settings"  element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
       </Route>
 
       {/* Placeholder: other roles (future phases) */}

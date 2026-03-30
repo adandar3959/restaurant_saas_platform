@@ -5,6 +5,9 @@ import { menuApi } from '../../api/menu.api';
 import { truncate } from '../../lib/utils';
 import './MenuManagement.css';
 
+// categoryId from backend may be a populated object {_id, name} or a plain string
+const getId = (ref) => (ref && typeof ref === 'object') ? String(ref._id) : String(ref ?? '');
+
 export default function MenuManagement() {
   const { restaurantId } = useOutletContext();
   const [categories, setCategories] = useState([]);
@@ -70,7 +73,7 @@ export default function MenuManagement() {
   };
 
   const filteredItems = items.filter(i => {
-    const matchCat = selCat === 'all' || i.categoryId === selCat;
+    const matchCat = selCat === 'all' || getId(i.categoryId) === selCat;
     const matchSearch = !search || i.name?.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
@@ -103,7 +106,7 @@ export default function MenuManagement() {
             className={`cat-chip ${selCat === c._id ? 'active' : ''}`}
             onClick={() => setSelCat(c._id)}
           >
-            {c.name} ({items.filter(i => i.categoryId === c._id).length})
+            {c.name} ({items.filter(i => getId(i.categoryId) === c._id).length})
           </button>
         ))}
       </div>
@@ -137,7 +140,7 @@ export default function MenuManagement() {
       ) : (
         <div className="menu-grid">
           {filteredItems.map(item => {
-            const cat = categories.find(c => c._id === item.categoryId);
+            const cat = categories.find(c => c._id === getId(item.categoryId));
             return (
               <div key={item._id} className={`menu-item-card card ${!item.isAvailable ? 'unavailable' : ''}`}>
                 <div className="mic-header">
@@ -190,7 +193,7 @@ export default function MenuManagement() {
                 <tr key={c._id}>
                   <td className="font-semi">{c.name}</td>
                   <td className="text-muted text-sm">{truncate(c.description || '—', 50)}</td>
-                  <td>{items.filter(i => i.categoryId === c._id).length}</td>
+                  <td>{items.filter(i => getId(i.categoryId) === c._id).length}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button className="btn btn-ghost btn-xs" onClick={() => openModal('category', c)}><Pencil size={13} /></button>
@@ -232,7 +235,7 @@ export default function MenuManagement() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">Category</label>
-                      <select className="form-select" value={form.categoryId || ''} onChange={e => setForm(p => ({ ...p, categoryId: e.target.value }))}>
+                      <select className="form-select" value={getId(form.categoryId)} onChange={e => setForm(p => ({ ...p, categoryId: e.target.value }))}>
                         <option value="">No category</option>
                         {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                       </select>
