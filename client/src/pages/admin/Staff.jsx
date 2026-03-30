@@ -1,18 +1,53 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Pencil, Trash2, X, UserCheck, UserX } from 'lucide-react';
+import { Plus, Trash2, X, Shield, ChefHat, Coffee, Truck } from 'lucide-react';
 import { authApi } from '../../api/tenant.api';
 import { getInitials, formatDate } from '../../lib/utils';
 import { STAFF_ROLES } from '../../lib/constants';
+import { useAuth } from '../../context/AuthContext';
+import './Staff.css';
+
+const ROLE_META = {
+  Manager: { icon: Shield,   color: '#6366F1', label: 'Manager'  },
+  Chef:    { icon: ChefHat,  color: '#F59E0B', label: 'Chef'     },
+  Waiter:  { icon: Coffee,   color: '#10B981', label: 'Waiter'   },
+  Driver:  { icon: Truck,    color: '#3B82F6', label: 'Driver'   },
+};
+
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div style={{
+      position: 'fixed', top: 24, right: 24, zIndex: 9999,
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
+      background: toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
+      border: `1px solid ${toast.type === 'error' ? '#EF4444' : '#10B981'}`,
+      color: toast.type === 'error' ? '#FCA5A5' : '#6EE7B7',
+      backdropFilter: 'blur(8px)',
+    }}>
+      {toast.msg}
+    </div>
+  );
+}
 
 export default function Staff() {
   const { restaurantId } = useOutletContext();
+  const { user } = useAuth();
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [staff,   setStaff]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal,   setModal]   = useState(false);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState('');
+  const [toast,   setToast]   = useState(null);
   const [form,    setForm]    = useState({ name: '', email: '', password: '', role: 'Waiter' });
+  const [filterRole, setFilterRole] = useState('All');
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -27,81 +62,150 @@ export default function Staff() {
 
   const handleCreate = async () => {
     setError('');
-    if (!form.name || !form.email || !form.password) { setError('All fields required'); return; }
+    if (!form.name || !form.email || !form.password) {
+      setError('All fields are required');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
     setSaving(true);
     try {
-      await authApi.createStaff({ ...form, restaurantId });
+      const payload = { ...form, passwordHash: form.password, restaurantId };
+      delete payload.password;
+      await authApi.createStaff(payload);
       setModal(false);
       setForm({ name: '', email: '', password: '', role: 'Waiter' });
       load();
+      showToast('success', `${form.name} added as ${form.role}`);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to create staff');
+      setError(e?.response?.data?.message || 'Validation failed');
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Remove this staff member?')) return;
-    try { await authApi.deleteUser(id); load(); } catch {}
+  const handleDelete = async (s) => {
+    if (!window.confirm(`Remove ${s.name} from staff?`)) return;
+    try {
+      await authApi.deleteUser(s._id);
+      load();
+      showToast('success', `${s.name} removed`);
+    } catch { showToast('error', 'Failed to remove staff member'); }
   };
 
-  const ROLE_COLORS = {
-    Manager: '#6366F1', Chef: '#F59E0B', Waiter: '#10B981', Driver: '#3B82F6',
-  };
+  const filtered = filterRole === 'All' ? staff : staff.filter(s => s.role === filterRole);
+
+  // Summary counts
+  const counts = STAFF_ROLES.reduce((acc, r) => ({ ...acc, [r]: staff.filter(s => s.role === r).length }), {});
 
   return (
     <div>
+      <Toast toast={toast} />
+
       <div className="page-header">
         <div>
           <h1 className="page-title">Staff Management</h1>
           <p className="page-subtitle">{staff.length} staff members</p>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>
+        <button className="btn btn-primary btn-sm" onClick={() => { setError(''); setModal(true); }}>
           <Plus size={15} /> Add Staff
         </button>
       </div>
 
+      {/* Role summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+        {STAFF_ROLES.map(role => {
+          const meta = ROLE_META[role] || {};
+          const Icon = meta.icon || Shield;
+          return (
+            <div
+              key={role}
+              className="stat-card"
+              style={{ cursor: 'pointer', borderColor: filterRole === role ? `${meta.color}55` : undefined }}
+              onClick={() => setFilterRole(filterRole === role ? 'All' : role)}
+            >
+              <div className="stat-card-top">
+                <div className="stat-card-icon" style={{ background: `${meta.color}20`, color: meta.color }}>
+                  <Icon size={20} />
+                </div>
+              </div>
+              <div className="stat-card-label">{role}s</div>
+              <div className="stat-card-value" style={{ color: meta.color }}>{counts[role] || 0}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Filter chips */}
+      <div className="orders-tabs" style={{ marginBottom: 'var(--space-5)' }}>
+        <button className={`orders-tab ${filterRole === 'All' ? 'active' : ''}`} onClick={() => setFilterRole('All')}>
+          All <span className="orders-tab-count">{staff.length}</span>
+        </button>
+        {STAFF_ROLES.map(r => (
+          <button key={r} className={`orders-tab ${filterRole === r ? 'active' : ''}`} onClick={() => setFilterRole(r)}>
+            {r} <span className="orders-tab-count">{counts[r] || 0}</span>
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="page-loading"><div className="spinner-lg" /></div>
-      ) : staff.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="data-table-wrap">
           <div className="empty-state">
             <div className="empty-state-icon">👥</div>
-            <div className="empty-state-title">No staff yet</div>
-            <p>Add your first staff member to get started.</p>
-            <button className="btn btn-primary mt-4" onClick={() => setModal(true)}><Plus size={16} /> Add Staff</button>
+            <div className="empty-state-title">
+              {filterRole === 'All' ? 'No staff yet' : `No ${filterRole}s`}
+            </div>
+            <p>Add your first {filterRole === 'All' ? 'staff member' : filterRole.toLowerCase()} to get started.</p>
+            <button className="btn btn-primary mt-4" onClick={() => { setError(''); setModal(true); }}>
+              <Plus size={16} /> Add Staff
+            </button>
           </div>
         </div>
       ) : (
         <div className="staff-grid">
-          {staff.map(s => (
-            <div key={s._id} className="staff-card card">
-              <div className="staff-avatar-wrap">
-                <div className="staff-avatar" style={{ background: `${ROLE_COLORS[s.role] || '#FF6B35'}25`, color: ROLE_COLORS[s.role] || '#FF6B35' }}>
-                  {getInitials(s.name)}
+          {filtered.map(s => {
+            const meta  = ROLE_META[s.role] || { color: '#FF6B35' };
+            const Icon  = meta.icon || Shield;
+            return (
+              <div key={s._id} className="staff-card card">
+                <div className="staff-avatar-wrap">
+                  <div className="staff-avatar" style={{ background: `${meta.color}20`, color: meta.color }}>
+                    {getInitials(s.name)}
+                  </div>
+                  <div className={`staff-status-dot ${s.isActive ? 'online' : ''}`} />
                 </div>
-                <div className={`staff-status-dot ${s.isActive ? 'online' : ''}`} />
+                <div className="staff-info">
+                  <div className="staff-name">{s.name}</div>
+                  <div className="staff-email text-sm text-muted">{s.email}</div>
+                </div>
+                <span className="status-badge" style={{
+                  background: `${meta.color}18`, color: meta.color,
+                  border: `1px solid ${meta.color}33`, alignSelf: 'flex-start',
+                  display: 'inline-flex', alignItems: 'center', gap: 5
+                }}>
+                  <Icon size={12} /> {s.role}
+                </span>
+                <div className="staff-meta text-xs text-subtle">
+                  Joined {formatDate(s.createdAt)}
+                </div>
+                <div className="staff-actions">
+                  <button
+                    className="btn btn-ghost btn-xs"
+                    style={{ color: 'var(--error)', width: '100%' }}
+                    onClick={() => handleDelete(s)}
+                  >
+                    <Trash2 size={13} /> Remove
+                  </button>
+                </div>
               </div>
-              <div className="staff-info">
-                <div className="staff-name">{s.name}</div>
-                <div className="staff-email text-sm text-muted">{s.email}</div>
-              </div>
-              <span className="status-badge" style={{ background: `${ROLE_COLORS[s.role] || '#FF6B35'}20`, color: ROLE_COLORS[s.role] || '#FF6B35', border: 'none', alignSelf: 'flex-start' }}>
-                {s.role}
-              </span>
-              <div className="staff-meta text-xs text-subtle">
-                Joined {formatDate(s.createdAt)}
-              </div>
-              <div className="staff-actions">
-                <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDelete(s._id)}>
-                  <Trash2 size={13} /> Remove
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Add staff modal */}
+      {/* Add Staff Modal */}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -110,24 +214,48 @@ export default function Staff() {
               <button className="modal-close" onClick={() => setModal(false)}><X size={18} /></button>
             </div>
             <div className="modal-body">
-              {error && <div className="alert alert-error">{error}</div>}
+              {error && (
+                <div style={{
+                  padding: '10px 14px', borderRadius: 8, marginBottom: 16,
+                  background: 'rgba(239,68,68,0.12)', color: '#FCA5A5',
+                  border: '1px solid rgba(239,68,68,0.3)', fontSize: 13
+                }}>
+                  {error}
+                </div>
+              )}
               <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input className="form-input" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="John Smith" />
+                <label className="form-label">Full Name *</label>
+                <input className="form-input" value={form.name}
+                  onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="John Smith" />
               </div>
               <div className="form-group">
-                <label className="form-label">Email</label>
-                <input className="form-input" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="staff@restaurant.com" />
+                <label className="form-label">Email *</label>
+                <input className="form-input" type="email" value={form.email}
+                  onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                  placeholder="staff@restaurant.com" />
               </div>
               <div className="form-group">
-                <label className="form-label">Temporary Password</label>
-                <input className="form-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Min. 6 characters" />
+                <label className="form-label">Temporary Password *</label>
+                <input className="form-input" type="password" value={form.password}
+                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                  placeholder="Min. 6 characters" />
               </div>
               <div className="form-group">
                 <label className="form-label">Role</label>
-                <select className="form-select" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                  {STAFF_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                <select className="form-select" value={form.role}
+                  onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
+                  {/* Manager can only hire operational staff, not create Admins/Managers */}
+                  {STAFF_ROLES.filter(r => isAdmin || !['Admin', 'Manager'].includes(r)).map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
                 </select>
+                <p className="text-xs text-muted" style={{ marginTop: 6 }}>
+                  {form.role === 'Chef' && 'Can manage kitchen orders'}
+                  {form.role === 'Waiter' && 'Can manage table orders and mark completed'}
+                  {form.role === 'Driver' && 'Can manage delivery dispatches'}
+                  {form.role === 'Manager' && 'Full admin access except billing'}
+                </p>
               </div>
             </div>
             <div className="modal-footer">

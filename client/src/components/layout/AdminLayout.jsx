@@ -11,15 +11,16 @@ import { getInitials } from '../../lib/utils';
 import './AdminLayout.css';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',  icon: LayoutDashboard, path: '' },
-  { label: 'Orders',     icon: ShoppingBag,     path: 'orders' },
-  { label: 'Menu',       icon: UtensilsCrossed, path: 'menu' },
-  { label: 'Tables',     icon: Armchair,        path: 'tables' },
-  { label: 'Staff',      icon: Users,           path: 'staff' },
-  { label: 'Inventory',  icon: Package,         path: 'inventory' },
-  { label: 'Delivery',   icon: Truck,           path: 'delivery' },
-  { label: 'CRM',        icon: Heart,           path: 'crm' },
-  { label: 'Settings',   icon: Settings,        path: 'settings' },
+  { label: 'Dashboard',  icon: LayoutDashboard, path: '',         roles: null },
+  { label: 'Orders',     icon: ShoppingBag,     path: 'orders',   roles: null },
+  { label: 'Menu',       icon: UtensilsCrossed, path: 'menu',     roles: null },
+  { label: 'Tables',     icon: Armchair,        path: 'tables',   roles: null },
+  { label: 'Staff',      icon: Users,           path: 'staff',    roles: null },
+  { label: 'Inventory',  icon: Package,         path: 'inventory',roles: null },
+  { label: 'Delivery',   icon: Truck,           path: 'delivery', roles: null },
+  { label: 'CRM',        icon: Heart,           path: 'crm',      roles: null },
+  // Settings: Admin only — Managers handle day-to-day ops but not restaurant config
+  { label: 'Settings',   icon: Settings,        path: 'settings', roles: ['admin'] },
 ];
 
 export default function AdminLayout() {
@@ -46,6 +47,12 @@ export default function AdminLayout() {
   };
 
   const basePath = `/admin/${restaurantId}`;
+  const isAdmin  = (user?.role || '').toLowerCase() === 'admin';
+
+  // Filter nav items by role
+  const visibleNav = NAV_ITEMS.filter(item =>
+    !item.roles || item.roles.includes((user?.role || '').toLowerCase())
+  );
 
   const SidebarContent = () => (
     <>
@@ -66,9 +73,23 @@ export default function AdminLayout() {
         )}
       </div>
 
+      {/* Role badge */}
+      {!collapsed && (
+        <div style={{ padding: '0 16px 8px', marginTop: -4 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+            padding: '3px 8px', borderRadius: 20, display: 'inline-block',
+            background: isAdmin ? 'rgba(255,107,53,0.15)' : 'rgba(99,102,241,0.15)',
+            color: isAdmin ? 'var(--primary)' : '#818CF8',
+          }}>
+            {user?.role?.toUpperCase()}
+          </span>
+        </div>
+      )}
+
       {/* Nav items */}
       <nav className="sidebar-nav">
-        {NAV_ITEMS.map(item => {
+        {visibleNav.map(item => {
           const Icon = item.icon;
           const to = item.path ? `${basePath}/${item.path}` : basePath;
           return (
@@ -106,9 +127,11 @@ export default function AdminLayout() {
 
         {userMenuOpen && (
           <div className="sidebar-user-menu">
-            <button className="sidebar-user-menu-item" onClick={() => navigate(`${basePath}/settings`)}>
-              <Settings size={14} /> Settings
-            </button>
+            {isAdmin && (
+              <button className="sidebar-user-menu-item" onClick={() => navigate(`${basePath}/settings`)}>
+                <Settings size={14} /> Settings
+              </button>
+            )}
             <button className="sidebar-user-menu-item danger" onClick={handleLogout}>
               <LogOut size={14} /> Logout
             </button>
@@ -117,6 +140,7 @@ export default function AdminLayout() {
       </div>
     </>
   );
+
 
   return (
     <div className="admin-layout">
