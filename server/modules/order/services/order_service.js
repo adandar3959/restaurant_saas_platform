@@ -175,3 +175,21 @@ exports.getOrderStats = async (restaurantId, query = {}) => {
     totals: totals || { revenue: 0, orders: 0, avgOrderValue: 0 },
   };
 };
+
+exports.updateItemStatus = async (orderId, restaurantId, itemId, kitchenStatus) => {
+  const validStatuses = ['Pending', 'Preparing', 'Ready', 'Served'];
+  if (!validStatuses.includes(kitchenStatus)) {
+    throw Object.assign(new Error('Invalid kitchen status'), { statusCode: 400 });
+  }
+
+  const update = { 'items.$.kitchenStatus': kitchenStatus };
+
+  const order = await Order.findOneAndUpdate(
+    { _id: orderId, restaurantId, 'items._id': itemId },
+    { $set: update },
+    { new: true }
+  );
+  if (!order) throw Object.assign(new Error('Order or item not found'), { statusCode: 404 });
+
+  return order;
+};

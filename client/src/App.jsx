@@ -22,6 +22,12 @@ import Delivery        from './pages/admin/Delivery';
 import CRM             from './pages/admin/CRM';
 import AdminSettings   from './pages/admin/AdminSettings';
 
+// ── Kitchen (KDS)
+import KDS             from './pages/kitchen/KDS';
+
+// ── Waiter View (Phase 5)
+import WaiterLayout    from './pages/waiter/WaiterLayout';
+
 // ─── Error Boundary ──────────────────────────────────────────────────────────
 class AdminErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -102,10 +108,15 @@ function AppRoutes() {
         <Route path="settings"  element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
       </Route>
 
+      {/* ── Kitchen Display (Phase 4) ───────────────────────────── */}
+      <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
+
       {/* Placeholder: other roles (future phases) */}
       <Route path="/superadmin/*" element={<RequireAuth allowedRoles={['SuperAdmin']}><PlaceholderDash role="SuperAdmin Dashboard" /></RequireAuth>} />
-      <Route path="/kitchen/*"    element={<RequireAuth allowedRoles={['Chef']}><PlaceholderDash role="Kitchen Display" /></RequireAuth>} />
-      <Route path="/waiter/*"     element={<RequireAuth allowedRoles={['Waiter']}><PlaceholderDash role="Waiter View" /></RequireAuth>} />
+      
+      {/* ── Waiter Layout ───────────────────────────── */}
+      <Route path="/waiter/:restaurantId/*" element={<RequireAuth allowedRoles={['Waiter']}><AdminErrorBoundary><WaiterLayout /></AdminErrorBoundary></RequireAuth>} />
+      
       <Route path="/driver/*"     element={<RequireAuth allowedRoles={['Driver']}><PlaceholderDash role="Driver View" /></RequireAuth>} />
       <Route path="/account/*"    element={<RequireAuth allowedRoles={['Customer']}><PlaceholderDash role="Customer Account" /></RequireAuth>} />
 

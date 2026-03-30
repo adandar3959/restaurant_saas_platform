@@ -31,7 +31,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     Preparing: ['Chef'],
     Ready: ['Chef'],
     OutForDelivery: ['Driver'],
-    Completed: ['Waiter', 'Driver'],
+    Completed: ['Waiter', 'Driver', 'Chef'],
     Cancelled: ['Admin', 'Manager'],
   };
 
@@ -63,4 +63,14 @@ exports.getMyOrders = asyncHandler(async (req, res) => {
 exports.getOrderStats = asyncHandler(async (req, res) => {
   const stats = await orderService.getOrderStats(req.params.restaurantId, req.query);
   sendSuccess(res, stats);
+});
+
+exports.updateItemStatus = asyncHandler(async (req, res) => {
+  const order = await orderService.updateItemStatus(
+    req.params.id,
+    req.params.restaurantId,
+    req.params.itemId,
+    req.body.kitchenStatus
+  );
+  sendSuccess(res, order, 'Item status updated');
 });

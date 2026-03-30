@@ -15,6 +15,7 @@ export const ordersApi = {
   placeOrder:    (rid, data)   => api.post(`/restaurants/${rid}/orders`, data),
   updateStatus:  (rid, id, status)  => api.patch(`/restaurants/${rid}/orders/${id}/status`, { status }),
   recordPayment: (rid, id, data)    => api.patch(`/restaurants/${rid}/orders/${id}/payment`, data),
+  updateItemStatus: (rid, id, itemId, kitchenStatus) => api.patch(`/restaurants/${rid}/orders/${id}/items/${itemId}`, { kitchenStatus }),
 };
 
 export default api;
