@@ -6,6 +6,7 @@ const { validateCreateOrder, validateUpdateStatus, validatePayment } = require('
 const staff = ['SuperAdmin', 'Admin', 'Manager', 'Waiter'];
 
 router.get('/my', protect, authorize('Customer'), ctrl.getMyOrders);
+router.get('/stats', protect, authorize('SuperAdmin', 'Admin', 'Manager'), ctrl.getOrderStats);
 router.post('/', optionalAuth, validateCreateOrder, ctrl.createOrder);
 router.get('/', protect, authorize(...staff), ctrl.getOrders);
 router.get('/:id', protect, ctrl.getOrderById);

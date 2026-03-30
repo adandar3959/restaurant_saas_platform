@@ -59,3 +59,8 @@ exports.getMyOrders = asyncHandler(async (req, res) => {
   const { orders, total } = await orderService.getMyOrders(req.user._id, pagination);
   sendSuccess(res, { orders, meta: paginateMeta(total, pagination.page, pagination.limit) });
 });
+
+exports.getOrderStats = asyncHandler(async (req, res) => {
+  const stats = await orderService.getOrderStats(req.params.restaurantId, req.query);
+  sendSuccess(res, stats);
+});

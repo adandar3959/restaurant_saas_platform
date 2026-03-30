@@ -128,3 +128,50 @@ exports.getMyOrders = async (customerId, pagination) => {
   ]);
   return { orders, total };
 };
+
+exports.getOrderStats = async (restaurantId, query = {}) => {
+  // Default to last 30 days if no range provided
+  const endDate = query.endDate ? new Date(query.endDate) : new Date();
+  const startDate = query.startDate
+    ? new Date(query.startDate)
+    : new Date(endDate - 30 * 24 * 60 * 60 * 1000);
+
+  const matchStage = {
+    restaurantId: new (require('mongoose').Types.ObjectId)(restaurantId),
+    status: { $nin: ['Cancelled'] },
+    createdAt: { $gte: startDate, $lte: endDate },
+  };
+
+  // Daily revenue breakdown
+  const dailyRevenue = await Order.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        amount: { $sum: '$financials.totalAmount' },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+    { $project: { _id: 0, date: '$_id', amount: 1, count: 1 } },
+  ]);
+
+  // Overall totals
+  const [totals] = await Order.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: null,
+        revenue: { $sum: '$financials.totalAmount' },
+        orders: { $sum: 1 },
+        avgOrderValue: { $avg: '$financials.totalAmount' },
+      },
+    },
+    { $project: { _id: 0, revenue: 1, orders: 1, avgOrderValue: { $round: ['$avgOrderValue', 2] } } },
+  ]);
+
+  return {
+    dailyRevenue,
+    totals: totals || { revenue: 0, orders: 0, avgOrderValue: 0 },
+  };
+};
