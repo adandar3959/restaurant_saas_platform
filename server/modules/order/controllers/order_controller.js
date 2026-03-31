@@ -74,3 +74,12 @@ exports.updateItemStatus = asyncHandler(async (req, res) => {
   );
   sendSuccess(res, order, 'Item status updated');
 });
+
+exports.addTip = asyncHandler(async (req, res) => {
+  const order = await orderService.addTip(
+    req.params.id,
+    req.params.restaurantId,
+    req.body.tipAmount
+  );
+  sendSuccess(res, order, 'Tip added');
+});

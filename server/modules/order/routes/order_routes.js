@@ -12,6 +12,7 @@ router.get('/', protect, authorize(...staff), ctrl.getOrders);
 router.get('/:id', protect, ctrl.getOrderById);
 router.patch('/:id/status', protect, authorize(...staff), validateUpdateStatus, ctrl.updateOrderStatus);
 router.patch('/:id/items/:itemId', protect, authorize(...staff), ctrl.updateItemStatus);
+router.patch('/:id/tip', optionalAuth, ctrl.addTip);
 router.patch('/:id/payment', protect, authorize('SuperAdmin', 'Admin', 'Manager', 'Waiter'), validatePayment, ctrl.updatePayment);
 
 module.exports = router;

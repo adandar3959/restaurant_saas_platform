@@ -193,3 +193,21 @@ exports.updateItemStatus = async (orderId, restaurantId, itemId, kitchenStatus) 
 
   return order;
 };
+
+exports.addTip = async (orderId, restaurantId, tipAmount) => {
+  if (tipAmount <= 0) throw Object.assign(new Error('Tip amount must be greater than 0'), { statusCode: 400 });
+
+  const order = await Order.findOne({ _id: orderId, restaurantId });
+  if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+
+  const newTotal = order.financials.totalAmount + tipAmount;
+
+  return Order.findByIdAndUpdate(
+    orderId,
+    {
+      'financials.tipAmount': (order.financials.tipAmount || 0) + tipAmount,
+      'financials.totalAmount': newTotal,
+    },
+    { returnDocument: 'after' }
+  );
+};
