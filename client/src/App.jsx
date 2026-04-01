@@ -28,6 +28,9 @@ import KDS             from './pages/kitchen/KDS';
 // ── Waiter View (Phase 5)
 import WaiterLayout    from './pages/waiter/WaiterLayout';
 
+// ── Driver View
+import DriverDashboard from './pages/driver/DriverDashboard';
+
 // ─── Error Boundary ──────────────────────────────────────────────────────────
 class AdminErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -117,7 +120,7 @@ function AppRoutes() {
       {/* ── Waiter Layout ───────────────────────────── */}
       <Route path="/waiter/:restaurantId/*" element={<RequireAuth allowedRoles={['Waiter']}><AdminErrorBoundary><WaiterLayout /></AdminErrorBoundary></RequireAuth>} />
       
-      <Route path="/driver/*"     element={<RequireAuth allowedRoles={['Driver']}><PlaceholderDash role="Driver View" /></RequireAuth>} />
+      <Route path="/driver/:restaurantId/*" element={<RequireAuth allowedRoles={['Driver']}><AdminErrorBoundary><DriverDashboard /></AdminErrorBoundary></RequireAuth>} />
       <Route path="/account/*"    element={<RequireAuth allowedRoles={['Customer']}><PlaceholderDash role="Customer Account" /></RequireAuth>} />
 
       {/* 404 */}

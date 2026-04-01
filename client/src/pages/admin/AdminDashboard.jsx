@@ -61,8 +61,8 @@ function RevenueChart({ data }) {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, display: 'block' }}>
       <defs>
         <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#FF6B35" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#FF6B35" stopOpacity="0"    />
+          <stop offset="0%"   stopColor="var(--neon-cyan)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--neon-cyan)" stopOpacity="0"    />
         </linearGradient>
       </defs>
 
@@ -80,14 +80,14 @@ function RevenueChart({ data }) {
       <path d={areaPath} fill="url(#revGrad)" />
 
       {/* Line */}
-      <path d={linePath} fill="none" stroke="#FF6B35" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={linePath} fill="none" stroke="var(--neon-cyan)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
 
       {/* Points */}
       {pts.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={4.5} fill="#FF6B35" stroke="var(--bg-surface)" strokeWidth={2} />
+          <circle cx={p.x} cy={p.y} r={4.5} fill="var(--neon-cyan)" stroke="var(--bg-surface)" strokeWidth={2} />
           {p.revenue > 0 && (
-            <text x={p.x} y={p.y - 13} textAnchor="middle" fontSize={9.5} fill="#FF6B35" fontWeight="700">
+            <text x={p.x} y={p.y - 13} textAnchor="middle" fontSize={9.5} fill="var(--neon-cyan)" fontWeight="700">
               ${p.revenue >= 1000 ? `${(p.revenue/1000).toFixed(1)}k` : p.revenue.toFixed(0)}
             </text>
           )}
@@ -101,22 +101,24 @@ function RevenueChart({ data }) {
 }
 
 // ─── Mini Stat Card ───────────────────────────────────────────────────────────
-function MiniStat({ label, value, icon: Icon, color, sub, trend }) {
+function MiniStat({ label, value, icon: Icon, color, sub, trend, delay = 0 }) {
   return (
-    <div className="stat-card">
+    <div className="stat-card glass-panel animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
       <div className="stat-card-top">
-        <div className="stat-card-icon" style={{ background: `${color}20`, color }}>
-          <Icon size={20} />
+        <div className="stat-card-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
+          <Icon size={22} />
         </div>
         {trend !== undefined && (
-          trend >= 0
-            ? <TrendingUp  size={15} style={{ color: 'var(--success)' }} />
-            : <TrendingDown size={15} style={{ color: 'var(--error)'   }} />
+          <div className={`stat-card-change ${trend >= 0 ? 'up' : 'down'}`}>
+            {trend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            {Math.abs(trend)}%
+          </div>
         )}
       </div>
-      <div className="stat-card-label">{label}</div>
-      <div className="stat-card-value" style={{ color }}>{value}</div>
-      {sub && <div className="stat-card-change">{sub}</div>}
+      <div>
+        <div className="stat-card-label">{label}</div>
+        <div className="stat-card-value gradient-text-cyan">{value}</div>
+      </div>
     </div>
   );
 }
@@ -285,12 +287,10 @@ export default function AdminDashboard() {
           {/* Revenue chart */}
           <div className="dash-section">
             <div className="dash-section-header">
-              <h2 className="dash-section-title">Revenue — Last 7 Days</h2>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                Total: <strong style={{ color: 'var(--primary)' }}>{formatCurrency(dailyRevenue.reduce((s,d) => s+d.revenue, 0))}</strong>
-              </div>
+              <h3 className="dash-section-title gradient-text-cyan">Weekly Revenue Overview</h3>
+              <div className="badge badge-primary" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)', borderColor: 'rgba(56,189,248,0.2)' }}>Last 7 Days</div>
             </div>
-            <div className="card" style={{ padding: 'var(--space-5)' }}>
+            <div className="card glass-panel" style={{ padding: '24px 16px 12px' }}>
               <RevenueChart data={dailyRevenue} />
               {/* Day summary row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginTop: 'var(--space-4)', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-4)' }}>
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
             {/* Order type breakdown */}
             <div className="dash-section">
               <h2 className="dash-section-title">Order Type Mix</h2>
-              <div className="card" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 {[
                   { type: 'Dine-In',  color: '#FF6B35', icon: '🪑' },
                   { type: 'Takeaway', color: '#6366F1', icon: '🥡' },
@@ -341,7 +341,7 @@ export default function AdminDashboard() {
             {/* Payment status */}
             <div className="dash-section">
               <h2 className="dash-section-title">Payment Overview</h2>
-              <div className="card" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
                 {/* Donut-style visual */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
                   <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
                 </h2>
                 <button className="btn btn-ghost btn-xs" onClick={() => navigate(`${basePath}/orders`)}>View all <ArrowRight size={12} /></button>
               </div>
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="card glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
                 {activeOrders.length === 0 ? (
                   <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
                     <div className="empty-state-icon">✅</div>
@@ -459,7 +459,7 @@ export default function AdminDashboard() {
                 <h2 className="dash-section-title">🪑 Tables Status</h2>
                 <button className="btn btn-ghost btn-xs" onClick={() => navigate(`${basePath}/tables`)}>Manage <ArrowRight size={12} /></button>
               </div>
-              <div className="card" style={{ padding: 'var(--space-4)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
                 {/* Status summary */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
                   {[
@@ -501,7 +501,7 @@ export default function AdminDashboard() {
             {/* Staff by role */}
             <div className="dash-section">
               <h2 className="dash-section-title">👥 Staff</h2>
-              <div className="card" style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                 {[
                   { role: 'Chef',    icon: '👨‍🍳', color: '#F59E0B' },
                   { role: 'Waiter',  icon: '🍽️',  color: '#10B981' },
@@ -529,7 +529,7 @@ export default function AdminDashboard() {
               <h2 className="dash-section-title">
                 📦 Low Stock {lowStock.length > 0 && <span style={{ color: 'var(--error)', fontSize: 14 }}>({lowStock.length})</span>}
               </h2>
-              <div className="card" style={{ padding: 'var(--space-4)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
                 {lowStock.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
                     <div style={{ fontSize: 28 }}>✅</div>
@@ -563,7 +563,7 @@ export default function AdminDashboard() {
                   <span style={{ marginLeft: 6, color: '#FCD34D', fontSize: 13 }}>{pendingReservations} pending</span>
                 )}
               </h2>
-              <div className="card" style={{ padding: 'var(--space-4)' }}>
+              <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
                 {todayReservations.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
                     <div style={{ fontSize: 28 }}>📅</div>
@@ -633,26 +633,33 @@ export default function AdminDashboard() {
 
       {/* Quick actions (both roles) */}
       <div className="dash-section">
-        <h2 className="dash-section-title">Quick Actions</h2>
+        <h2 className="dash-section-title gradient-text-cyan">Quick Actions</h2>
         <div className="quick-actions-grid">
           {(isAdmin ? [
-            { label: 'View Orders',   icon: ShoppingBag,     path: 'orders',    color: '#FF6B35' },
-            { label: 'Menu Manager',  icon: UtensilsCrossed, path: 'menu',      color: '#6366F1' },
+            { label: 'View Orders',   icon: ShoppingBag,     path: 'orders',    color: 'var(--neon-cyan)' },
+            { label: 'Menu Manager',  icon: UtensilsCrossed, path: 'menu',      color: 'var(--neon-purple)' },
             { label: 'Settings',      icon: CreditCard,       path: 'settings',  color: '#10B981' },
             { label: 'CRM & Reviews', icon: Star,             path: 'crm',       color: '#F59E0B' },
           ] : [
-            { label: 'View Orders',   icon: ShoppingBag,     path: 'orders',    color: '#FF6B35' },
-            { label: 'Manage Tables', icon: Armchair,         path: 'tables',    color: '#6366F1' },
+            { label: 'View Orders',   icon: ShoppingBag,     path: 'orders',    color: 'var(--neon-cyan)' },
+            { label: 'Manage Tables', icon: Armchair,         path: 'tables',    color: 'var(--neon-purple)' },
             { label: 'Staff',         icon: Users,            path: 'staff',     color: '#10B981' },
             { label: 'Inventory',     icon: Package,          path: 'inventory', color: '#F59E0B' },
-          ]).map((a, i) => {
-            const Icon = a.icon;
+          ]).map((qa, idx) => {
+            const Icon = qa.icon;
             return (
-              <button key={i} className="quick-action-card" onClick={() => navigate(`${basePath}/${a.path}`)} style={{ '--qa-color': a.color }}>
-                <div className="qa-icon" style={{ background: `${a.color}20`, color: a.color }}><Icon size={22} /></div>
-                <span className="qa-label">{a.label}</span>
-                <ArrowRight size={14} className="qa-arrow" />
-              </button>
+              <div 
+                key={idx} 
+                className="quick-action-card glass-panel animate-fade-up" 
+                style={{ animationDelay: `${400 + idx*50}ms` }}
+                onClick={() => navigate(`${basePath}/${qa.path}`)}
+              >
+                <div className="qa-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
+                  <Icon size={20} />
+                </div>
+                <div className="qa-label">{qa.label}</div>
+                <ArrowRight size={16} className="qa-arrow" strokeWidth={3} />
+              </div>
             );
           })}
         </div>

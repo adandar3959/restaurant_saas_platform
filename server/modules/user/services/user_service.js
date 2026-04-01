@@ -175,3 +175,15 @@ exports.updateMe = async (id, data) => {
   forbidden.forEach((f) => delete data[f]);
   return User.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 };
+
+exports.changePassword = async (id, oldPassword, newPassword) => {
+  const user = await User.findById(id).select('+passwordHash');
+  if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+
+  const isMatch = await user.comparePassword(oldPassword);
+  if (!isMatch) throw Object.assign(new Error('Old password is incorrect'), { statusCode: 401 });
+
+  user.passwordHash = await require('bcryptjs').hash(newPassword, 12);
+  await User.updateOne({ _id: id }, { passwordHash: user.passwordHash });
+  return { message: 'Password changed successfully' };
+};

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, MapPin, X, Truck, RefreshCw, Pencil, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, MapPin, X, Truck, RefreshCw, Pencil, Trash2, CheckCircle, AlertCircle, Users, Activity } from 'lucide-react';
 import { deliveryApi } from '../../api/delivery.api';
 import { DISPATCH_STATUS } from '../../lib/constants';
 import { formatDateTime, getInitials } from '../../lib/utils';
@@ -161,19 +161,23 @@ export default function Delivery() {
       </div>
 
       {/* Summary stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
         {[
-          { label: 'Active',         value: activeDispatches.length,   color: '#6366F1', icon: '🚀' },
-          { label: 'Delivered Today', value: deliveredToday,            color: '#10B981', icon: '✅' },
-          { label: 'Drivers',         value: drivers.length,            color: '#F59E0B', icon: '🛵' },
-          { label: 'Available Now',   value: availableDrivers,          color: '#3B82F6', icon: '✔️' },
+          { label: 'Active',         value: activeDispatches.length,   icon: Truck, color: 'var(--neon-cyan)', delay: 0 },
+          { label: 'Delivered Today', value: deliveredToday,            icon: CheckCircle, color: 'var(--neon-emerald)', delay: 100 },
+          { label: 'Total Drivers',   value: drivers.length,            icon: Users, color: 'var(--neon-purple)', delay: 200 },
+          { label: 'Available Now',   value: availableDrivers,          icon: Activity, color: 'var(--neon-cyan)', delay: 300 },
         ].map(s => (
-          <div key={s.label} className="stat-card">
+          <div key={s.label} className="stat-card glass-panel animate-fade-up" style={{ animationDelay: `${s.delay}ms` }}>
             <div className="stat-card-top">
-              <div className="stat-card-icon" style={{ background: `${s.color}20`, color: s.color, fontSize: 18 }}>{s.icon}</div>
+              <div className="stat-card-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
+                <s.icon size={20} />
+              </div>
             </div>
-            <div className="stat-card-label">{s.label}</div>
-            <div className="stat-card-value" style={{ color: s.color }}>{s.value}</div>
+            <div>
+              <div className="stat-card-label">{s.label}</div>
+              <div className="stat-card-value gradient-text-cyan">{s.value}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -195,22 +199,22 @@ export default function Delivery() {
         <>
           {/* ── Dispatches ────────────────────────────────────────────────── */}
           {tab === 'dispatches' && (
-            <div className="data-table-wrap">
+            <div className="data-table-wrap glass-panel animate-fade-up">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Order</th><th>Driver</th><th>Zone</th>
+                    <th>Order ID</th><th>Driver</th><th>Zone</th>
                     <th>Status</th><th>Time</th><th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dispatches.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--text-muted)' }}>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--text-muted)' }}>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>🛵</div>
-                        No dispatches yet —{' '}
-                        <button className="btn btn-ghost btn-xs" onClick={() => { setForm({}); setModal('dispatch'); }}>
-                          <Plus size={13} /> create one
+                        <div>No dispatches yet — </div>
+                        <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm({}); setModal('dispatch'); }}>
+                          <Plus size={14} /> New Dispatch
                         </button>
                       </td>
                     </tr>
@@ -220,45 +224,35 @@ export default function Delivery() {
                     return (
                       <tr key={d._id}>
                         <td>
-                          <span className="order-id">
+                          <span className="order-id" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)', border: '1px solid rgba(56,189,248,0.2)' }}>
                             #{(d.orderId?._id || d.orderId)?.toString().slice(-6).toUpperCase() || '—'}
                           </span>
                         </td>
                         <td>
                           <div className="font-semi">{d.driverId?.name || '—'}</div>
-                          {d.driverId?.vehiclePlate && (
-                            <div className="text-xs text-muted">{d.driverId.vehiclePlate}</div>
-                          )}
                         </td>
                         <td className="text-muted">{d.zoneId?.name || '—'}</td>
                         <td>
-                          <span className="status-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}33` }}>
-                            {d.status}
+                          <span className="status-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40`, fontWeight: 700, fontSize: 11 }}>
+                            {d.status.toUpperCase()}
                           </span>
                         </td>
                         <td className="text-muted text-sm">{formatDateTime(d.createdAt)}</td>
                         <td>
-                          {next && (
-                            <button
-                              className="btn btn-xs"
-                              style={{ background: 'rgba(16,185,129,0.12)', color: '#34D399', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}
-                              onClick={() => handleDispatchStatus(d._id, next)}
-                            >
-                              <CheckCircle size={12} /> {next}
-                            </button>
-                          )}
-                          {d.status === 'InTransit' && (
-                            <button
-                              className="btn btn-xs"
-                              style={{ marginLeft: 6, background: 'rgba(239,68,68,0.1)', color: '#F87171', border: '1px solid rgba(239,68,68,0.3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                              onClick={() => handleDispatchStatus(d._id, 'Failed')}
-                            >
-                              Failed
-                            </button>
-                          )}
-                          {!next && !['InTransit'].includes(d.status) && (
-                            <span className="text-xs text-muted">—</span>
-                          )}
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {next && (
+                              <button
+                                className="btn btn-primary btn-xs"
+                                style={{ background: 'var(--neon-cyan)', color: '#0f172a', fontWeight: 800, border: 'none' }}
+                                onClick={() => handleDispatchStatus(d._id, next)}
+                              >
+                                <CheckCircle size={12} /> {next}
+                              </button>
+                            )}
+                            {!next && !['InTransit','Delivered'].includes(d.status) && (
+                              <span className="text-xs text-muted">—</span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

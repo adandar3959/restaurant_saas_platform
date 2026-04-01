@@ -7,13 +7,13 @@ import { menuApi } from '../../api/menu.api';
 import { ordersApi } from '../../api/orders.api';
 import {
   LayoutDashboard, Bell, LogOut, CheckCircle, 
-  Minus, Plus, ShoppingBag, Utensils, X, Clock, Coffee, User
+  Minus, Plus, ShoppingBag, Utensils, X, Clock, Coffee, User, BarChart2
 } from 'lucide-react';
 import './Waiter.css';
 
 export default function WaiterLayout() {
   const { restaurantId } = useParams();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   
   const [activeTab, setActiveTab] = useState('tables'); // 'tables' or 'active'
   const [tables, setTables] = useState([]);
@@ -39,9 +39,16 @@ export default function WaiterLayout() {
   const [settlingTable, setSettlingTable] = useState(null);
   const [tipAmount, setTipAmount] = useState('');
 
-  // Profile Edit State
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '', email: user?.email || '' });
+  // Profile Management State
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({ 
+    name: user?.name || '', 
+    phone: user?.phone || '', 
+    email: user?.email || '',
+    gender: user?.gender || 'Other' 
+  });
+  const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '' });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -378,32 +385,24 @@ export default function WaiterLayout() {
     );
   };
 
-  const renderProfile = () => {
+  const renderDashboard = () => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const myServedOrders = allOrders.filter(o => {
+    // LIFETIME METRICS
+    const myLifetimeOrders = allOrders.filter(o => {
        const uId = user?._id;
        const matchWaiter = (o.waiterId?._id || o.waiterId) === uId;
        const matchCustomerFallback = (o.customerId?._id || o.customerId) === uId;
-       const isCompleted = o.status === 'Completed';
-       const isToday = new Date(o.createdAt) >= startOfToday;
-       return (matchWaiter || matchCustomerFallback) && isCompleted && isToday;
+       return (matchWaiter || matchCustomerFallback) && o.status === 'Completed';
     });
-    
+    const lifeSales = myLifetimeOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const lifeTips = myLifetimeOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
+
+    // TODAY METRICS
+    const myServedOrders = myLifetimeOrders.filter(o => new Date(o.createdAt) >= startOfToday);
     const totalSales = myServedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const totalTips = myServedOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
-
-    const handleUpdateProfile = async (e) => {
-      e.preventDefault();
-      try {
-        await axios.patch(`http://localhost:5000/api/v1/users/me`, { name: profileForm.name, phone: profileForm.phone });
-        alert('Profile details updated successfully! Reload to see changes everywhere.');
-        setIsEditingProfile(false);
-      } catch (err) {
-        alert(err.response?.data?.message || 'Failed to update profile');
-      }
-    };
 
     return (
       <div className="waiter-dashboard fade-in">
@@ -412,26 +411,8 @@ export default function WaiterLayout() {
            <div className="wd-info">
              <h2>{user?.name || 'Waiter'}</h2>
              <p>{user?.email} • Waiter ID: {user?._id?.slice(-5).toUpperCase()}</p>
-             <button className="btn-edit-profile" onClick={() => setIsEditingProfile(!isEditingProfile)}>
-               {isEditingProfile ? 'Cancel Edit' : 'Edit Profile'}
-             </button>
            </div>
         </div>
-
-        {isEditingProfile && (
-           <form className="wd-edit-form glass-panel" onSubmit={handleUpdateProfile}>
-             <h3 className="gradient-text">Update Profile Settings</h3>
-             <div className="wd-input-group">
-               <label>Full Name</label>
-               <input type="text" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
-             </div>
-             <div className="wd-input-group">
-               <label>Phone Number</label>
-               <input type="text" value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} />
-             </div>
-             <button type="submit" className="btn-glow-cyan">Save Changes</button>
-           </form>
-        )}
 
         <h3 className="wd-section-title">Today's Shift Performance</h3>
         <div className="wd-metrics-grid">
@@ -452,14 +433,30 @@ export default function WaiterLayout() {
            </div>
         </div>
 
-        <h3 className="wd-section-title" style={{marginTop: 32}}>My Recent Tables (Today)</h3>
+        <h3 className="wd-section-title" style={{marginTop: 32}}>All-Time Performance (Since Join)</h3>
+        <div className="wd-metrics-grid">
+           <div className="wd-metric-glass card-blue" style={{background: 'rgba(56, 189, 248, 0.05)'}}>
+              <h4>Lifetime Orders</h4>
+              <div className="wd-val">{myLifetimeOrders.length}</div>
+           </div>
+           <div className="wd-metric-glass card-purple" style={{background: 'rgba(192, 132, 252, 0.05)'}}>
+              <h4>Lifetime Sales</h4>
+              <div className="wd-val">${lifeSales.toFixed(2)}</div>
+           </div>
+           <div className="wd-metric-glass card-green" style={{background: 'rgba(16, 185, 129, 0.05)'}}>
+              <h4>Lifetime Tips</h4>
+              <div className="wd-val">${lifeTips.toFixed(2)}</div>
+           </div>
+        </div>
+
+        <h3 className="wd-section-title" style={{marginTop: 32}}>Recent Orders</h3>
         <div className="wd-recent-list">
-          {myServedOrders.length === 0 && <p className="wd-empty-glass">No orders finished yet.</p>}
-          {myServedOrders.slice(0, 8).map(o => (
+          {myLifetimeOrders.length === 0 && <p className="wd-empty-glass">No orders finished yet.</p>}
+          {myLifetimeOrders.slice(0, 10).map(o => (
             <div key={o._id} className="wd-recent-glass-row">
               <div className="wrr-left">
                 <div className="wrr-table">Table {o.tableNumber}</div>
-                <div className="wrr-time">{new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                <div className="wrr-time">{new Date(o.createdAt).toLocaleDateString()} • {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
               </div>
               <div className="wrr-right">
                 <div className="wrr-total">${(o.totalAmount || 0).toFixed(2)}</div>
@@ -480,9 +477,14 @@ export default function WaiterLayout() {
           <Coffee size={24} color="#f59e0b" />
           <span>Waiter View</span>
         </div>
-        <button className="btn btn-ghost btn-circle" onClick={logout} style={{color: '#ef4444'}}>
-          <LogOut size={20} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(true)} style={{color: '#94a3b8'}} title="Profile Settings">
+            <User size={20} />
+          </button>
+          <button className="btn btn-ghost btn-circle" onClick={logout} style={{color: '#ef4444'}} title="Logout">
+            <LogOut size={20} />
+          </button>
+        </div>
       </header>
 
       {/* MAIN CONTENT PORT */}
@@ -491,8 +493,8 @@ export default function WaiterLayout() {
            <div className="waiter-loading">Loading floor plan...</div>
         ) : activeTab === 'tables' ? (
            renderTables()
-        ) : activeTab === 'profile' ? (
-           renderProfile()
+        ) : activeTab === 'dashboard' ? (
+           renderDashboard()
         ) : (
            renderActive()
         )}
@@ -513,9 +515,9 @@ export default function WaiterLayout() {
           </div>
           <span>Kitchen</span>
         </button>
-        <button className={`nav-item ${activeTab==='profile'?'active':''}`} onClick={()=>setActiveTab('profile')}>
-          <User size={24} />
-          <span>Profile</span>
+        <button className={`nav-item ${activeTab==='dashboard'?'active':''}`} onClick={()=>setActiveTab('dashboard')}>
+          <BarChart2 size={24} />
+          <span>Dashboard</span>
         </button>
       </nav>
 
@@ -719,6 +721,139 @@ export default function WaiterLayout() {
           </div>
         </div>
       )}
+
+      {/* FULL SCREEN PROFILE MANAGEMENT MODAL */}
+      {profileModalOpen && (
+        <div className="waiter-modal-backdrop fade-in" style={{zIndex: 400}}>
+          <div className="waiter-modal profile-settings-modal glass-panel">
+            <div className="w-modal-header glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <h3 className="gradient-text">Profile Settings</h3>
+               <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{color: '#94a3b8'}}>
+                 <X size={24} />
+               </button>
+            </div>
+            
+            <div className="w-modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', maxHeight: '70vh', overflowY: 'auto' }}>
+              
+              {/* PERSONAL DETAILS FORM */}
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const payload = { ...profileForm };
+                  
+                  // Validation: No changes made
+                  const isNoChange = 
+                    payload.name === user?.name &&
+                    payload.email === user?.email &&
+                    (payload.phone || '') === (user?.phone || '') &&
+                    (payload.gender || 'Other') === (user?.gender || 'Other');
+
+                  if (isNoChange) {
+                    alert('Your profile is already up to date!');
+                    return;
+                  }
+
+                  if (!payload.phone || payload.phone.trim() === '') {
+                     delete payload.phone;
+                  }
+                  
+                  const res = await axios.patch(`http://localhost:5000/api/v1/auth/me`, payload);
+                  
+                  // Update AuthContext so changes persist after refresh
+                  if (res.data?.data) {
+                    updateUser(res.data.data);
+                  } else {
+                    updateUser(payload);
+                  }
+
+                  alert('Profile details updated successfully!');
+                } catch (err) {
+                  let msg = err.response?.data?.message || 'Failed to update profile';
+                  if (err.response?.data?.errors?.length > 0) {
+                     msg = err.response.data.errors.map(errObj => errObj.message).join(' | ');
+                  }
+                  alert(msg);
+                }
+              }} className="wd-edit-form">
+                <h4 style={{ color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px' }}>Personal Details</h4>
+                
+                <div className="wd-input-group">
+                  <label>Email</label>
+                  <input type="email" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} />
+                </div>
+                
+                <div className="wd-input-group">
+                  <label>Full Name</label>
+                  <input type="text" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
+                </div>
+                
+                <div className="wd-input-group">
+                  <label>Contact No</label>
+                  <input type="text" value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} />
+                </div>
+                
+                <div className="wd-input-group">
+                  <label>Gender</label>
+                  <select 
+                    value={profileForm.gender} 
+                    onChange={e => setProfileForm({...profileForm, gender: e.target.value})}
+                    style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '14px', borderRadius: '12px', color: '#fff', fontSize: '16px', outline: 'none' }}
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="wd-input-group" style={{ marginTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Password
+                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
+                      {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
+                    </button>
+                  </label>
+                </div>
+
+                {showPasswordForm && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '16px', borderRadius: '12px', marginTop: '8px' }}>
+                    <div className="wd-input-group">
+                      <label style={{ color: '#ef4444' }}>Current Password</label>
+                      <input type="password" value={pwdForm.oldPassword} onChange={e => setPwdForm({...pwdForm, oldPassword: e.target.value})} placeholder="Enter current password" />
+                    </div>
+                    <div className="wd-input-group">
+                      <label style={{ color: '#ef4444' }}>New Password</label>
+                      <input type="password" value={pwdForm.newPassword} onChange={e => setPwdForm({...pwdForm, newPassword: e.target.value})} placeholder="Enter new password" />
+                    </div>
+                    <button type="button" onClick={async () => {
+                      if (!pwdForm.oldPassword || !pwdForm.newPassword) return alert('Both passwords are required');
+                      
+                      if (pwdForm.newPassword === pwdForm.oldPassword) {
+                        alert('New password cannot be the same as your old password! Please choose a different one.');
+                        return;
+                      }
+
+                      try {
+                        await axios.patch(`http://localhost:5000/api/v1/auth/me/change-password`, pwdForm);
+                        alert('Password updated successfully!');
+                        setPwdForm({ oldPassword: '', newPassword: '' });
+                        setShowPasswordForm(false);
+                      } catch (err) {
+                        alert(err.response?.data?.message || 'Failed to update password');
+                      }
+                    }} style={{ alignSelf: 'flex-start', padding: '10px 24px', fontSize: '14px', background: 'linear-gradient(135deg, #ef4444, #b91c1c)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                      Update Secure Password
+                    </button>
+                  </div>
+                )}
+
+                <button type="submit" className="btn-glow-cyan" style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: '16px', marginTop: '24px' }}>Save All Changes</button>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

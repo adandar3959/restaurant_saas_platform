@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, X, AlertTriangle, Pencil, Trash2, PackageCheck, PackageX } from 'lucide-react';
+import { Plus, X, AlertTriangle, Pencil, Trash2, PackageCheck, PackageX, CheckCircle } from 'lucide-react';
 import { inventoryApi } from '../../api/inventory.api';
 import { UNITS } from '../../lib/constants';
 
@@ -24,14 +24,14 @@ function Toast({ toast }) {
 export default function Inventory() {
   const { restaurantId } = useOutletContext();
   const [ingredients, setIngredients] = useState([]);
-  const [lowStock,    setLowStock]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [tab,         setTab]         = useState('all');
-  const [modal,       setModal]       = useState(false);
-  const [form,        setForm]        = useState({});
-  const [saving,      setSaving]      = useState(false);
-  const [search,      setSearch]      = useState('');
-  const [toast,       setToast]       = useState(null);
+  const [lowStock, setLowStock] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('all');
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState(null);
 
   const showToast = (type, msg) => {
     setToast({ type, msg });
@@ -47,7 +47,7 @@ export default function Inventory() {
       ]);
       setIngredients(ing.data?.data?.ingredients || ing.data?.data || []);
       setLowStock(low.data?.data?.ingredients || low.data?.data || []);
-    } catch {}
+    } catch { }
     finally { setLoading(false); }
   };
 
@@ -58,7 +58,7 @@ export default function Inventory() {
     setSaving(true);
     try {
       if (form._id) await inventoryApi.updateIngredient(restaurantId, form._id, form);
-      else          await inventoryApi.addIngredient(restaurantId, form);
+      else await inventoryApi.addIngredient(restaurantId, form);
       setModal(false);
       setForm({});
       load();
@@ -128,20 +128,22 @@ export default function Inventory() {
       )}
 
       {/* Summary stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
         {[
-          { label: 'Total Items',  value: ingredients.length,  icon: '📦', color: '#6366F1' },
-          { label: 'Low Stock',    value: lowStock.length,     icon: '⚠️',  color: '#EF4444' },
-          { label: 'Well Stocked', value: ingredients.length - lowStock.length, icon: '✅', color: '#10B981' },
+          { label: 'Total Items', value: ingredients.length, icon: PackageCheck, color: 'var(--neon-cyan)', delay: 0 },
+          { label: 'Low Stock', value: lowStock.length, icon: AlertTriangle, color: 'var(--error)', delay: 100 },
+          { label: 'Well Stocked', value: ingredients.length - lowStock.length, icon: CheckCircle, color: 'var(--neon-emerald)', delay: 200 },
         ].map(s => (
-          <div key={s.label} className="stat-card">
+          <div key={s.label} className="stat-card glass-panel animate-fade-up" style={{ animationDelay: `${s.delay}ms` }}>
             <div className="stat-card-top">
-              <div className="stat-card-icon" style={{ background: `${s.color}20`, color: s.color }}>
-                <span style={{ fontSize: 18 }}>{s.icon}</span>
+              <div className="stat-card-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: s.color }}>
+                <s.icon size={22} />
               </div>
             </div>
-            <div className="stat-card-label">{s.label}</div>
-            <div className="stat-card-value" style={{ color: s.color }}>{s.value}</div>
+            <div>
+              <div className="stat-card-label">{s.label}</div>
+              <div className="stat-card-value gradient-text-cyan">{s.value}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -168,7 +170,7 @@ export default function Inventory() {
       {loading ? (
         <div className="page-loading"><div className="spinner-lg" /></div>
       ) : (
-        <div className="data-table-wrap">
+        <div className="data-table-wrap glass-panel animate-fade-up" style={{ animationDelay: '300ms' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -186,41 +188,41 @@ export default function Inventory() {
                 </tr>
               ) : displayList.map(ing => {
                 const isLow = ing.currentStock <= ing.reorderLevel;
-                const pct   = stockPct(ing);
+                const pct = stockPct(ing);
                 return (
                   <tr key={ing._id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         {isLow
-                          ? <PackageX size={15} style={{ color: 'var(--error)', flexShrink: 0 }} />
-                          : <PackageCheck size={15} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                          ? <PackageX size={18} style={{ color: 'var(--error)', flexShrink: 0 }} />
+                          : <PackageCheck size={18} style={{ color: 'var(--neon-emerald)', flexShrink: 0 }} />
                         }
                         <span className="font-semi">{ing.name}</span>
                       </div>
                     </td>
                     <td className="text-muted">{ing.category || '—'}</td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <span style={{ fontWeight: 700, color: isLow ? 'var(--error)' : 'var(--success)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <span style={{ fontWeight: 700, color: isLow ? 'var(--error)' : 'var(--neon-emerald)' }}>
                           {ing.currentStock} {ing.unit}
                         </span>
                         {pct !== null && (
-                          <div style={{ width: 80, height: 4, background: 'var(--bg-surface-2)', borderRadius: 99 }}>
-                            <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: isLow ? 'var(--error)' : 'var(--success)', transition: 'width 0.4s' }} />
+                          <div style={{ width: 80, height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 99 }}>
+                            <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: isLow ? 'var(--error)' : 'var(--neon-emerald)', boxShadow: isLow ? 'none' : '0 0 8px var(--neon-emerald-glow)', transition: 'width 0.4s' }} />
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="text-muted">{ing.unit || '—'}</td>
                     <td className="text-muted">{ing.reorderLevel ?? '—'}</td>
-                    <td className="text-muted">{ing.costPerUnit ? `$${ing.costPerUnit}` : '—'}</td>
+                    <td className="font-semi" style={{ color: 'var(--text)' }}>{ing.costPerUnit ? `$${ing.costPerUnit}` : '—'}</td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn btn-ghost btn-xs" onClick={() => { setForm(ing); setModal(true); }}>
-                          <Pencil size={13} /> Edit
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm(ing); setModal(true); }}>
+                          <Pencil size={14} />
                         </button>
                         <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDelete(ing)}>
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

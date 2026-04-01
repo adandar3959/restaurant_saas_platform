@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema(
     },
 
     phone: { type: String },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'] },
     profileImage: { type: String }, // URL to cloud storage (S3/Cloudinary)
 
     // Staff-specific: which prep station or section they're assigned to

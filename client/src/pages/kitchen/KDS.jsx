@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ordersApi } from '../../api/orders.api';
 import {
   Clock, ChefHat, Play, CheckCircle, MonitorX, LogOut,
   UtensilsCrossed, Monitor, ShoppingBag, Truck,
-  Bell, BellOff, History, CheckSquare, Square, X
+  Bell, BellOff, History, CheckSquare, Square, X,
+  BarChart2, User
 } from 'lucide-react';
 import './KDS.css';
 
@@ -41,7 +43,7 @@ const playDing = () => {
 
 export default function KDS() {
   const { restaurantId } = useParams();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   
   const [orders, setOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
@@ -53,6 +55,18 @@ export default function KDS() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeStation, setActiveStation] = useState('All');
   const [showHistory, setShowHistory] = useState(false);
+  
+  // Dashboard & Profile UI States
+  const [activeTab, setActiveTab] = useState('kds'); // 'kds' | 'dashboard'
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({ 
+    name: user?.name || '', 
+    phone: user?.phone || '', 
+    email: user?.email || '',
+    gender: user?.gender || 'Other' 
+  });
+  const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '' });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   // Refs for auto-refresh and sound tracking
   const fetchRef = useRef(null);
@@ -155,51 +169,138 @@ export default function KDS() {
     );
   }
 
+  // ─── Render Dashboard ────────────────────────────────────────────────────────
+  const renderDashboard = () => {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const allMyOrders = [...orders, ...historyOrders]; // Simplified approximation of lifetime since history pulls last 100
+    
+    // TODAY METRICS (Completed/Ready)
+    const todayOrders = historyOrders.filter(o => new Date(o.createdAt) >= startOfToday && (o.status === 'Completed' || o.status === 'Ready'));
+    
+    // LIFETIME METRICS
+    const lifetimeOrders = historyOrders.filter(o => o.status === 'Completed' || o.status === 'Ready');
+
+    return (
+      <div className="kds-dashboard fade-in">
+        <div className="kds-header-glass glass-panel animate-fade-up">
+           <div className="kds-avatar-neon shadow-neon-cyan"><User size={44} strokeWidth={2.5} /></div>
+           <div className="kds-info">
+             <h2 className="gradient-text-cyan">{user?.name || 'Chef'}</h2>
+             <p className="text-muted">{user?.email} • Chef ID: <span className="text-cyan">{user?._id?.slice(-5).toUpperCase()}</span></p>
+           </div>
+        </div>
+
+        <h3 className="kds-section-title">Today's Kitchen Performance</h3>
+        <div className="kds-metrics-grid">
+           <div className="kds-metric-glass glass-panel animate-fade-up">
+              <div className="metric-glow"></div>
+              <h4>Orders Prepped Today</h4>
+              <div className="kds-val gradient-text-cyan">{todayOrders.length}</div>
+           </div>
+        </div>
+
+        <h3 className="kds-section-title" style={{marginTop: 32}}>All-Time Performance (Since Join)</h3>
+        <div className="kds-metrics-grid">
+           <div className="kds-metric-glass card-blue" style={{background: 'rgba(56, 189, 248, 0.05)'}}>
+              <h4>Lifetime Orders Prepped</h4>
+              <div className="kds-val">{lifetimeOrders.length}</div>
+           </div>
+        </div>
+
+        <h3 className="kds-section-title" style={{marginTop: 32}}>Recent Completed Orders</h3>
+        <div className="kds-recent-list">
+          {lifetimeOrders.length === 0 && <p className="kds-empty-glass">No orders finished yet.</p>}
+          {lifetimeOrders.slice(0, 10).map(o => (
+            <div key={o._id} className="kds-recent-glass-row">
+              <div className="kds-rr-left">
+                <div className="kds-rr-table">Order #{o._id.slice(-5).toUpperCase()}</div>
+                <div className="kds-rr-time">{new Date(o.createdAt).toLocaleDateString()} • {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </div>
+              <div className="kds-rr-right">
+                <div className="kds-rr-total">{o.status}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="kds-layout">
+    <div className="kds-app-container">
+      
+      {/* GLOWING SIDEBAR */}
+      <nav className="kds-sidebar glass-panel">
+        <div className="sidebar-top">
+          <div className="sidebar-brand">
+            <div className="driver-logo-neon">
+              <UtensilsCrossed size={28} color="#fff" />
+            </div>
+          </div>
+          <button className={`sidebar-btn ${activeTab === 'kds' ? 'active' : ''}`} onClick={() => setActiveTab('kds')} title="Kitchen Display">
+            <Monitor size={22} />
+          </button>
+          <button className={`sidebar-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')} title="Chef Dashboard">
+            <BarChart2 size={22} />
+          </button>
+        </div>
+        
+        <div className="sidebar-bottom">
+          <button className="sidebar-btn sidebar-profile" onClick={() => setProfileModalOpen(true)} title="Profile Settings">
+            <User size={22} />
+          </button>
+          <button className="sidebar-btn sidebar-logout" onClick={logout} title="Logout">
+            <LogOut size={22} />
+          </button>
+        </div>
+      </nav>
+
+      <div className="kds-layout">
       {/* HEADER */}
-      <header className="kds-header">
+      <header className="kds-header glass-header">
         <div className="kds-title">
-          <Monitor color="#38bdf8" size={24} />
-          <span>KDS </span>
-          <span style={{ color: '#64748b', fontSize: 16, fontWeight: 500, display: 'flex', gap: 16 }}>
-            | Kitchen Display System
+          <Monitor color="var(--neon-cyan)" size={24} />
+          <span className="gradient-text-cyan">KDS </span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 }}>
+             Kitchen Display System
           </span>
         </div>
 
         {/* Station Routing Tabs */}
         {stationTabs.length > 1 && (
-          <div className="kds-station-tabs">
+          <div className="kds-station-tabs glass-panel" style={{ padding: '4px' }}>
             {stationTabs.map(st => (
               <button 
                 key={st}
                 className={`kds-tab ${activeStation === st ? 'active' : ''}`}
                 onClick={() => setActiveStation(st)}
               >
-                {st}
+                {st.toUpperCase()}
               </button>
             ))}
           </div>
         )}
 
         {/* Right Nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
           <button 
-            className="btn btn-ghost btn-sm" 
-            style={{ color: soundEnabled ? '#a3e635' : '#64748b' }} 
+            className="btn btn-ghost btn-circle" 
+            style={{ color: soundEnabled ? 'var(--neon-emerald)' : 'var(--text-subtle)' }} 
             onClick={() => setSoundEnabled(!soundEnabled)}
             title="Toggle Sound Alerts"
           >
-            {soundEnabled ? <Bell size={18} /> : <BellOff size={18} />}
+            {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
           </button>
           
-          <button className="btn btn-ghost btn-sm" style={{ color: '#f8fafc' }} onClick={() => setShowHistory(true)}>
-            <History size={18} /> History
+          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text-main)', border: '1px solid var(--glass-border)' }} onClick={() => setShowHistory(true)}>
+            <History size={16} /> History
           </button>
 
-          <div className="kds-clock">{formatTime(time)}</div>
+          <div className="kds-clock glass-panel">{formatTime(time)}</div>
           
-          <button className="btn btn-ghost btn-sm" style={{ color: '#f87171' }} onClick={logout}>
+          <button className="btn btn-ghost btn-circle" style={{ color: 'var(--error)' }} onClick={logout}>
             <LogOut size={18} />
           </button>
         </div>
@@ -211,40 +312,44 @@ export default function KDS() {
           <div>{error}</div>
           <button className="btn btn-primary" style={{ marginTop: 24 }} onClick={() => fetchOrders(false)}>Retry</button>
         </div>
+      ) : activeTab === 'dashboard' ? (
+        <main className="kds-main-port" style={{overflowY: 'auto', padding: 24}}>
+          {renderDashboard()}
+        </main>
       ) : (
         /* KANBAN BOARD */
         <main className="kds-board">
           <KDSColumn
-            title="New Orders"
+            title="New"
             orders={newOrders}
-            icon={<ChefHat size={20} />}
-            colColor="#334155"
+            icon={<ChefHat size={18} />}
+            colColor="var(--neon-purple)"
             time={time}
             activeStation={activeStation}
             onAction={(o) => updateStatus(o._id, 'Preparing')}
-            actionBtn={{ label: 'Start Prep', icon: <Play size={16} />, className: 'kds-btn-start' }}
+            actionBtn={{ label: 'START PREP', icon: <Play size={14} />, className: 'kds-btn-start' }}
             onItemToggle={handleItemToggle}
           />
           <KDSColumn
             title="Preparing"
             orders={prepOrders}
             icon={<UtensilsCrossed size={18} />}
-            colColor="#0284c7"
+            colColor="var(--neon-cyan)"
             time={time}
             activeStation={activeStation}
             onAction={(o) => updateStatus(o._id, 'Ready')}
-            actionBtn={{ label: 'Mark Ready', icon: <CheckCircle size={16} />, className: 'kds-btn-ready' }}
+            actionBtn={{ label: 'MARK READY', icon: <CheckCircle size={14} />, className: 'kds-btn-ready' }}
             onItemToggle={handleItemToggle}
           />
           <KDSColumn
-            title="Ready for Pickup"
+            title="Ready"
             orders={readyOrders}
             icon={<ShoppingBag size={18} />}
-            colColor="#10b981"
+            colColor="var(--neon-emerald)"
             time={time}
             activeStation={activeStation}
             onAction={(o) => updateStatus(o._id, 'Completed')}
-            actionBtn={{ label: 'Clear (Done)', icon: <CheckCircle size={16} />, className: 'kds-btn-done' }}
+            actionBtn={{ label: 'DONE', icon: <CheckCircle size={14} />, className: 'kds-btn-done' }}
             onItemToggle={handleItemToggle}
           />
         </main>
@@ -256,6 +361,138 @@ export default function KDS() {
         onClose={() => setShowHistory(false)} 
         historyOrders={historyOrders} 
       />
+      </div>
+
+      {/* FULL SCREEN PROFILE MANAGEMENT MODAL */}
+      {profileModalOpen && (
+        <div className="kds-modal-backdrop fade-in" style={{zIndex: 9999}}>
+          <div className="kds-profile-settings-modal glass-panel">
+            <div className="kds-glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 24 }}>
+               <h3 className="gradient-text" style={{margin:0}}>Profile Settings</h3>
+               <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{color: '#94a3b8'}}>
+                 <X size={24} />
+               </button>
+            </div>
+            
+            <div className="w-modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', maxHeight: '70vh', overflowY: 'auto' }}>
+              
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const payload = { ...profileForm };
+
+                  // Validation: No changes made
+                  const isNoChange = 
+                    payload.name === user?.name &&
+                    payload.email === user?.email &&
+                    (payload.phone || '') === (user?.phone || '') &&
+                    (payload.gender || 'Other') === (user?.gender || 'Other');
+
+                  if (isNoChange) {
+                    alert('Your profile is already up to date!');
+                    return;
+                  }
+
+                  if (!payload.phone || payload.phone.trim() === '') {
+                     delete payload.phone;
+                  }
+                  
+                  const res = await axios.patch(`http://localhost:5000/api/v1/auth/me`, payload);
+                  
+                  // Update AuthContext so changes persist after refresh
+                  if (res.data?.data) {
+                    updateUser(res.data.data);
+                  } else {
+                    updateUser(payload);
+                  }
+
+                  alert('Profile details updated successfully!');
+                } catch (err) {
+                  let msg = err.response?.data?.message || 'Failed to update profile';
+                  if (err.response?.data?.errors?.length > 0) {
+                     msg = err.response.data.errors.map(errObj => errObj.message).join(' | ');
+                  }
+                  alert(msg);
+                }
+              }} className="kds-edit-form">
+                <h4 style={{ color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px', marginTop: 0 }}>Personal Details</h4>
+                
+                <div className="kds-input-group">
+                  <label>Email</label>
+                  <input type="email" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} />
+                </div>
+                
+                <div className="kds-input-group">
+                  <label>Full Name</label>
+                  <input type="text" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
+                </div>
+                
+                <div className="kds-input-group">
+                  <label>Contact No</label>
+                  <input type="text" value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} />
+                </div>
+                
+                <div className="kds-input-group">
+                  <label>Gender</label>
+                  <select 
+                    value={profileForm.gender} 
+                    onChange={e => setProfileForm({...profileForm, gender: e.target.value})}
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="kds-input-group" style={{ marginTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Password
+                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
+                      {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
+                    </button>
+                  </label>
+                </div>
+
+                {showPasswordForm && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '16px', borderRadius: '12px', marginTop: '8px' }}>
+                    <div className="kds-input-group">
+                      <label style={{ color: '#ef4444' }}>Current Password</label>
+                      <input type="password" value={pwdForm.oldPassword} onChange={e => setPwdForm({...pwdForm, oldPassword: e.target.value})} placeholder="Enter current password" />
+                    </div>
+                    <div className="kds-input-group">
+                      <label style={{ color: '#ef4444' }}>New Password</label>
+                      <input type="password" value={pwdForm.newPassword} onChange={e => setPwdForm({...pwdForm, newPassword: e.target.value})} placeholder="Enter new password" />
+                    </div>
+                    <button type="button" onClick={async () => {
+                      if (!pwdForm.oldPassword || !pwdForm.newPassword) return alert('Both passwords are required');
+
+                      if (pwdForm.newPassword === pwdForm.oldPassword) {
+                        alert('New password cannot be the same as your old password! Please choose a different one.');
+                        return;
+                      }
+
+                      try {
+                        await axios.patch(`http://localhost:5000/api/v1/auth/me/change-password`, pwdForm);
+                        alert('Password updated successfully!');
+                        setPwdForm({ oldPassword: '', newPassword: '' });
+                        setShowPasswordForm(false);
+                      } catch (err) {
+                        alert(err.response?.data?.message || 'Failed to update password');
+                      }
+                    }} style={{ alignSelf: 'flex-start', padding: '10px 24px', fontSize: '14px', background: 'linear-gradient(135deg, #ef4444, #b91c1c)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                      Update Secure Password
+                    </button>
+                  </div>
+                )}
+
+                <button type="submit" className="btn-glow-cyan" style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: '16px', marginTop: '24px' }}>Save All Changes</button>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -271,13 +508,13 @@ function KDSColumn({ title, orders, icon, colColor, time, activeStation, onActio
   const sorted = [...filteredOrders].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   return (
-    <div className="kds-column" style={{ borderTop: `4px solid ${colColor}` }}>
-      <div className="kds-col-header">
+    <div className="kds-column glass-panel" style={{ borderTop: `4px solid ${colColor}` }}>
+      <div className="kds-col-header" style={{ borderBottom: '1px solid var(--glass-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {icon}
-          <span className="kds-col-title">{title}</span>
+          <span className="kds-col-title" style={{ color: colColor }}>{title}</span>
         </div>
-        <div className="kds-col-count">{filteredOrders.length}</div>
+        <div className="kds-col-count" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid var(--glass-border)' }}>{filteredOrders.length}</div>
       </div>
       <div className="kds-col-body">
         {sorted.length === 0 ? (
@@ -328,19 +565,19 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
   const hideAction = isReadyCol && order.orderType === 'Dine-In';
 
   return (
-    <div className={`kds-card ${mins === 0 ? 'new-arrival' : ''}`}>
-      <div className="kds-card-header">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span className="kds-card-title">#{order._id?.slice(-5).toUpperCase()}</span>
-          <span className="kds-type-badge">{typeIcon} {order.orderType}</span>
+    <div className={`kds-card glass-panel ${mins === 0 ? 'new-arrival neon-border-cyan' : ''} animate-fade-up`}>
+      <div className="kds-card-header" style={{ borderBottom: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <span className="kds-card-title gradient-text-cyan">#{order._id?.slice(-5).toUpperCase()}</span>
+          <span className="kds-type-badge" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>{typeIcon} {order.orderType?.toUpperCase()}</span>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-          <span className={`kds-card-time ${timeClass}`}>
-            <Clock size={16} /> {mins}m 
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <span className={`kds-card-time ${timeClass}`} style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <Clock size={14} /> {mins}m 
           </span>
           {order.orderType === 'Dine-In' && order.tableNumber && (
-            <span className="kds-table-badge">T{order.tableNumber}</span>
+            <span className="kds-table-badge" style={{ background: 'var(--neon-purple)', color: '#fff', fontSize: '12px' }}>T{order.tableNumber}</span>
           )}
         </div>
       </div>

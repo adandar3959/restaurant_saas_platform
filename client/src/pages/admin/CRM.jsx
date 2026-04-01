@@ -122,9 +122,9 @@ export default function CRM() {
 
       <div className="page-header">
         <div>
-          <h1 className="page-title">CRM & Loyalty</h1>
+          <h1 className="page-title gradient-text-cyan">CRM & Loyalty</h1>
           <p className="page-subtitle">
-            {reviews.length} reviews · avg {avgRating.toFixed(1)}⭐ · {coupons.length} coupons
+            {reviews.length} reviews · <span style={{ color: '#F59E0B', fontWeight: 800 }}>avg {avgRating.toFixed(1)}⭐</span> · {coupons.length} coupons
           </p>
         </div>
         {tab === 'coupons' && (
@@ -136,34 +136,34 @@ export default function CRM() {
 
       {/* Rating summary (only on reviews tab) */}
       {tab === 'reviews' && reviews.length > 0 && (
-        <div className="card" style={{ display: 'flex', gap: 'var(--space-8)', alignItems: 'center', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
+        <div className="glass-panel animate-fade-up" style={{ display: 'flex', gap: 'var(--space-8)', alignItems: 'center', marginBottom: 'var(--space-6)', padding: 'var(--space-6)', flexWrap: 'wrap' }}>
           {/* Big average */}
-          <div style={{ textAlign: 'center', minWidth: 100 }}>
-            <div style={{ fontSize: 48, fontWeight: 900, color: '#F59E0B', lineHeight: 1 }}>{avgRating.toFixed(1)}</div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 2, margin: '6px 0' }}>
+          <div style={{ textAlign: 'center', minWidth: 120 }}>
+            <div style={{ fontSize: 64, fontWeight: 900, color: '#F59E0B', lineHeight: 1, textShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }}>{avgRating.toFixed(1)}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 4, margin: '12px 0' }}>
               {[1,2,3,4,5].map(n => (
-                <Star key={n} size={14} fill={n <= Math.round(avgRating) ? '#F59E0B' : 'none'} color="#F59E0B" />
+                <Star key={n} size={16} fill={n <= Math.round(avgRating) ? '#F59E0B' : 'none'} color="#F59E0B" />
               ))}
             </div>
-            <div className="text-xs text-muted">{reviews.length} reviews</div>
+            <div className="text-xs text-muted" style={{ fontWeight: 700, letterSpacing: '0.05em' }}>{reviews.length.toUpperCase()} REVIEWS</div>
           </div>
           {/* Distribution bars */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 200 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
             {ratingDist.map(r => (
               <StarRow key={r.rating} {...r} total={reviews.length} />
             ))}
           </div>
-          {/* Stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', minWidth: 200 }}>
+          {/* Stat cards grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', minWidth: 240 }}>
             {[
-              { label: 'Replied',    value: reviews.filter(r => r.response).length, color: '#10B981' },
+              { label: 'Replied',    value: reviews.filter(r => r.response).length, color: 'var(--neon-emerald)' },
               { label: 'Pending',    value: reviews.filter(r => !r.response).length, color: '#F59E0B' },
-              { label: '5-Stars',    value: reviews.filter(r => r.rating >= 5).length, color: '#818CF8' },
-              { label: 'Low Rated',  value: reviews.filter(r => r.rating <= 2).length, color: '#F87171' },
+              { label: '5-Stars',    value: reviews.filter(r => r.rating >= 5).length, color: 'var(--neon-cyan)' },
+              { label: 'Low Rated',  value: reviews.filter(r => r.rating <= 2).length, color: 'var(--error)' },
             ].map(s => (
-              <div key={s.label} style={{ background: 'var(--bg-surface-2)', borderRadius: 8, padding: '8px 12px' }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.label}</div>
+              <div key={s.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: '12px 16px' }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{s.label.toUpperCase()}</div>
               </div>
             ))}
           </div>
@@ -196,59 +196,62 @@ export default function CRM() {
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {reviews.map(r => (
-                  <div key={r._id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+                {reviews.map((r, idx) => (
+                  <div key={r._id} className="glass-panel animate-fade-up" style={{ animationDelay: `${idx * 50}ms`, padding: 'var(--space-5)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'center' }}>
                         <div style={{
-                          width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', fontWeight: 800, fontSize: 15,
-                          background: 'rgba(99,102,241,0.15)', color: '#818CF8',
+                          width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', fontWeight: 900, fontSize: 16,
+                          background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)',
+                          border: '1px solid rgba(56,189,248,0.2)'
                         }}>
                           {(r.customerId?.name || 'C')[0].toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semi">{r.customerId?.name || 'Customer'}</div>
-                          <div className="text-xs text-muted">{formatDate(r.createdAt)}</div>
+                          <div className="font-semi" style={{ color: 'var(--text)' }}>{r.customerId?.name || 'Anonymous Customer'}</div>
+                          <div className="text-xs text-muted" style={{ fontWeight: 600 }}>{formatDate(r.createdAt).toUpperCase()}</div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: 'rgba(245,158,11,0.12)', padding: '4px 10px', borderRadius: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(245,158,11,0.1)', padding: '6px 12px', borderRadius: 20, border: '1px solid rgba(245,158,11,0.2)' }}>
                         {[1,2,3,4,5].map(n => (
-                          <Star key={n} size={13} fill={n <= r.rating ? '#F59E0B' : 'none'} color="#F59E0B" />
+                          <Star key={n} size={14} fill={n <= r.rating ? '#F59E0B' : 'none'} color="#F59E0B" />
                         ))}
-                        <span style={{ marginLeft: 4, fontWeight: 700, color: '#F59E0B', fontSize: 13 }}>{r.rating}</span>
+                        <span style={{ marginLeft: 6, fontWeight: 900, color: '#F59E0B', fontSize: 14 }}>{r.rating}</span>
                       </div>
                     </div>
 
-                    {r.comment && <p className="text-sm" style={{ color: 'var(--text)', lineHeight: 1.6 }}>{r.comment}</p>}
+                    {r.comment && <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.7, marginTop: 'var(--space-3)', fontStyle: 'italic' }}>"{r.comment}"</p>}
 
                     {r.response ? (
-                      <div style={{ background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)', borderLeft: '3px solid var(--primary)' }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>YOUR REPLY</div>
-                        <p className="text-sm text-muted">{r.response}</p>
+                      <div style={{ background: 'rgba(56,189,248,0.05)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', borderLeft: '4px solid var(--neon-cyan)', marginTop: 'var(--space-4)' }}>
+                        <div style={{ fontSize: 10, fontWeight: 900, color: 'var(--neon-cyan)', marginBottom: 6, letterSpacing: '0.08em' }}>OFFICIAL RESPONSE</div>
+                        <p className="text-sm" style={{ color: 'var(--text)', opacity: 0.9 }}>{r.response}</p>
                       </div>
                     ) : (
-                      replyId === r._id ? (
-                        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start' }}>
-                          <textarea
-                            className="form-input"
-                            rows={2}
-                            placeholder="Write a professional reply..."
-                            value={reply}
-                            onChange={e => setReply(e.target.value)}
-                            style={{ flex: 1, resize: 'vertical' }}
-                          />
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            <button className="btn btn-primary btn-sm" onClick={() => handleReply(r._id)}>Send</button>
-                            <button className="btn btn-ghost btn-sm" onClick={() => { setReplyId(null); setReply(''); }}>Cancel</button>
+                      <div style={{ marginTop: 'var(--space-4)' }}>
+                        {replyId === r._id ? (
+                          <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder="Type your professional response..."
+                              value={reply}
+                              onChange={e => setReply(e.target.value)}
+                              style={{ flex: 1, resize: 'none', background: 'rgba(255,255,255,0.02)' }}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <button className="btn btn-primary btn-sm" onClick={() => handleReply(r._id)}>SEND</button>
+                              <button className="btn btn-ghost btn-sm" onClick={() => { setReplyId(null); setReply(''); }}>CANCEL</button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <button className="btn btn-ghost btn-xs" style={{ alignSelf: 'flex-start' }} onClick={() => setReplyId(r._id)}>
-                          <MessageSquare size={13} /> Reply to review
-                        </button>
-                      )
+                        ) : (
+                          <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)', fontWeight: 700 }} onClick={() => setReplyId(r._id)}>
+                            <MessageSquare size={13} style={{ marginRight: 6 }} /> REPLY TO REVIEW
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -258,7 +261,7 @@ export default function CRM() {
 
           {/* ── Coupons ──────────────────────────────────────────────────── */}
           {tab === 'coupons' && (
-            <div className="data-table-wrap">
+            <div className="data-table-wrap glass-panel animate-fade-up">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -269,44 +272,45 @@ export default function CRM() {
                 <tbody>
                   {coupons.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--text-muted)' }}>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--text-muted)' }}>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>🎟️</div>
-                        No coupons yet —{' '}
-                        <button className="btn btn-ghost btn-xs" onClick={() => { setForm({ discountType: 'Percentage' }); setModal(true); }}>
-                          <Plus size={13} /> create one
+                        <div>No coupons yet — </div>
+                        <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm({ discountType: 'Percentage' }); setModal(true); }}>
+                          <Plus size={14} /> New Coupon
                         </button>
                       </td>
                     </tr>
                   ) : coupons.map(c => (
                     <tr key={c._id}>
                       <td>
-                        <code style={{ background: 'var(--primary-glow)', padding: '3px 10px', borderRadius: 6, fontSize: 13, fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em' }}>
+                        <code style={{ background: 'rgba(56,189,248,0.1)', padding: '4px 12px', borderRadius: 8, fontSize: 14, fontWeight: 900, color: 'var(--neon-cyan)', border: '1px solid rgba(56,189,248,0.2)', letterSpacing: '0.1em' }}>
                           {c.code}
                         </code>
                       </td>
-                      <td className="text-muted">{c.discountType}</td>
-                      <td className="font-semi" style={{ color: 'var(--primary)' }}>
+                      <td className="text-muted">{c.discountType.toUpperCase()}</td>
+                      <td className="font-semi" style={{ color: 'var(--neon-cyan)', fontSize: 16 }}>
                         {c.discountType === 'Percentage' ? `${c.discountValue}%` : `$${c.discountValue}`}
                       </td>
                       <td className="text-muted">${c.minimumOrderAmount?.toFixed(2) || '0.00'}</td>
-                      <td className="text-muted text-sm">{c.expiryDate ? formatDate(c.expiryDate) : '—'}</td>
-                      <td className="text-muted">{c.usageCount ?? 0}/{c.usageLimit ?? '∞'}</td>
+                      <td className="text-muted text-sm">{c.expiryDate ? formatDate(c.expiryDate).toUpperCase() : '—'}</td>
+                      <td className="text-muted font-semi">{c.usageCount ?? 0} <span style={{ opacity: 0.5 }}>/</span> {c.usageLimit ?? '∞'}</td>
                       <td>
                         <span className="status-badge" style={{
-                          background: c.isActive ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface-2)',
-                          color: c.isActive ? 'var(--success)' : 'var(--text-muted)',
-                          border: `1px solid ${c.isActive ? 'rgba(16,185,129,0.3)' : 'transparent'}`,
+                          background: c.isActive ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
+                          color: c.isActive ? 'var(--neon-emerald)' : 'var(--text-subtle)',
+                          border: `1px solid ${c.isActive ? 'var(--neon-emerald-glow)33' : 'transparent'}`,
+                          fontWeight: 800, fontSize: 10
                         }}>
-                          {c.isActive ? 'Active' : 'Inactive'}
+                          {c.isActive ? 'ACTIVE' : 'INACTIVE'}
                         </span>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-ghost btn-xs" onClick={() => { setForm(c); setModal(true); }}>
-                            <Pencil size={13} />
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm(c); setModal(true); }}>
+                            <Pencil size={14} />
                           </button>
                           <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDeleteCoupon(c)}>
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

@@ -132,12 +132,12 @@ export default function Tables() {
 
       <div className="page-header">
         <div>
-          <h1 className="page-title">Tables & Reservations</h1>
+          <h1 className="page-title gradient-text-cyan">Tables & Reservations</h1>
           <p className="page-subtitle">
             {tables.length} tables · {reservations.length} reservations
             {pendingRes.length > 0 && (
-              <span style={{ marginLeft: 8, background: 'rgba(245,158,11,0.2)', color: '#FCD34D', padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
-                {pendingRes.length} pending
+              <span className="status-badge" style={{ marginLeft: 12, background: 'rgba(245,158,11,0.15)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 800 }}>
+                {pendingRes.length} PENDING
               </span>
             )}
           </p>
@@ -188,25 +188,27 @@ export default function Tables() {
               ))}
             </div>
             <div className="floor-grid">
-              {tables.map(t => {
-                const color = TABLE_STATUS_COLORS[t.status] || '#6B7280';
+              {tables.map((t, idx) => {
+                const color = TABLE_STATUS_COLORS[t.status] || 'var(--text-subtle)';
+                const isAvailable = t.status === 'Available';
                 return (
-                  <div key={t._id} className="table-card" style={{ borderColor: `${color}55`, background: `${color}08` }}>
-                    <div className="table-num" style={{ color }}>T-{t.tableNumber}</div>
-                    <div className="table-cap">{t.capacity} seats</div>
-                    {t.location && <div className="text-xs text-subtle">{t.location}</div>}
-                    <div className="table-status-dot" style={{ background: color }} />
+                  <div key={t._id} className={`table-card glass-panel animate-fade-up ${isAvailable ? 'neon-border-cyan glow-cyan' : ''}`} 
+                    style={{ animationDelay: `${idx * 50}ms`, border: `1px solid ${isAvailable ? 'var(--neon-cyan)' : 'var(--glass-border)'}` }}>
+                    <div className="table-num" style={{ color: isAvailable ? 'var(--neon-cyan)' : 'var(--text)' }}>T-{t.tableNumber}</div>
+                    <div className="table-cap" style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em' }}>{t.capacity} SEATS</div>
+                    {t.location && <div className="text-xs text-subtle" style={{ marginTop: 4 }}>{t.location.toUpperCase()}</div>}
+                    <div className="table-status-dot" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
                     <select
                       className="form-select"
-                      style={{ fontSize: 12, padding: '4px 8px', marginTop: 'var(--space-2)', width: '100%' }}
+                      style={{ fontSize: 11, padding: '4px 8px', marginTop: 'var(--space-4)', width: '100%', background: 'rgba(255,255,255,0.03)' }}
                       value={t.status}
                       onChange={e => handleStatusChange(t._id, e.target.value)}
                     >
                       {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 'var(--space-2)' }}>
-                      <button className="btn btn-ghost btn-xs" style={{ flex: 1 }} onClick={() => { setForm(t); setModal('table'); }}>
-                        <Pencil size={12} /> Edit
+                    <div style={{ display: 'flex', gap: 6, marginTop: 'var(--space-4)', width: '100%', borderTop: '1px solid var(--glass-border)', paddingTop: 'var(--space-2)' }}>
+                      <button className="btn btn-ghost btn-xs" style={{ flex: 1, color: 'var(--neon-cyan)' }} onClick={() => { setForm(t); setModal('table'); }}>
+                        <Pencil size={12} />
                       </button>
                       <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDeleteTable(t._id)}>
                         <Trash2 size={12} />
@@ -220,7 +222,7 @@ export default function Tables() {
         )
       ) : (
         // ── Reservations tab ─────────────────────────────────────────────────
-        <div className="data-table-wrap">
+        <div className="data-table-wrap glass-panel animate-fade-up">
           <table className="data-table">
             <thead>
               <tr>
@@ -231,11 +233,11 @@ export default function Tables() {
             <tbody>
               {reservations.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--text-muted)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--text-muted)' }}>
                     <div style={{ fontSize: 32, marginBottom: 8 }}>📅</div>
-                    No reservations yet —{' '}
-                    <button className="btn btn-ghost btn-xs" onClick={() => { setForm({}); setModal('reservation'); }}>
-                      <Plus size={13} /> create one
+                    <div>No reservations yet — </div>
+                    <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm({}); setModal('reservation'); }}>
+                      <Plus size={14} /> New Reservation
                     </button>
                   </td>
                 </tr>
@@ -247,20 +249,24 @@ export default function Tables() {
                       <div className="font-semi">{r.guestName || 'Guest'}</div>
                       {r.guestPhone && <div className="text-xs text-muted">{r.guestPhone}</div>}
                     </td>
-                    <td>{r.tableId?.tableNumber ? `T-${r.tableId.tableNumber}` : '—'}</td>
-                    <td className="text-muted text-sm">{formatDateTime(r.reservationTime)}</td>
-                    <td>{r.guestCount}</td>
                     <td>
-                      <span className="status-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}33` }}>
-                        {r.status}
+                      <span className="order-id" style={{ background: 'rgba(56,189,248,0.05)', color: 'var(--neon-cyan)', border: '1px solid rgba(56,189,248,0.1)' }}>
+                        {r.tableId?.tableNumber ? `T-${r.tableId.tableNumber}` : '—'}
+                      </span>
+                    </td>
+                    <td className="text-muted text-sm">{formatDateTime(r.reservationTime)}</td>
+                    <td className="font-semi">{r.guestCount} GUESTS</td>
+                    <td>
+                      <span className="status-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40`, fontWeight: 700, fontSize: 11 }}>
+                        {r.status.toUpperCase()}
                       </span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
                         {r.status === 'Pending' && (
                           <button
-                            className="btn btn-xs"
-                            style={{ background: 'rgba(16,185,129,0.12)', color: '#34D399', border: '1px solid rgba(16,185,129,0.3)', gap: 4, display: 'flex', alignItems: 'center' }}
+                            className="btn btn-primary btn-xs"
+                            style={{ background: 'var(--neon-cyan)', color: '#0f172a', border: 'none', fontWeight: 800 }}
                             onClick={() => handleResStatus(r._id, 'Confirmed')}
                           >
                             <CheckCircle size={12} /> Confirm
@@ -268,8 +274,8 @@ export default function Tables() {
                         )}
                         {['Pending', 'Confirmed'].includes(r.status) && (
                           <button
-                            className="btn btn-xs"
-                            style={{ background: 'rgba(239,68,68,0.1)', color: '#F87171', border: '1px solid rgba(239,68,68,0.3)', gap: 4, display: 'flex', alignItems: 'center' }}
+                            className="btn btn-ghost btn-xs"
+                            style={{ color: 'var(--error)' }}
                             onClick={() => handleResStatus(r._id, 'Cancelled')}
                           >
                             <CalendarX size={12} /> Cancel
@@ -277,8 +283,8 @@ export default function Tables() {
                         )}
                         {r.status === 'Confirmed' && (
                           <button
-                            className="btn btn-xs"
-                            style={{ background: 'rgba(99,102,241,0.12)', color: '#818CF8', border: '1px solid rgba(99,102,241,0.3)', gap: 4, display: 'flex', alignItems: 'center' }}
+                            className="btn btn-primary btn-xs"
+                            style={{ background: 'var(--neon-emerald)', color: '#0f172a', border: 'none', fontWeight: 800 }}
                             onClick={() => handleResStatus(r._id, 'Completed')}
                           >
                             <CalendarCheck size={12} /> Complete
@@ -393,12 +399,12 @@ export default function Tables() {
       )}
 
       <style>{`
-        .floor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-4); }
-        .table-card { border: 2px solid; border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; align-items: center; gap: var(--space-1); text-align: center; transition: var(--transition); }
-        .table-card:hover { transform: translateY(-2px); }
-        .table-num { font-size: 24px; font-weight: 900; }
-        .table-cap { font-size: 12px; color: var(--text-muted); }
-        .table-status-dot { width: 10px; height: 10px; border-radius: 50%; margin: 4px auto; }
+        .floor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-6); }
+        .table-card { border-radius: var(--radius-xl); padding: var(--space-5); display: flex; flex-direction: column; align-items: center; gap: var(--space-1); text-align: center; transition: all 0.3s var(--ease); }
+        .table-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3); }
+        .table-num { font-size: 28px; font-weight: 900; }
+        .table-cap { font-size: 11px; color: var(--text-muted); }
+        .table-status-dot { width: 12px; height: 12px; border-radius: 50%; margin: 8px auto; }
       `}</style>
     </div>
   );

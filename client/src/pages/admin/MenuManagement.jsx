@@ -96,9 +96,9 @@ export default function MenuManagement() {
       </div>
 
       {/* Category filter chips */}
-      <div className="cat-chips">
+      <div className="cat-chips glass-panel" style={{ padding: '8px', marginBottom: 'var(--space-6)', display: 'flex', gap: '8px', overflowX: 'auto', border: '1px solid var(--glass-border)' }}>
         <button className={`cat-chip ${selCat === 'all' ? 'active' : ''}`} onClick={() => setSelCat('all')}>
-          All ({items.length})
+          ALL ({items.length})
         </button>
         {categories.map(c => (
           <button
@@ -106,7 +106,7 @@ export default function MenuManagement() {
             className={`cat-chip ${selCat === c._id ? 'active' : ''}`}
             onClick={() => setSelCat(c._id)}
           >
-            {c.name} ({items.filter(i => getId(i.categoryId) === c._id).length})
+            {c.name.toUpperCase()} ({items.filter(i => getId(i.categoryId) === c._id).length})
           </button>
         ))}
       </div>
@@ -139,33 +139,34 @@ export default function MenuManagement() {
         </div>
       ) : (
         <div className="menu-grid">
-          {filteredItems.map(item => {
+          {filteredItems.map((item, idx) => {
             const cat = categories.find(c => c._id === getId(item.categoryId));
             return (
-              <div key={item._id} className={`menu-item-card card ${!item.isAvailable ? 'unavailable' : ''}`}>
+              <div key={item._id} className={`menu-item-card glass-panel animate-fade-up ${!item.isAvailable ? 'unavailable' : ''}`} style={{ animationDelay: `${idx * 50}ms` }}>
                 <div className="mic-header">
-                  <div className="mic-cat-tag">{cat?.name || 'Uncategorized'}</div>
+                  <div className="mic-cat-tag" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)', border: '1px solid rgba(56,189,248,0.2)', fontSize: '10px', fontWeight: '800' }}>
+                    {cat?.name?.toUpperCase() || 'UNCATEGORIZED'}
+                  </div>
                   <button
                     className="mic-toggle"
                     onClick={() => handleToggle(item._id)}
-                    title={item.isAvailable ? 'Disable item' : 'Enable item'}
                   >
                     {item.isAvailable
-                      ? <ToggleRight size={22} style={{ color: 'var(--success)' }} />
-                      : <ToggleLeft  size={22} style={{ color: 'var(--text-subtle)' }} />
+                      ? <ToggleRight size={24} style={{ color: 'var(--neon-emerald)', filter: 'drop-shadow(0 0 5px var(--neon-emerald-glow))' }} />
+                      : <ToggleLeft  size={24} style={{ color: 'var(--text-subtle)' }} />
                     }
                   </button>
                 </div>
-                <div className="mic-name">{item.name}</div>
-                {item.description && <p className="mic-desc text-sm text-muted">{truncate(item.description, 60)}</p>}
-                <div className="mic-footer">
-                  <span className="mic-price">${item.price?.toFixed(2)}</span>
-                  <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <div className="mic-name gradient-text-cyan">{item.name}</div>
+                {item.description && <p className="mic-desc text-sm text-muted">{truncate(item.description, 80)}</p>}
+                <div className="mic-footer" style={{ marginTop: 'auto', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--glass-border)' }}>
+                  <span className="mic-price" style={{ color: 'var(--neon-cyan)', fontWeight: '900', fontSize: '18px' }}>${item.price?.toFixed(2)}</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-ghost btn-xs" onClick={() => openModal('item', item)}>
-                      <Pencil size={13} />
+                      <Pencil size={14} style={{ color: 'var(--neon-cyan)' }} />
                     </button>
                     <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDelete('item', item._id)}>
-                      <Trash2 size={13} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -183,21 +184,21 @@ export default function MenuManagement() {
             <Plus size={14} /> Add Category
           </button>
         </div>
-        <div className="data-table-wrap" style={{ marginTop: 'var(--space-4)' }}>
+        <div className="data-table-wrap glass-panel animate-fade-up" style={{ marginTop: 'var(--space-4)' }}>
           <table className="data-table">
             <thead><tr><th>Name</th><th>Description</th><th>Items</th><th>Actions</th></tr></thead>
             <tbody>
               {categories.length === 0 ? (
-                <tr><td colSpan={4} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--text-muted)' }}>No categories yet</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--text-muted)' }}>No categories yet</td></tr>
               ) : categories.map(c => (
                 <tr key={c._id}>
-                  <td className="font-semi">{c.name}</td>
-                  <td className="text-muted text-sm">{truncate(c.description || '—', 50)}</td>
-                  <td>{items.filter(i => getId(i.categoryId) === c._id).length}</td>
+                  <td className="font-semi"><span style={{ color: 'var(--neon-cyan)' }}>{c.name}</span></td>
+                  <td className="text-muted text-sm">{truncate(c.description || '—', 80)}</td>
+                  <td className="font-semi">{items.filter(i => getId(i.categoryId) === c._id).length}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn btn-ghost btn-xs" onClick={() => openModal('category', c)}><Pencil size={13} /></button>
-                      <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDelete('category', c._id)}><Trash2 size={13} /></button>
+                      <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => openModal('category', c)}><Pencil size={14} /></button>
+                      <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)' }} onClick={() => handleDelete('category', c._id)}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>

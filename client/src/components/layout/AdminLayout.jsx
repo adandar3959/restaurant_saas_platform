@@ -79,8 +79,8 @@ export default function AdminLayout() {
           <span style={{
             fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
             padding: '3px 8px', borderRadius: 20, display: 'inline-block',
-            background: isAdmin ? 'rgba(255,107,53,0.15)' : 'rgba(99,102,241,0.15)',
-            color: isAdmin ? 'var(--primary)' : '#818CF8',
+            background: 'rgba(56,189,248,0.15)',
+            color: 'var(--neon-cyan)',
           }}>
             {user?.role?.toUpperCase()}
           </span>

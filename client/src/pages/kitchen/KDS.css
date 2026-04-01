@@ -1,24 +1,72 @@
-/* KDS is a standalone dark-mode layout */
+.kds-app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #0d1117;
+  overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
+}
+
+.kds-sidebar {
+  width: 72px;
+  background: var(--glass-panel);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-6) 0;
+  z-index: 50;
+  backdrop-filter: var(--glass-blur);
+}
+.sidebar-top, .sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.sidebar-brand { margin-bottom: 24px; }
+.sidebar-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-btn:hover { background: rgba(255, 255, 255, 0.05); color: #e2e8f0; }
+.sidebar-btn.active {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.2);
+}
+.sidebar-logout { color: #f87171; }
+.sidebar-logout:hover { background: rgba(248, 113, 113, 0.1); color: #ef4444; }
+
 .kds-layout {
-  min-height: 100vh;
-  background-color: #0f172a; /* Slate 900 */
+  flex: 1;
+  background-color: #0f172a;
   color: #f8fafc;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: var(--font-body);
   position: relative;
 }
 
 .kds-header {
   height: 64px;
-  background-color: #1e293b; /* Slate 800 */
-  border-bottom: 1px solid #334155;
+  background: var(--glass-panel);
+  border-bottom: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 var(--space-6);
   flex-shrink: 0;
+  backdrop-filter: var(--glass-blur);
 }
 
 .kds-title {
@@ -81,11 +129,12 @@
   flex: 1;
   min-width: 320px;
   max-width: 450px;
-  background-color: #1e293b;
-  border-radius: 12px;
-  border: 1px solid #334155;
+  background: var(--glass-panel);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-xl);
 }
 
 .kds-col-header {
@@ -128,14 +177,19 @@
 
 /* ── Order Card ── */
 .kds-card {
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
-  transition: transform 0.2s, border-color 0.2s;
+  transition: all 0.3s ease;
+}
+
+.kds-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px var(--neon-cyan-glow);
 }
 
 @keyframes kdsFlash {
@@ -250,14 +304,15 @@
 }
 
 .kds-item-note {
-  font-size: 14px;
-  color: #f87171; 
+  font-size: 13px;
+  color: var(--error); 
   margin-top: 4px;
   font-style: italic;
   font-weight: 700;
-  background: rgba(248,113,113,0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border-left: 3px solid var(--error);
 }
 
 .kds-card-actions {
@@ -355,4 +410,175 @@
   border: 1px solid #334155;
   border-radius: 8px;
   padding: 16px;
+}
+
+/* ── CHEF DASHBOARD & PROFILE ── */
+.kds-dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.kds-header-glass {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  backdrop-filter: blur(16px);
+  margin-bottom: 40px;
+}
+.kds-avatar-neon {
+  width: 80px;
+  height: 80px;
+  border-radius: 40px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+}
+.kds-info h2 {
+  font-size: 32px;
+  margin: 0 0 8px 0;
+  background: linear-gradient(90deg, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.kds-info p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 16px;
+}
+.kds-section-title {
+  font-size: 20px;
+  color: #e2e8f0;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+}
+.kds-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.kds-metric-glass {
+  position: relative;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+.kds-metric-glass h4 {
+  margin: 0 0 12px 0;
+  color: #94a3b8;
+  font-weight: 500;
+  font-size: 15px;
+}
+.kds-val {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+}
+.card-blue { background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(56, 189, 248, 0.1) 100%); }
+
+.kds-recent-list {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.kds-empty-glass {
+  color: #94a3b8;
+  text-align: center;
+  padding: 40px;
+  font-weight: 600;
+}
+.kds-recent-glass-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  transition: background 0.2s;
+}
+.kds-recent-glass-row:hover { background: rgba(255,255,255,0.02); }
+.kds-rr-table { color: #fff; font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+.kds-rr-time { color: #64748b; font-size: 13px; }
+.kds-rr-total { color: #38bdf8; font-weight: 700; font-size: 18px; }
+
+/* ── PROFILE MODAL ── */
+.kds-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.kds-profile-settings-modal {
+  width: 90%;
+  max-width: 600px;
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.kds-glass-header {
+  background: rgba(30, 41, 59, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.kds-edit-form {
+  background: rgba(30, 41, 59, 0.4);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.kds-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.kds-input-group label {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.kds-input-group input, .kds-input-group select {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+.kds-input-group input:focus, .kds-input-group select:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+.btn-glow-cyan {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+  transition: all 0.3s;
+}
+.btn-glow-cyan:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
 }

@@ -19,6 +19,7 @@ router.delete('/invites/:id', protect, authorize('SuperAdmin'), ctrl.revokeInvit
 // Authenticated user — own profile
 router.get('/me', protect, ctrl.getMe);
 router.patch('/me', protect, validateUpdateUser, ctrl.updateMe);
+router.patch('/me/change-password', protect, ctrl.changePassword);
 
 // Staff management — Admin/Manager only
 router.get('/', protect, authorize('SuperAdmin', 'Admin', 'Manager'), ctrl.getAllUsers);

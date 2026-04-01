@@ -113,24 +113,27 @@ export default function Staff() {
       </div>
 
       {/* Role summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        {STAFF_ROLES.map(role => {
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
+        {STAFF_ROLES.map((role, idx) => {
           const meta = ROLE_META[role] || {};
           const Icon = meta.icon || Shield;
+          const isActive = filterRole === role;
           return (
             <div
               key={role}
-              className="stat-card"
-              style={{ cursor: 'pointer', borderColor: filterRole === role ? `${meta.color}55` : undefined }}
-              onClick={() => setFilterRole(filterRole === role ? 'All' : role)}
+              className={`stat-card glass-panel animate-fade-up ${isActive ? 'neon-border-cyan' : ''}`}
+              style={{ cursor: 'pointer', animationDelay: `${idx * 100}ms` }}
+              onClick={() => setFilterRole(isActive ? 'All' : role)}
             >
               <div className="stat-card-top">
-                <div className="stat-card-icon" style={{ background: `${meta.color}20`, color: meta.color }}>
+                <div className="stat-card-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
                   <Icon size={20} />
                 </div>
               </div>
-              <div className="stat-card-label">{role}s</div>
-              <div className="stat-card-value" style={{ color: meta.color }}>{counts[role] || 0}</div>
+              <div>
+                <div className="stat-card-label">{role}s</div>
+                <div className="stat-card-value gradient-text-cyan">{counts[role] || 0}</div>
+              </div>
             </div>
           );
         })}
@@ -151,7 +154,7 @@ export default function Staff() {
       {loading ? (
         <div className="page-loading"><div className="spinner-lg" /></div>
       ) : filtered.length === 0 ? (
-        <div className="data-table-wrap">
+        <div className="glass-panel" style={{ padding: 'var(--space-20)', textAlign: 'center' }}>
           <div className="empty-state">
             <div className="empty-state-icon">👥</div>
             <div className="empty-state-title">
@@ -165,38 +168,39 @@ export default function Staff() {
         </div>
       ) : (
         <div className="staff-grid">
-          {filtered.map(s => {
-            const meta  = ROLE_META[s.role] || { color: '#FF6B35' };
+          {filtered.map((s, idx) => {
+            const meta  = ROLE_META[s.role] || { color: 'var(--neon-cyan)' };
             const Icon  = meta.icon || Shield;
             return (
-              <div key={s._id} className="staff-card card">
+              <div key={s._id} className="staff-card glass-panel animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
                 <div className="staff-avatar-wrap">
-                  <div className="staff-avatar" style={{ background: `${meta.color}20`, color: meta.color }}>
+                  <div className="staff-avatar" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
                     {getInitials(s.name)}
                   </div>
-                  <div className={`staff-status-dot ${s.isActive ? 'online' : ''}`} />
+                  <div className={`staff-status-dot ${s.isActive ? 'online' : ''}`} style={{ borderColor: 'var(--glass-bg)' }} />
                 </div>
                 <div className="staff-info">
                   <div className="staff-name">{s.name}</div>
                   <div className="staff-email text-sm text-muted">{s.email}</div>
                 </div>
                 <span className="status-badge" style={{
-                  background: `${meta.color}18`, color: meta.color,
-                  border: `1px solid ${meta.color}33`, alignSelf: 'flex-start',
-                  display: 'inline-flex', alignItems: 'center', gap: 5
+                  background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)`,
+                  border: `1px solid rgba(56, 189, 248, 0.2)`, alignSelf: 'flex-start',
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  fontSize: '11px', fontWeight: '800', letterSpacing: '0.04em'
                 }}>
-                  <Icon size={12} /> {s.role}
+                  <Icon size={12} /> {s.role.toUpperCase()}
                 </span>
                 <div className="staff-meta text-xs text-subtle">
-                  Joined {formatDate(s.createdAt)}
+                  Started {formatDate(s.createdAt)}
                 </div>
-                <div className="staff-actions">
+                <div className="staff-actions" style={{ marginTop: 'auto', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--glass-border)' }}>
                   <button
                     className="btn btn-ghost btn-xs"
-                    style={{ color: 'var(--error)', width: '100%' }}
+                    style={{ color: 'var(--error)', width: '100%', fontSize: '12px' }}
                     onClick={() => handleDelete(s)}
                   >
-                    <Trash2 size={13} /> Remove
+                    <Trash2 size={13} /> Remove Member
                   </button>
                 </div>
               </div>

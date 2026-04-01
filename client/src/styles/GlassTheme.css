@@ -1,0 +1,50 @@
+/* ─── GLASSMORPHIC THEME TOKENS ─── */
+:root {
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-bg-hover: rgba(30, 41, 59, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-bright: rgba(255, 255, 255, 0.15);
+  --glass-blur: blur(16px);
+  
+  --neon-cyan: #38bdf8;
+  --neon-cyan-glow: rgba(56, 189, 248, 0.3);
+  --neon-purple: #818cf8;
+  --neon-purple-glow: rgba(129, 140, 248, 0.3);
+  --neon-emerald: #10b981;
+  --neon-emerald-glow: rgba(16, 185, 129, 0.3);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-header {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.neon-border-cyan { border-color: var(--neon-cyan) !important; box-shadow: 0 0 15px var(--neon-cyan-glow); }
+.neon-border-purple { border-color: var(--neon-purple) !important; box-shadow: 0 0 15px var(--neon-purple-glow); }
+.neon-border-emerald { border-color: var(--neon-emerald) !important; box-shadow: 0 0 15px var(--neon-emerald-glow); }
+
+.gradient-text-cyan {
+  background: linear-gradient(90deg, #fff, var(--neon-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

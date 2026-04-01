@@ -49,6 +49,11 @@ exports.updateMe = asyncHandler(async (req, res) => {
   sendSuccess(res, user, 'Profile updated');
 });
 
+exports.changePassword = asyncHandler(async (req, res) => {
+  const result = await userService.changePassword(req.user._id, req.body.oldPassword, req.body.newPassword);
+  sendSuccess(res, result);
+});
+
 exports.getAllUsers = asyncHandler(async (req, res) => {
   const pagination = paginate(req.query);
   const { users, total } = await userService.getAllUsers(

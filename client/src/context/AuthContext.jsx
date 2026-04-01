@@ -149,8 +149,16 @@ export function AuthProvider({ children }) {
     return '/';
   };
 
+  // ── Update User Local State ──────────────────────────────────────────
+  const updateUser = (userData) => {
+    // action.payload in UPDATE_USER is merged with existing user state
+    const newUser = { ...state.user, ...userData };
+    localStorage.setItem('rms_user', JSON.stringify(newUser));
+    dispatch({ type: 'UPDATE_USER', payload: userData });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, login, register, onboard, logout, clearError, getDashboardRoute }}>
+    <AuthContext.Provider value={{ ...state, login, register, onboard, logout, clearError, updateUser, getDashboardRoute }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,13 +9,8 @@ import './Orders.css';
 
 const STATUS_TABS = ['All', 'Pending', 'Accepted', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
 
-// Backend role restrictions (read-only reference — do NOT change backend)
-// Accepted/Preparing/Ready → Chef only
-// OutForDelivery → Driver only
-// Completed → Waiter | Driver
-// Cancelled → Admin | Manager
 const ROLE_NEXT_STATUS = {
-  admin:   { Pending: null, Accepted: null, Preparing: null, Ready: null }, // Admin can only Cancel
+  admin:   { Pending: null, Accepted: null, Preparing: null, Ready: null },
   manager: { Pending: null, Accepted: null, Preparing: null, Ready: null },
   chef:    { Pending: 'Accepted', Accepted: 'Preparing', Preparing: 'Ready' },
   waiter:  { Ready: 'Completed' },
@@ -41,7 +36,7 @@ export default function Orders() {
   const [tab,      setTab]      = useState('All');
   const [search,   setSearch]   = useState('');
   const [updating, setUpdating] = useState(null);
-  const [toast,    setToast]    = useState(null); // { type: 'success'|'error', msg }
+  const [toast,    setToast]    = useState(null);
 
   const showToast = (type, msg) => {
     setToast({ type, msg });
@@ -86,7 +81,6 @@ export default function Orders() {
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Toast notification */}
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 9999,
@@ -104,144 +98,108 @@ export default function Orders() {
 
       <div className="page-header">
         <div>
-          <h1 className="page-title">Orders</h1>
-          <p className="page-subtitle">{orders.length} total orders</p>
+          <h1 className="page-title gradient-text-cyan">Order Management</h1>
+          <p className="page-subtitle">{orders.length} total orders recorded</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Role info badge */}
-          <span style={{
-            fontSize: 12, padding: '4px 10px', borderRadius: 20,
-            background: 'rgba(99,102,241,0.15)', color: '#818CF8', fontWeight: 600,
-          }}>
-            Role: {user?.role} — can Cancel orders
-          </span>
           <button className="btn btn-outline btn-sm" onClick={fetchOrders} disabled={loading}>
             <RefreshCw size={15} className={loading ? 'spin' : ''} /> Refresh
           </button>
         </div>
       </div>
 
-      {/* Status tabs */}
-      <div className="orders-tabs">
+      <div className="orders-tabs glass-panel">
         {STATUS_TABS.map(s => {
           const count = s === 'All' ? orders.length : orders.filter(o => o.status === s).length;
           return (
             <button key={s} className={`orders-tab ${tab === s ? 'active' : ''}`} onClick={() => setTab(s)}>
-              {s}<span className="orders-tab-count">{count}</span>
+              {s.toUpperCase()}<span className="orders-tab-count">{count}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Search */}
-      <div className="orders-search">
-        <Search size={16} className="orders-search-icon" />
+      <div className="orders-search glass-panel" style={{ padding: '4px', borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
+        <Search size={18} className="text-muted" style={{ marginLeft: 12 }} />
         <input
           type="text"
           className="form-input"
-          style={{ paddingLeft: 40 }}
-          placeholder="Search by order ID or type..."
+          style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
+          placeholder="Search by ID or type..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="page-loading"><div className="spinner-lg" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="data-table-wrap">
-          <div className="empty-state">
-            <div className="empty-state-icon">📋</div>
-            <div className="empty-state-title">No orders found</div>
-            <p>Try a different filter or status tab.</p>
-          </div>
-        </div>
       ) : (
-        <div className="data-table-wrap">
+        <div className="data-table-wrap glass-panel animate-fade-up">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Order</th><th>Type</th><th>Items</th><th>Total</th>
-                <th>Payment</th><th>Status</th><th>Time</th><th>Actions</th>
+                <th>Order ID</th><th>Type</th><th>Items</th><th>Amount</th><th>Status</th><th>Payment</th><th>Time</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(order => {
-                const sc        = ORDER_STATUS_COLORS[order.status] || {};
-                const nextSt    = getNextStatus(user?.role, order.status);
-                const showCancel = canCancel(user?.role, order.status);
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                    <div>No orders found in this category</div>
+                  </td>
+                </tr>
+              ) : filtered.map(order => {
+                const sc = ORDER_STATUS_COLORS[order.status] || {};
+                const next = getNextStatus(user.role, order.status);
+                const canCancelOrder = canCancel(user.role, order.status);
                 const isUpdating = updating === order._id;
-                // totalAmount may be null if backend didn't compute it
-                const total = order.totalAmount != null ? formatCurrency(order.totalAmount) : '—';
 
                 return (
                   <tr key={order._id}>
+                    <td><span className="order-id" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)', border: '1px solid rgba(56,189,248,0.2)' }}>#{order._id?.slice(-6).toUpperCase()}</span></td>
+                    <td className="font-semi">{order.orderType}</td>
+                    <td className="text-muted">{order.items?.length || 0} items</td>
+                    <td className="font-semi">{formatCurrency(order.totalAmount || 0)}</td>
                     <td>
-                      <span className="order-id">#{order._id?.slice(-6).toUpperCase()}</span>
-                      {order.tableId && (
-                        <div className="text-xs text-muted">
-                          Table #{order.tableId?.tableNumber ?? order.tableId}
-                        </div>
-                      )}
-                    </td>
-                    <td><span className="order-type-badge">{order.orderType}</span></td>
-                    <td className="text-muted">{order.items?.length || 0}</td>
-                    <td className="font-semi">{total}</td>
-                    <td>
-                      <span className={`payment-badge ${order.paymentStatus === 'Paid' ? 'paid' : ''}`}>
-                        {order.paymentStatus || 'Unpaid'}
+                      <span className="status-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}40`, fontWeight: 700, fontSize: 11 }}>
+                        {order.status.toUpperCase()}
                       </span>
                     </td>
                     <td>
-                      <span
-                        className="status-badge"
-                        style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.color}33` }}
-                      >
-                        {order.status}
+                      <span className={`payment-badge ${order.paymentStatus === 'Paid' ? 'paid' : ''}`} style={{ fontWeight: 700 }}>
+                        {order.paymentStatus?.toUpperCase()}
                       </span>
                     </td>
-                    <td className="text-muted text-sm">{timeAgo(order.createdAt)}</td>
+                    <td className="text-sm text-subtle">{timeAgo(order.createdAt)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        {nextSt && (
+                        {next && (
                           <button
                             className="btn btn-primary btn-xs"
-                            onClick={() => handleStatusUpdate(order._id, nextSt)}
+                            style={{ background: 'var(--neon-cyan)', color: '#0f172a', fontWeight: 800, border: 'none' }}
+                            onClick={() => handleStatusUpdate(order._id, next)}
                             disabled={isUpdating}
                           >
-                            {isUpdating ? <div className="spinner" /> : <Check size={13} />}
-                            {nextSt}
+                            {isUpdating ? <RefreshCw size={12} className="spin" /> : <Check size={12} />}
+                            {next}
                           </button>
                         )}
-                        {showCancel && (
+                        {canCancelOrder && (
                           <button
-                            className="btn btn-xs"
-                            style={{
-                              background: 'rgba(239,68,68,0.12)',
-                              color: '#F87171',
-                              border: '1px solid rgba(239,68,68,0.35)',
-                              borderRadius: 8,
-                              fontWeight: 600,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
+                            className="btn btn-ghost btn-xs"
+                            style={{ color: 'var(--error)' }}
                             onClick={() => {
                               if (window.confirm('Cancel this order?')) {
                                 handleStatusUpdate(order._id, 'Cancelled');
                               }
                             }}
                             disabled={isUpdating}
-                            title="Cancel this order"
                           >
-                            {isUpdating ? <div className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> : <X size={12} />}
-                            Cancel Order
+                            <X size={12} /> Cancel
                           </button>
                         )}
-                        {!nextSt && !showCancel && (
-                          <span className="text-xs text-muted">—</span>
-                        )}
+                        {!next && !canCancelOrder && <span className="text-xs text-muted">—</span>}
                       </div>
                     </td>
                   </tr>

@@ -910,3 +910,29 @@
   border-radius: 20px;
   border: 1px dashed rgba(255,255,255,0.1);
 }
+
+/* ── PROFILE SETTINGS MODAL ── */
+.profile-settings-modal {
+  width: 90%;
+  max-width: 600px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.glass-header {
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.profile-settings-modal .wd-edit-form {
+  background: rgba(30, 41, 59, 0.4);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
