@@ -152,13 +152,13 @@ exports.getUserById = async (id) => {
 };
 
 exports.updateUser = async (id, data) => {
-  const user = await User.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  const user = await User.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
   if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
   return user;
 };
 
 exports.deleteUser = async (id) => {
-  const user = await User.findByIdAndUpdate(id, { deletedAt: new Date(), status: 'Inactive' }, { new: true });
+  const user = await User.findByIdAndUpdate(id, { deletedAt: new Date(), status: 'Inactive' }, { returnDocument: 'after' });
   if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
   return user;
 };
@@ -173,7 +173,7 @@ exports.updateMe = async (id, data) => {
   // Prevent role/status changes through this endpoint
   const forbidden = ['role', 'status', 'passwordHash', 'restaurantId'];
   forbidden.forEach((f) => delete data[f]);
-  return User.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  return User.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
 };
 
 exports.changePassword = async (id, oldPassword, newPassword) => {

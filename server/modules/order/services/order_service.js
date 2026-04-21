@@ -104,7 +104,7 @@ exports.getOrderById = async (id, restaurantId) => {
 exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
   const update = { status, [`statusTimestamps.${status.charAt(0).toLowerCase() + status.slice(1)}At`]: new Date() };
   if (status === 'Cancelled') update.cancelledBy = userId;
-  const order = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { new: true });
+  const order = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
   return order;
 };
@@ -114,7 +114,7 @@ exports.updatePayment = async (id, restaurantId, paymentData) => {
   const order = await Order.findOneAndUpdate(
     { _id: id, restaurantId },
     { payment: paymentData },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
   return order;
@@ -187,7 +187,7 @@ exports.updateItemStatus = async (orderId, restaurantId, itemId, kitchenStatus) 
   const order = await Order.findOneAndUpdate(
     { _id: orderId, restaurantId, 'items._id': itemId },
     { $set: update },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!order) throw Object.assign(new Error('Order or item not found'), { statusCode: 404 });
 

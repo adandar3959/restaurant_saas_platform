@@ -3,16 +3,17 @@ const ctrl = require('../controllers/order_controller');
 const { protect, authorize, optionalAuth } = require('../../../utils/auth.middleware');
 const { validateCreateOrder, validateUpdateStatus, validatePayment } = require('../middlewares/order_middleware');
 
-const staff = ['SuperAdmin', 'Admin', 'Manager', 'Waiter', 'Chef'];
+const staff      = ['SuperAdmin', 'Admin', 'Manager', 'Waiter', 'Chef'];
+const fieldStaff = [...staff, 'Driver']; // Driver can read orders & update status only
 
-router.get('/my', protect, authorize('Customer'), ctrl.getMyOrders);
-router.get('/stats', protect, authorize('SuperAdmin', 'Admin', 'Manager'), ctrl.getOrderStats);
-router.post('/', optionalAuth, validateCreateOrder, ctrl.createOrder);
-router.get('/', protect, authorize(...staff), ctrl.getOrders);
-router.get('/:id', protect, ctrl.getOrderById);
-router.patch('/:id/status', protect, authorize(...staff), validateUpdateStatus, ctrl.updateOrderStatus);
-router.patch('/:id/items/:itemId', protect, authorize(...staff), ctrl.updateItemStatus);
-router.patch('/:id/tip', optionalAuth, ctrl.addTip);
-router.patch('/:id/payment', protect, authorize('SuperAdmin', 'Admin', 'Manager', 'Waiter'), validatePayment, ctrl.updatePayment);
+router.get('/my',    protect, authorize('Customer'),                                              ctrl.getMyOrders);
+router.get('/stats', protect, authorize('SuperAdmin', 'Admin', 'Manager'),                        ctrl.getOrderStats);
+router.post('/',     optionalAuth, validateCreateOrder,                                           ctrl.createOrder);
+router.get('/',      protect, authorize(...fieldStaff),                                           ctrl.getOrders);
+router.get('/:id',   protect, authorize(...fieldStaff),                                           ctrl.getOrderById);
+router.patch('/:id/status',         protect, authorize(...fieldStaff), validateUpdateStatus,      ctrl.updateOrderStatus);
+router.patch('/:id/items/:itemId',  protect, authorize(...staff),                                 ctrl.updateItemStatus);
+router.patch('/:id/tip',            optionalAuth,                                                 ctrl.addTip);
+router.patch('/:id/payment',        protect, authorize('SuperAdmin', 'Admin', 'Manager', 'Waiter'), validatePayment, ctrl.updatePayment);
 
 module.exports = router;

@@ -11,10 +11,9 @@
 }
 
 .navbar.scrolled {
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #FFFFFF;
   border-bottom-color: var(--border);
+  box-shadow: 0 1px 0 var(--border);
 }
 
 .nav-inner {
@@ -145,9 +144,8 @@
   position: fixed;
   inset: 0;
   top: var(--nav-h);
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.25);
   z-index: 98;
-  backdrop-filter: blur(4px);
 }
 
 /* Mobile responsive */

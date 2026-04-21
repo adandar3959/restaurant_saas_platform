@@ -11,11 +11,11 @@ function Toast({ toast }) {
     <div style={{
       position: 'fixed', top: 24, right: 24, zIndex: 9999,
       display: 'flex', alignItems: 'center', gap: 10,
-      padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-      background: isErr ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-      border: `1px solid ${isErr ? '#EF4444' : '#10B981'}`,
-      color: isErr ? '#FCA5A5' : '#6EE7B7',
-      backdropFilter: 'blur(8px)',
+      padding: '12px 18px', borderRadius: 10, fontWeight: 700, fontSize: 13,
+      background: isErr ? '#7f1d1d' : 'var(--bg-surface-2)',
+      border: `1px solid ${isErr ? '#ef4444' : 'var(--primary)'}`,
+      color: '#fff',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
     }}>
       {isErr ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
       {toast.msg}

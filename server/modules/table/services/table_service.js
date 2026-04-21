@@ -18,19 +18,19 @@ exports.getTableById = async (id, restaurantId) => {
 };
 
 exports.updateTable = async (id, restaurantId, data) => {
-  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true, runValidators: true });
+  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after', runValidators: true });
   if (!table) throw Object.assign(new Error('Table not found'), { statusCode: 404 });
   return table;
 };
 
 exports.updateTableStatus = async (id, restaurantId, status) => {
-  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, { status }, { new: true });
+  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, { status }, { returnDocument: 'after' });
   if (!table) throw Object.assign(new Error('Table not found'), { statusCode: 404 });
   return table;
 };
 
 exports.deleteTable = async (id, restaurantId) => {
-  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { new: true });
+  const table = await Table.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!table) throw Object.assign(new Error('Table not found'), { statusCode: 404 });
   return table;
 };
@@ -68,7 +68,7 @@ exports.getReservationById = async (id, restaurantId) => {
 };
 
 exports.updateReservation = async (id, restaurantId, data) => {
-  const res = await Reservation.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true, runValidators: true });
+  const res = await Reservation.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after', runValidators: true });
   if (!res) throw Object.assign(new Error('Reservation not found'), { statusCode: 404 });
   return res;
 };
@@ -76,7 +76,7 @@ exports.updateReservation = async (id, restaurantId, data) => {
 exports.updateReservationStatus = async (id, restaurantId, status, reason) => {
   const update = { status };
   if (status === 'Cancelled') { update.cancelledAt = new Date(); update.cancellationReason = reason; }
-  const res = await Reservation.findOneAndUpdate({ _id: id, restaurantId }, update, { new: true });
+  const res = await Reservation.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!res) throw Object.assign(new Error('Reservation not found'), { statusCode: 404 });
   return res;
 };

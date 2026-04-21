@@ -20,11 +20,11 @@ function Toast({ toast }) {
     <div style={{
       position: 'fixed', top: 24, right: 24, zIndex: 9999,
       display: 'flex', alignItems: 'center', gap: 10,
-      padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-      background: toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-      border: `1px solid ${toast.type === 'error' ? '#EF4444' : '#10B981'}`,
-      color: toast.type === 'error' ? '#FCA5A5' : '#6EE7B7',
-      backdropFilter: 'blur(8px)',
+      padding: '12px 18px', borderRadius: 10, fontWeight: 700, fontSize: 13,
+      background: toast.type === 'error' ? '#7f1d1d' : 'var(--bg-surface-2)',
+      border: `1px solid ${toast.type === 'error' ? '#ef4444' : 'var(--primary)'}`,
+      color: '#fff',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
     }}>
       {toast.msg}
     </div>

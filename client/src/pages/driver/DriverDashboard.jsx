@@ -60,14 +60,19 @@ export default function DriverDashboard() {
   // Stats
   const earningsToday = completedDeliveries.reduce((sum, o) => sum + (o.tipAmount || 0), 0);
 
-  if (loading && orders.length === 0) {
-    return (
-      <div className="driver-loading glass-panel">
-        <Loader2 className="spin" size={40} color="var(--neon-cyan)" />
-        <p>Loading Deliveries...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="driver-loading">
+      <Loader2 className="spin" size={40} color="var(--primary)" />
+      <p>Loading Deliveries...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="driver-loading">
+      <p style={{ color: 'var(--error)', fontWeight: 600 }}>{error}</p>
+      <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={() => fetchOrders()}>Retry</button>
+    </div>
+  );
 
   return (
     <div className="driver-app fade-in">
@@ -78,7 +83,7 @@ export default function DriverDashboard() {
             <Truck size={24} color="#fff" />
           </div>
           <div>
-            <h2 className="gradient-text-cyan">Driver Port</h2>
+            <h2 style={{ fontWeight: 700, color: 'var(--text)', fontSize: 16 }}>Driver Port</h2>
             <span className="text-xs text-muted">Active Session</span>
           </div>
         </div>
@@ -90,13 +95,13 @@ export default function DriverDashboard() {
 
       {/* ── Driver Metrics Header ── */}
       <header className="driver-stats-header">
-         <div className="d-stat-card glass-panel animate-fade-up">
+         <div className="d-stat-card animate-fade-up">
             <span className="d-stat-label">Deliveries Today</span>
-            <span className="d-stat-value gradient-text-cyan">{completedDeliveries.length}</span>
+            <span className="d-stat-value">{completedDeliveries.length}</span>
          </div>
-         <div className="d-stat-card glass-panel neon-border-cyan animate-fade-up" style={{ animationDelay: '100ms' }}>
+         <div className="d-stat-card animate-fade-up" style={{ animationDelay: '100ms' }}>
             <span className="d-stat-label">Tips Earned</span>
-            <span className="d-stat-value gradient-text-cyan">{formatCurrency(earningsToday)}</span>
+            <span className="d-stat-value">{formatCurrency(earningsToday)}</span>
          </div>
       </header>
 
@@ -114,8 +119,8 @@ export default function DriverDashboard() {
         <div className="delivery-list">
           {activeTab === 'deliveries' ? (
             activeDeliveries.length === 0 ? (
-              <div className="empty-deliveries glass-panel animate-fade-up">
-                <Package size={48} style={{ color: 'var(--neon-cyan)', opacity: 0.5 }} />
+              <div className="empty-deliveries animate-fade-up">
+                <Package size={48} style={{ color: 'var(--primary)', opacity: 0.5 }} />
                 <p className="text-muted">No active deliveries right now.</p>
                 <button className="btn btn-outline btn-sm" onClick={() => fetchOrders()}>Refresh Queue</button>
               </div>
@@ -126,13 +131,13 @@ export default function DriverDashboard() {
             )
           ) : (
             completedDeliveries.map((order, idx) => (
-              <div key={order._id} className="delivery-card-mini glass-panel animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
+              <div key={order._id} className="delivery-card-mini animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
                  <div className="d-mini-info">
                     <span className="d-mini-id">#{order._id.slice(-5).toUpperCase()}</span>
                     <span className="d-mini-time">{timeAgo(order.createdAt)}</span>
                  </div>
                  <div className="d-mini-status">
-                    <CheckCircle size={14} color="var(--neon-emerald)" />
+                    <CheckCircle size={14} color="#10b981" />
                     <span>DELIVERED</span>
                  </div>
               </div>
@@ -148,7 +153,7 @@ function DeliveryCard({ order, onUpdate, delay = 0 }) {
   const isOut = order.status === 'OutForDelivery';
 
   return (
-    <div className={`delivery-card glass-panel ${isOut ? 'neon-border-cyan glow-cyan' : ''} animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
+    <div className={`delivery-card animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
       <div className="d-card-header">
         <div className="d-id-tag">ORDER #{order._id.slice(-5).toUpperCase()}</div>
         <div className={`d-status-pill ${order.status.toLowerCase()}`}>

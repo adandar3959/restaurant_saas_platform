@@ -25,13 +25,13 @@ exports.getIngredientById = async (id, restaurantId) => {
 };
 
 exports.updateIngredient = async (id, restaurantId, data) => {
-  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!item) throw Object.assign(new Error('Ingredient not found'), { statusCode: 404 });
   return item;
 };
 
 exports.deleteIngredient = async (id, restaurantId) => {
-  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { new: true });
+  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!item) throw Object.assign(new Error('Ingredient not found'), { statusCode: 404 });
   return item;
 };
@@ -49,7 +49,7 @@ exports.getRecipeById = async (id, restaurantId) => {
 };
 
 exports.updateRecipe = async (id, restaurantId, data) => {
-  const recipe = await Recipe.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const recipe = await Recipe.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!recipe) throw Object.assign(new Error('Recipe not found'), { statusCode: 404 });
   return recipe;
 };
@@ -60,7 +60,7 @@ exports.createSupplier = async (data) => Supplier.create(data);
 exports.getSuppliers = async (restaurantId) => Supplier.find({ restaurantId, isActive: true });
 
 exports.updateSupplier = async (id, restaurantId, data) => {
-  const supplier = await Supplier.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const supplier = await Supplier.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!supplier) throw Object.assign(new Error('Supplier not found'), { statusCode: 404 });
   return supplier;
 };
@@ -86,7 +86,7 @@ exports.getPurchaseOrders = async (restaurantId, pagination) => {
 exports.updatePOStatus = async (id, restaurantId, status) => {
   const update = { status };
   if (status === 'Received') update.receivedAt = new Date();
-  const po = await PurchaseOrder.findOneAndUpdate({ _id: id, restaurantId }, update, { new: true });
+  const po = await PurchaseOrder.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!po) throw Object.assign(new Error('Purchase order not found'), { statusCode: 404 });
 
   // If received, update ingredient stock

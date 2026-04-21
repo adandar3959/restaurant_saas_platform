@@ -1,7 +1,7 @@
 .driver-app {
   min-height: 100vh;
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
   padding-bottom: 80px;
 }
@@ -26,26 +26,26 @@
 .driver-logo-neon {
   width: 42px;
   height: 42px;
-  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  background: var(--primary);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 15px var(--neon-cyan-glow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 20px -5px var(--primary-glow);
 }
 
 .driver-avatar-mini {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--primary-glow);
+  border: 1px solid var(--border-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
+  color: var(--primary);
 }
 
 .driver-nav-actions {
@@ -87,7 +87,7 @@
 .d-stat-value {
   font-size: 24px;
   font-weight: 900;
-  color: #fff;
+  color: var(--text);
 }
 
 /* Tabs */
@@ -101,8 +101,8 @@
 .d-tab {
   flex: 1;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--text-muted);
   font-weight: 600;
@@ -110,11 +110,11 @@
 }
 
 .d-tab.active {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-  box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.1);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
   font-weight: 700;
+  box-shadow: var(--shadow-primary);
 }
 
 /* List */
@@ -145,12 +145,12 @@
 .d-id-tag {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
-  background: rgba(56, 189, 248, 0.1);
-  color: var(--neon-cyan);
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--primary);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 13px;
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .d-status-pill {
@@ -159,16 +159,17 @@
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 .d-status-pill.outfordelivery { 
-  background: rgba(56, 189, 248, 0.15); 
-  color: var(--neon-cyan); 
-  border: 1px solid var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan-glow);
+  background: var(--primary-glow); 
+  color: var(--primary); 
+  border: 1px solid rgba(124, 58, 237, 0.2);
 }
-.d-status-pill.ready { background: rgba(16, 185, 129, 0.15); color: var(--neon-emerald); border: 1px solid rgba(16, 185, 129, 0.2); }
+.d-status-pill.ready { background: rgba(5, 150, 105, 0.08); color: var(--success); border: 1px solid rgba(5, 150, 105, 0.2); }
 
 .d-card-body {
   display: flex;
@@ -222,8 +223,8 @@
 .d-btn-prime {
   flex: 1;
   border-radius: 14px;
-  background: var(--neon-cyan);
-  color: #0f172a;
+  background: var(--primary);
+  color: #ffffff;
   font-weight: 800;
   display: flex;
   align-items: center;

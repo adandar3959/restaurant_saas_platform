@@ -8,13 +8,13 @@ exports.createZone = async (data) => DeliveryZone.create(data);
 exports.getZones = async (restaurantId) => DeliveryZone.find({ restaurantId, isActive: true });
 
 exports.updateZone = async (id, restaurantId, data) => {
-  const zone = await DeliveryZone.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const zone = await DeliveryZone.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!zone) throw Object.assign(new Error('Zone not found'), { statusCode: 404 });
   return zone;
 };
 
 exports.deleteZone = async (id, restaurantId) => {
-  const zone = await DeliveryZone.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { new: true });
+  const zone = await DeliveryZone.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!zone) throw Object.assign(new Error('Zone not found'), { statusCode: 404 });
   return zone;
 };
@@ -29,7 +29,7 @@ exports.getDrivers = async (restaurantId, filters) => {
 };
 
 exports.updateDriverStatus = async (id, restaurantId, status) => {
-  const driver = await Driver.findOneAndUpdate({ _id: id, restaurantId }, { status }, { new: true });
+  const driver = await Driver.findOneAndUpdate({ _id: id, restaurantId }, { status }, { returnDocument: 'after' });
   if (!driver) throw Object.assign(new Error('Driver not found'), { statusCode: 404 });
   return driver;
 };
@@ -38,7 +38,7 @@ exports.updateDriverLocation = async (id, restaurantId, coordinates) => {
   const driver = await Driver.findOneAndUpdate(
     { _id: id, restaurantId },
     { currentLocation: { type: 'Point', coordinates }, lastLocationUpdate: new Date() },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!driver) throw Object.assign(new Error('Driver not found'), { statusCode: 404 });
   return driver;
@@ -67,7 +67,7 @@ exports.updateDispatchStatus = async (id, restaurantId, status) => {
   const update = { status };
   if (status === 'PickedUp') update.pickedUpAt = new Date();
   if (status === 'Delivered') update.deliveredAt = new Date();
-  const dispatch = await Dispatch.findOneAndUpdate({ _id: id, restaurantId }, update, { new: true });
+  const dispatch = await Dispatch.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!dispatch) throw Object.assign(new Error('Dispatch not found'), { statusCode: 404 });
   return dispatch;
 };

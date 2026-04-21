@@ -62,10 +62,10 @@ export default function AdminSettings() {
           position: 'fixed', top: 24, right: 24, zIndex: 9999,
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-          background: toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-          border: `1px solid ${toast.type === 'error' ? '#EF4444' : '#10B981'}`,
-          color: toast.type === 'error' ? '#FCA5A5' : '#6EE7B7',
-          backdropFilter: 'blur(8px)',
+          background: toast.type === 'error' ? '#FEF2F2' : '#ECFDF5',
+          border: `1px solid ${toast.type === 'error' ? '#FECACA' : '#A7F3D0'}`,
+          color: toast.type === 'error' ? '#DC2626' : '#059669',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
         }}>
           <CheckCircle size={16} />
           {toast.msg}

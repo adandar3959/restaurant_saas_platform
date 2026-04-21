@@ -19,7 +19,7 @@ exports.getCategoryById = async (id, restaurantId) => {
 };
 
 exports.updateCategory = async (id, restaurantId, data) => {
-  const cat = await MenuCategory.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true, runValidators: true });
+  const cat = await MenuCategory.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after', runValidators: true });
   if (!cat) throw Object.assign(new Error('Category not found'), { statusCode: 404 });
   return cat;
 };
@@ -28,7 +28,7 @@ exports.deleteCategory = async (id, restaurantId) => {
   const cat = await MenuCategory.findOneAndUpdate(
     { _id: id, restaurantId },
     { deletedAt: new Date(), isActive: false },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!cat) throw Object.assign(new Error('Category not found'), { statusCode: 404 });
   return cat;
@@ -65,7 +65,7 @@ exports.getItemById = async (id, restaurantId) => {
 };
 
 exports.updateItem = async (id, restaurantId, data) => {
-  const item = await MenuItem.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true, runValidators: true });
+  const item = await MenuItem.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after', runValidators: true });
   if (!item) throw Object.assign(new Error('Menu item not found'), { statusCode: 404 });
   return item;
 };
@@ -74,7 +74,7 @@ exports.deleteItem = async (id, restaurantId) => {
   const item = await MenuItem.findOneAndUpdate(
     { _id: id, restaurantId },
     { deletedAt: new Date(), isAvailable: false },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!item) throw Object.assign(new Error('Menu item not found'), { statusCode: 404 });
   return item;

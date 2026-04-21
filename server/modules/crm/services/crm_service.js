@@ -25,14 +25,14 @@ exports.respondToReview = async (id, restaurantId, text, userId) => {
   const review = await Review.findOneAndUpdate(
     { _id: id, restaurantId },
     { response: { text, respondedAt: new Date(), respondedBy: userId } },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!review) throw Object.assign(new Error('Review not found'), { statusCode: 404 });
   return review;
 };
 
 exports.flagReview = async (id, restaurantId) => {
-  const review = await Review.findOneAndUpdate({ _id: id, restaurantId }, { isFlagged: true }, { new: true });
+  const review = await Review.findOneAndUpdate({ _id: id, restaurantId }, { isFlagged: true }, { returnDocument: 'after' });
   if (!review) throw Object.assign(new Error('Review not found'), { statusCode: 404 });
   return review;
 };
@@ -56,13 +56,13 @@ exports.getCouponByCode = async (code, restaurantId) => {
 };
 
 exports.updateCoupon = async (id, restaurantId, data) => {
-  const coupon = await Coupon.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const coupon = await Coupon.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!coupon) throw Object.assign(new Error('Coupon not found'), { statusCode: 404 });
   return coupon;
 };
 
 exports.deleteCoupon = async (id, restaurantId) => {
-  const coupon = await Coupon.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { new: true });
+  const coupon = await Coupon.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!coupon) throw Object.assign(new Error('Coupon not found'), { statusCode: 404 });
   return coupon;
 };

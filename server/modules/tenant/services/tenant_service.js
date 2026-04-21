@@ -35,13 +35,13 @@ exports.getTenantBySlug = async (slug) => {
 
 exports.updateTenant = async (id, data) => {
   if (data.restaurantName && !data.slug) data.slug = slugify(data.restaurantName);
-  const tenant = await Tenant.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  const tenant = await Tenant.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;
 };
 
 exports.deleteTenant = async (id) => {
-  const tenant = await Tenant.findByIdAndUpdate(id, { deletedAt: new Date(), isActive: false }, { new: true });
+  const tenant = await Tenant.findByIdAndUpdate(id, { deletedAt: new Date(), isActive: false }, { returnDocument: 'after' });
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;
 };
@@ -50,7 +50,7 @@ exports.updateSubscription = async (id, subscriptionData) => {
   const tenant = await Tenant.findByIdAndUpdate(
     id,
     { subscription: subscriptionData },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   );
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;

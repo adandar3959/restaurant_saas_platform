@@ -32,10 +32,10 @@ function Toast({ toast }) {
       position: 'fixed', top: 24, right: 24, zIndex: 9999,
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-      background: isErr ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-      border: `1px solid ${isErr ? '#EF4444' : '#10B981'}`,
-      color: isErr ? '#FCA5A5' : '#6EE7B7',
-      backdropFilter: 'blur(8px)',
+      background: isErr ? '#FEF2F2' : '#ECFDF5',
+      border: `1px solid ${isErr ? '#FECACA' : '#A7F3D0'}`,
+      color: isErr ? '#DC2626' : '#059669',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
     }}>
       {isErr ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
       {toast.msg}

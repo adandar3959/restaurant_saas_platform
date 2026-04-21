@@ -22,7 +22,7 @@ exports.updateTicketStatus = async (id, restaurantId, status) => {
   const update = { status };
   if (status === 'Completed') update.completedAt = new Date();
   if (status === 'Voided') update.voidedAt = new Date();
-  const ticket = await KitchenTicket.findOneAndUpdate({ _id: id, restaurantId }, update, { new: true });
+  const ticket = await KitchenTicket.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!ticket) throw Object.assign(new Error('Ticket not found'), { statusCode: 404 });
   return ticket;
 };
@@ -34,7 +34,7 @@ exports.updateItemStatus = async (ticketId, restaurantId, itemId, status) => {
   const ticket = await KitchenTicket.findOneAndUpdate(
     { _id: ticketId, restaurantId, 'items._id': itemId },
     { $set: update },
-    { new: true }
+    { returnDocument: 'after' }
   );
   if (!ticket) throw Object.assign(new Error('Ticket or item not found'), { statusCode: 404 });
   return ticket;
@@ -46,13 +46,13 @@ exports.getStations = async (restaurantId) => PrepStation.find({ restaurantId, i
 exports.createStation = async (data) => PrepStation.create(data);
 
 exports.updateStation = async (id, restaurantId, data) => {
-  const station = await PrepStation.findOneAndUpdate({ _id: id, restaurantId }, data, { new: true });
+  const station = await PrepStation.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
   if (!station) throw Object.assign(new Error('Station not found'), { statusCode: 404 });
   return station;
 };
 
 exports.deleteStation = async (id, restaurantId) => {
-  const station = await PrepStation.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { new: true });
+  const station = await PrepStation.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!station) throw Object.assign(new Error('Station not found'), { statusCode: 404 });
   return station;
 };

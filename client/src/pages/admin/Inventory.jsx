@@ -10,11 +10,11 @@ function Toast({ toast }) {
     <div style={{
       position: 'fixed', top: 24, right: 24, zIndex: 9999,
       display: 'flex', alignItems: 'center', gap: 10,
-      padding: '12px 18px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-      background: toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
-      border: `1px solid ${toast.type === 'error' ? '#EF4444' : '#10B981'}`,
-      color: toast.type === 'error' ? '#FCA5A5' : '#6EE7B7',
-      backdropFilter: 'blur(8px)',
+      padding: '12px 18px', borderRadius: 10, fontWeight: 700, fontSize: 13,
+      background: toast.type === 'error' ? '#7f1d1d' : 'var(--bg-surface-2)',
+      border: `1px solid ${toast.type === 'error' ? '#ef4444' : 'var(--primary)'}`,
+      color: '#fff',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
     }}>
       {toast.msg}
     </div>
@@ -95,8 +95,8 @@ export default function Inventory() {
           <p className="page-subtitle">
             {ingredients.length} ingredients
             {lowStock.length > 0 && (
-              <span style={{ marginLeft: 8, background: 'rgba(239,68,68,0.15)', color: '#F87171', padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
-                ⚠ {lowStock.length} low stock
+              <span style={{ marginLeft: 8, background: '#7f1d1d', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, border: '1px solid #ef4444' }}>
+                ⚠ {lowStock.length} LOW STOCK
               </span>
             )}
           </p>

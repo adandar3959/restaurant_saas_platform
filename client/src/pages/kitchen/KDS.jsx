@@ -163,7 +163,7 @@ export default function KDS() {
   if (loading && orders.length === 0) {
     return (
       <div className="kds-loading">
-        <ChefHat size={48} className="spin" color="#3b82f6" />
+        <ChefHat size={48} className="spin" color="var(--primary)" />
         <p>Loading Kitchen Display...</p>
       </div>
     );
@@ -183,27 +183,26 @@ export default function KDS() {
     const lifetimeOrders = historyOrders.filter(o => o.status === 'Completed' || o.status === 'Ready');
 
     return (
-      <div className="kds-dashboard fade-in">
-        <div className="kds-header-glass glass-panel animate-fade-up">
-           <div className="kds-avatar-neon shadow-neon-cyan"><User size={44} strokeWidth={2.5} /></div>
+      <div className="kds-dashboard animate-fade-in">
+        <div className="kds-header-main animate-fade-up">
+           <div className="kds-avatar-neon shadow-neon-purple"><User size={44} strokeWidth={2.5} /></div>
            <div className="kds-info">
-             <h2 className="gradient-text-cyan">{user?.name || 'Chef'}</h2>
-             <p className="text-muted">{user?.email} • Chef ID: <span className="text-cyan">{user?._id?.slice(-5).toUpperCase()}</span></p>
+             <h2>{user?.name?.toUpperCase() || 'CHEF'}</h2>
+             <p className="text-muted">{user?.email} • ID: <span className="text-primary">{user?._id?.slice(-5).toUpperCase()}</span></p>
            </div>
         </div>
 
-        <h3 className="kds-section-title">Today's Kitchen Performance</h3>
+        <h3 className="kds-section-title" style={{marginTop: 32}}>Daily Performance</h3>
         <div className="kds-metrics-grid">
-           <div className="kds-metric-glass glass-panel animate-fade-up">
-              <div className="metric-glow"></div>
+           <div className="kds-metric-card animate-fade-up">
               <h4>Orders Prepped Today</h4>
-              <div className="kds-val gradient-text-cyan">{todayOrders.length}</div>
+              <div className="kds-val">{todayOrders.length}</div>
            </div>
         </div>
 
-        <h3 className="kds-section-title" style={{marginTop: 32}}>All-Time Performance (Since Join)</h3>
+        <h3 className="kds-section-title" style={{marginTop: 32}}>Lifetime Performance</h3>
         <div className="kds-metrics-grid">
-           <div className="kds-metric-glass card-blue" style={{background: 'rgba(56, 189, 248, 0.05)'}}>
+           <div className="kds-metric-card accent-primary">
               <h4>Lifetime Orders Prepped</h4>
               <div className="kds-val">{lifetimeOrders.length}</div>
            </div>
@@ -211,15 +210,15 @@ export default function KDS() {
 
         <h3 className="kds-section-title" style={{marginTop: 32}}>Recent Completed Orders</h3>
         <div className="kds-recent-list">
-          {lifetimeOrders.length === 0 && <p className="kds-empty-glass">No orders finished yet.</p>}
+          {lifetimeOrders.length === 0 && <p className="kds-empty-state">No orders finished yet.</p>}
           {lifetimeOrders.slice(0, 10).map(o => (
-            <div key={o._id} className="kds-recent-glass-row">
+            <div key={o._id} className="kds-recent-row">
               <div className="kds-rr-left">
                 <div className="kds-rr-table">Order #{o._id.slice(-5).toUpperCase()}</div>
                 <div className="kds-rr-time">{new Date(o.createdAt).toLocaleDateString()} • {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
               </div>
               <div className="kds-rr-right">
-                <div className="kds-rr-total">{o.status}</div>
+                <div className="kds-rr-status">{o.status}</div>
               </div>
             </div>
           ))}
@@ -232,11 +231,11 @@ export default function KDS() {
     <div className="kds-app-container">
       
       {/* GLOWING SIDEBAR */}
-      <nav className="kds-sidebar glass-panel">
+      <nav className="kds-sidebar">
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <div className="driver-logo-neon">
-              <UtensilsCrossed size={28} color="#fff" />
+            <div className="driver-brand-icon">
+              <UtensilsCrossed size={28} color="var(--primary)" />
             </div>
           </div>
           <button className={`sidebar-btn ${activeTab === 'kds' ? 'active' : ''}`} onClick={() => setActiveTab('kds')} title="Kitchen Display">
@@ -259,18 +258,18 @@ export default function KDS() {
 
       <div className="kds-layout">
       {/* HEADER */}
-      <header className="kds-header glass-header">
+      <header className="kds-header">
         <div className="kds-title">
-          <Monitor color="var(--neon-cyan)" size={24} />
-          <span className="gradient-text-cyan">KDS </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 }}>
-             Kitchen Display System
+          <Monitor color="var(--primary)" size={24} />
+          <span style={{ color: 'var(--text)', fontWeight: 800 }}>KDS </span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600 }}>
+             KITCHEN DISPLAY SYSTEM
           </span>
         </div>
 
         {/* Station Routing Tabs */}
         {stationTabs.length > 1 && (
-          <div className="kds-station-tabs glass-panel" style={{ padding: '4px' }}>
+          <div className="kds-station-tabs" style={{ padding: '4px', background: 'var(--bg-surface-2)', borderRadius: 24, border: '1px solid var(--border)' }}>
             {stationTabs.map(st => (
               <button 
                 key={st}
@@ -294,11 +293,11 @@ export default function KDS() {
             {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
           </button>
           
-          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text-main)', border: '1px solid var(--glass-border)' }} onClick={() => setShowHistory(true)}>
+          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text)', border: '1px solid var(--border)', background: 'var(--bg-surface-2)' }} onClick={() => setShowHistory(true)}>
             <History size={16} /> History
           </button>
 
-          <div className="kds-clock glass-panel">{formatTime(time)}</div>
+          <div className="kds-clock">{formatTime(time)}</div>
           
           <button className="btn btn-ghost btn-circle" style={{ color: 'var(--error)' }} onClick={logout}>
             <LogOut size={18} />
@@ -565,19 +564,19 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
   const hideAction = isReadyCol && order.orderType === 'Dine-In';
 
   return (
-    <div className={`kds-card glass-panel ${mins === 0 ? 'new-arrival neon-border-cyan' : ''} animate-fade-up`}>
-      <div className="kds-card-header" style={{ borderBottom: '1px solid var(--glass-border)' }}>
+    <div className={`kds-card ${mins === 0 ? 'new-arrival neon-border-purple' : ''} animate-fade-up`}>
+      <div className="kds-card-header" style={{ borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span className="kds-card-title gradient-text-cyan">#{order._id?.slice(-5).toUpperCase()}</span>
-          <span className="kds-type-badge" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>{typeIcon} {order.orderType?.toUpperCase()}</span>
+          <span className="kds-card-title">#{order._id?.slice(-5).toUpperCase()}</span>
+          <span className="kds-type-badge" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>{typeIcon} {order.orderType?.toUpperCase()}</span>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <span className={`kds-card-time ${timeClass}`} style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+          <span className={`kds-card-time ${timeClass}`} style={{ background: 'rgba(0,0,0,0.4)', padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <Clock size={14} /> {mins}m 
           </span>
           {order.orderType === 'Dine-In' && order.tableNumber && (
-            <span className="kds-table-badge" style={{ background: 'var(--neon-purple)', color: '#fff', fontSize: '12px' }}>T{order.tableNumber}</span>
+            <span className="kds-table-badge" style={{ background: 'var(--primary)', color: '#fff', fontSize: '12px' }}>T{order.tableNumber}</span>
           )}
         </div>
       </div>

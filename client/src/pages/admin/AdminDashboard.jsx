@@ -101,11 +101,11 @@ function RevenueChart({ data }) {
 }
 
 // ─── Mini Stat Card ───────────────────────────────────────────────────────────
-function MiniStat({ label, value, icon: Icon, color, sub, trend, delay = 0 }) {
+function MiniStat({ label, value, icon: Icon, sub, trend, delay = 0 }) {
   return (
-    <div className="stat-card glass-panel animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
+    <div className="stat-card animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
       <div className="stat-card-top">
-        <div className="stat-card-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
+        <div className="stat-card-icon" style={{ background: `rgba(139, 92, 246, 0.1)`, color: `var(--primary)` }}>
           <Icon size={22} />
         </div>
         {trend !== undefined && (
@@ -117,7 +117,7 @@ function MiniStat({ label, value, icon: Icon, color, sub, trend, delay = 0 }) {
       </div>
       <div>
         <div className="stat-card-label">{label}</div>
-        <div className="stat-card-value gradient-text-cyan">{value}</div>
+        <div className="stat-card-value">{value}</div>
       </div>
     </div>
   );
@@ -287,10 +287,10 @@ export default function AdminDashboard() {
           {/* Revenue chart */}
           <div className="dash-section">
             <div className="dash-section-header">
-              <h3 className="dash-section-title gradient-text-cyan">Weekly Revenue Overview</h3>
-              <div className="badge badge-primary" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-cyan)', borderColor: 'rgba(56,189,248,0.2)' }}>Last 7 Days</div>
+              <h3 className="dash-section-title">Weekly Revenue Overview</h3>
+              <div className="badge badge-primary" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--primary)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>Last 7 Days</div>
             </div>
-            <div className="card glass-panel" style={{ padding: '24px 16px 12px' }}>
+            <div className="card-panel" style={{ padding: '24px 16px 12px' }}>
               <RevenueChart data={dailyRevenue} />
               {/* Day summary row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginTop: 'var(--space-4)', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-4)' }}>
@@ -633,7 +633,7 @@ export default function AdminDashboard() {
 
       {/* Quick actions (both roles) */}
       <div className="dash-section">
-        <h2 className="dash-section-title gradient-text-cyan">Quick Actions</h2>
+        <h2 className="dash-section-title">Quick Actions</h2>
         <div className="quick-actions-grid">
           {(isAdmin ? [
             { label: 'View Orders',   icon: ShoppingBag,     path: 'orders',    color: 'var(--neon-cyan)' },
@@ -650,11 +650,11 @@ export default function AdminDashboard() {
             return (
               <div 
                 key={idx} 
-                className="quick-action-card glass-panel animate-fade-up" 
+                className="quick-action-card animate-fade-up" 
                 style={{ animationDelay: `${400 + idx*50}ms` }}
                 onClick={() => navigate(`${basePath}/${qa.path}`)}
               >
-                <div className="qa-icon" style={{ background: `rgba(56, 189, 248, 0.1)`, color: `var(--neon-cyan)` }}>
+                <div className="qa-icon" style={{ background: `rgba(139, 92, 246, 0.1)`, color: `var(--primary)` }}>
                   <Icon size={20} />
                 </div>
                 <div className="qa-label">{qa.label}</div>
