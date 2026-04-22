@@ -40,9 +40,9 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container">
-        {/* Top row */}
+        {}
         <div className="footer-top">
-          {/* Brand */}
+          {}
           <div className="footer-brand">
             <Link to="/" className="nav-logo footer-logo">
               <div className="nav-logo-icon">
@@ -62,7 +62,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links grid */}
+          {}
           <div className="footer-links-grid">
             {Object.entries(footerLinks).map(([group, links]) => (
               <div key={group} className="footer-col">
@@ -79,7 +79,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom row */}
+        {}
         <div className="footer-bottom">
           <p className="text-subtle text-sm">
             © {new Date().getFullYear()} DineFlow. All rights reserved.

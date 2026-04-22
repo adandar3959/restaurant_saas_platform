@@ -22,7 +22,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close menu on resize
   useEffect(() => {
     const onResize = () => { if (window.innerWidth > 768) setMenuOpen(false); };
     window.addEventListener('resize', onResize);
@@ -38,7 +37,7 @@ export default function Navbar() {
       <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="container">
           <nav className="nav-inner">
-            {/* Logo */}
+            {}
             <Link to="/" className="nav-logo">
               <div className="nav-logo-icon">
                 <UtensilsCrossed size={20} />
@@ -46,7 +45,7 @@ export default function Navbar() {
               <span>DineFlow</span>
             </Link>
 
-            {/* Desktop links */}
+            {}
             <ul className="nav-links hide-mobile">
               {navLinks.map(l => (
                 <li key={l.label}>
@@ -55,7 +54,7 @@ export default function Navbar() {
               ))}
             </ul>
 
-            {/* Right actions */}
+            {}
             <div className="nav-actions">
               {user ? (
                 <>
@@ -79,7 +78,7 @@ export default function Navbar() {
                 </>
               )}
 
-              {/* Mobile hamburger */}
+              {}
               <button
                 className="nav-hamburger"
                 onClick={() => setMenuOpen(v => !v)}
@@ -92,7 +91,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {}
       <div className={`mobile-drawer ${menuOpen ? 'open' : ''}`}>
         <ul className="mobile-nav-links">
           {navLinks.map(l => (
@@ -126,7 +125,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Overlay */}
+      {}
       {menuOpen && <div className="drawer-overlay" onClick={() => setMenuOpen(false)} />}
     </>
   );

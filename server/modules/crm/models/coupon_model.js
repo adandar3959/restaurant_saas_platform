@@ -10,13 +10,11 @@ const couponSchema = new mongoose.Schema(
       enum: ['Percentage', 'FixedAmount', 'FreeDelivery', 'BuyXGetY'],
       required: true,
     },
-    discountValue: { type: Number, default: 0 }, // % or flat amount
+    discountValue: { type: Number, default: 0 },
 
-    // Conditions
     minimumOrderAmount: { type: Number, default: 0 },
-    maximumDiscountAmount: { type: Number }, // cap for percentage discounts
+    maximumDiscountAmount: { type: Number },
 
-    // Applicability
     applicableTo: {
       type: String,
       enum: ['All', 'Delivery', 'Dine-In', 'Takeaway'],
@@ -25,12 +23,10 @@ const couponSchema = new mongoose.Schema(
     applicableItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' }],
     applicableCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MenuCategory' }],
 
-    // Usage limits
-    usageLimit: { type: Number, default: null },       // null = unlimited
+    usageLimit: { type: Number, default: null },
     usageLimitPerUser: { type: Number, default: 1 },
     usedCount: { type: Number, default: 0 },
 
-    // Validity
     validFrom: { type: Date, required: true },
     validUntil: { type: Date, required: true },
 

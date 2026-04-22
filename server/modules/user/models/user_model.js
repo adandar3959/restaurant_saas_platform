@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const savedAddressSchema = new mongoose.Schema(
   {
-    label: { type: String, default: 'Home' }, // "Home", "Work", "Other"
+    label: { type: String, default: 'Home' },
     street: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String },
@@ -11,7 +11,7 @@ const savedAddressSchema = new mongoose.Schema(
     country: { type: String, default: 'US' },
     coordinates: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number] }, // [lng, lat]
+      coordinates: { type: [Number] },
     },
     isDefault: { type: Boolean, default: false },
   },
@@ -30,12 +30,11 @@ const loyaltySchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema(
   {
-    // null for SuperAdmin; null for global Customers not tied to one restaurant
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', default: null },
 
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true, select: false }, // never returned by default
+    passwordHash: { type: String, required: true, select: false },
 
     role: {
       type: String,
@@ -45,22 +44,19 @@ const userSchema = new mongoose.Schema(
 
     phone: { type: String },
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-    profileImage: { type: String }, // URL to cloud storage (S3/Cloudinary)
+    profileImage: { type: String },
 
-    // Staff-specific: which prep station or section they're assigned to
     assignedStation: { type: String },
 
-    // Customer-only details
     customerDetails: {
       savedAddresses: [savedAddressSchema],
       loyalty: loyaltySchema,
       preferredPaymentMethod: { type: String, enum: ['Cash', 'CreditCard', 'Wallet'] },
-      dietaryPreferences: [{ type: String }], // e.g. ['Vegan', 'Gluten-Free']
+      dietaryPreferences: [{ type: String }],
       orderCount: { type: Number, default: 0 },
       totalSpent: { type: Number, default: 0 },
     },
 
-    // Auth & security
     status: { type: String, enum: ['Active', 'Inactive', 'Banned'], default: 'Active' },
     emailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String, select: false },
@@ -69,18 +65,16 @@ const userSchema = new mongoose.Schema(
     lastLoginAt: { type: Date },
     refreshToken: { type: String, select: false },
 
-    deletedAt: { type: Date, default: null }, // soft delete
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// Hash password before saving
 userSchema.pre('save', async function () {
   if (!this.isModified('passwordHash')) return;
   this.passwordHash = await bcrypt.hash(this.passwordHash, 12);
 });
 
-// Instance method to compare passwords
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };

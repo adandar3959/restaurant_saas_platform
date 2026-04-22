@@ -1,11 +1,10 @@
-/* ─── Layout Shell ───────────────────────────────────────────────────────── */
+
 .admin-layout {
   display: flex;
   min-height: 100vh;
   background: var(--bg);
 }
 
-/* ─── Sidebar ────────────────────────────────────────────────────────────── */
 .admin-sidebar {
   width: 240px;
   background: #FFFFFF;
@@ -23,7 +22,6 @@
 
 .sidebar-collapsed { width: 68px; }
 
-/* Brand */
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -71,7 +69,6 @@
   letter-spacing: 0.06em;
 }
 
-/* Section label */
 .sidebar-section-label {
   font-size: 10px;
   font-weight: 700;
@@ -81,7 +78,6 @@
   padding: 16px 16px 6px;
 }
 
-/* Nav */
 .sidebar-nav {
   flex: 1;
   padding: var(--space-3) var(--space-3);
@@ -127,7 +123,6 @@
 }
 .sidebar-link-collapsed .sidebar-link-label { display: none; }
 
-/* Collapse button */
 .sidebar-collapse-btn {
   position: absolute;
   top: 20px;
@@ -152,7 +147,6 @@
   border-color: var(--border-hover);
 }
 
-/* Footer / user */
 .sidebar-footer {
   padding: var(--space-4) var(--space-3);
   border-top: 1px solid var(--border);
@@ -238,7 +232,6 @@
 .sidebar-user-menu-item:hover { background: var(--bg-surface-2); color: var(--text); }
 .sidebar-user-menu-item.danger:hover { color: var(--error); background: #FEF2F2; }
 
-/* ─── Main content ───────────────────────────────────────────────────────── */
 .admin-main {
   flex: 1;
   margin-left: 240px;
@@ -250,7 +243,6 @@
 
 .admin-layout:has(.sidebar-collapsed) .admin-main { margin-left: 68px; }
 
-/* Topbar */
 .admin-topbar {
   height: 64px;
   background: var(--bg-surface);
@@ -341,14 +333,12 @@
 }
 .topbar-user-name { font-size: 14px; font-weight: 600; color: var(--text); }
 
-/* Page content */
 .admin-content {
   flex: 1;
   padding: var(--space-8);
   overflow-x: hidden;
 }
 
-/* ─── Mobile sidebar ─────────────────────────────────────────────────────── */
 .mobile-sidebar-overlay {
   display: none;
   position: fixed;
@@ -383,7 +373,6 @@
 }
 .mobile-sidebar-close:hover { background: #f3f4f6; color: #111827; }
 
-/* ─── Page header ────────────────────────────────────────────────────────── */
 .page-header {
   display: flex;
   align-items: center;
@@ -406,7 +395,6 @@
   margin-top: 4px;
 }
 
-/* ─── Stat card ──────────────────────────────────────────────────────────── */
 .stat-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -444,7 +432,6 @@
 .stat-card-change.up   { color: var(--success); }
 .stat-card-change.down { color: var(--error); }
 
-/* ─── Data table ─────────────────────────────────────────────────────────── */
 .data-table-wrap {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -481,7 +468,6 @@
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover { background: var(--bg-surface-2); }
 
-/* Status badge */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -492,7 +478,6 @@
   font-weight: 700;
 }
 
-/* Empty state */
 .empty-state {
   text-align: center;
   padding: var(--space-20) var(--space-8);
@@ -501,7 +486,6 @@
 .empty-state-icon { font-size: 48px; margin-bottom: var(--space-4); }
 .empty-state-title { font-size: 18px; font-weight: 700; margin-bottom: var(--space-2); color: var(--text); }
 
-/* Loading */
 .page-loading {
   display: flex;
   align-items: center;
@@ -512,7 +496,6 @@
   color: #9ca3af;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .admin-sidebar { display: none; }
   .admin-main { margin-left: 0 !important; }

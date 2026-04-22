@@ -7,7 +7,7 @@ const ticketItemSchema = new mongoose.Schema(
     quantity: { type: Number, required: true },
     selectedModifiers: [{ name: String, groupName: String }],
     specialInstructions: { type: String },
-    prepStation: { type: String }, // e.g. "Grill", "Bar", "Fryer"
+    prepStation: { type: String },
     status: {
       type: String,
       enum: ['Pending', 'Preparing', 'Ready', 'Served'],
@@ -23,9 +23,9 @@ const kitchenTicketSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
     orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
-    orderNumber: { type: String, required: true }, // denormalized for quick display on KDS
+    orderNumber: { type: String, required: true },
     orderType: { type: String, enum: ['Dine-In', 'Takeaway', 'Delivery'] },
-    tableNumber: { type: String }, // shown on KDS for dine-in
+    tableNumber: { type: String },
 
     items: [ticketItemSchema],
 
@@ -37,10 +37,9 @@ const kitchenTicketSchema = new mongoose.Schema(
 
     priority: { type: String, enum: ['Normal', 'Rush'], default: 'Normal' },
 
-    // Which station this ticket is routed to (if station-specific tickets are used)
     assignedStation: { type: String },
 
-    printedAt: { type: Date },   // when it was sent to the KDS/printer
+    printedAt: { type: Date },
     completedAt: { type: Date },
     voidedAt: { type: Date },
     voidReason: { type: String },

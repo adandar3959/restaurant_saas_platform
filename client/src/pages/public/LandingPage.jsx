@@ -41,7 +41,7 @@ export default function LandingPage() {
     <div className="landing">
       <Navbar />
 
-      {/* ── HERO (dark) ───────────────────────────────────────────────── */}
+      {}
       <section className="hero">
         <div className="hero-bg-glow" />
         <div className="container">
@@ -119,7 +119,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS (white) ─────────────────────────────────────────────── */}
+      {}
       <section className="stats-bar">
         <div className="container">
           <div className="stats-grid">
@@ -133,7 +133,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FEATURES (white) ──────────────────────────────────────────── */}
+      {}
       <section className="section-light" id="features">
         <div className="container">
           <div className="section-header text-center">
@@ -162,7 +162,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS (light grey) ─────────────────────────────────── */}
+      {}
       <section className="section-light-alt" id="how-it-works">
         <div className="container">
           <div className="section-header text-center">
@@ -187,7 +187,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS (white) ──────────────────────────────────────── */}
+      {}
       <section className="section-light">
         <div className="container">
           <div className="section-header text-center">
@@ -222,7 +222,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA (dark card on white bg) ───────────────────────────────── */}
+      {}
       <section className="section-light-alt">
         <div className="container">
           <div className="cta-banner-light">

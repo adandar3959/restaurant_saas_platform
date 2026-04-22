@@ -13,7 +13,6 @@ exports.onboard = asyncHandler(async (req, res) => {
   sendSuccess(res, { user, tenant, token }, 'Restaurant registered successfully', 201);
 });
 
-
 exports.createStaff = asyncHandler(async (req, res) => {
   const user = await userService.createStaff(req.body, req.user);
   sendSuccess(res, user, 'Staff account created', 201);

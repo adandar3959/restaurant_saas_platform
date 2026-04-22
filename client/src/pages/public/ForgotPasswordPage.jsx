@@ -16,7 +16,6 @@ export default function ForgotPasswordPage() {
     if (!/\S+@\S+\.\S+/.test(email)) return setFormError('Enter a valid email');
 
     setLoading(true);
-    // TODO: wire to real API when password reset endpoint is added
     await new Promise(r => setTimeout(r, 1200));
     setLoading(false);
     setIsSent(true);

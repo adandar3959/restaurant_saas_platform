@@ -3,7 +3,6 @@ const MenuItem = require('../../menu/models/menuItem_model');
 const Tenant = require('../../tenant/models/tenant_model');
 const KitchenTicket = require('../../kitchen/models/kitchenTicket_model');
 
-// Generate human-readable order number e.g. "ORD-1042"
 const generateOrderNumber = async (restaurantId) => {
   const tenant = await Tenant.findById(restaurantId).select('settings.orderPrefix');
   const prefix = tenant?.settings?.orderPrefix || 'ORD';
@@ -15,7 +14,6 @@ exports.createOrder = async (data, restaurantId) => {
   data.restaurantId = restaurantId;
   data.orderNumber = await generateOrderNumber(restaurantId);
 
-  // Fetch menu items and calculate financials
   const tenant = await Tenant.findById(restaurantId).select('settings');
   const taxRate = tenant?.settings?.taxRate || 0;
 
@@ -49,7 +47,6 @@ exports.createOrder = async (data, restaurantId) => {
 
   const order = await Order.create(data);
 
-  // Auto-create kitchen ticket
   await KitchenTicket.create({
     restaurantId,
     orderId: order._id,
@@ -130,7 +127,6 @@ exports.getMyOrders = async (customerId, pagination) => {
 };
 
 exports.getOrderStats = async (restaurantId, query = {}) => {
-  // Default to last 30 days if no range provided
   const endDate = query.endDate ? new Date(query.endDate) : new Date();
   const startDate = query.startDate
     ? new Date(query.startDate)
@@ -142,7 +138,6 @@ exports.getOrderStats = async (restaurantId, query = {}) => {
     createdAt: { $gte: startDate, $lte: endDate },
   };
 
-  // Daily revenue breakdown
   const dailyRevenue = await Order.aggregate([
     { $match: matchStage },
     {
@@ -156,7 +151,6 @@ exports.getOrderStats = async (restaurantId, query = {}) => {
     { $project: { _id: 0, date: '$_id', amount: 1, count: 1 } },
   ]);
 
-  // Overall totals
   const [totals] = await Order.aggregate([
     { $match: matchStage },
     {

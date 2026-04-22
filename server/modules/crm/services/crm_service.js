@@ -3,7 +3,6 @@ const Coupon = require('../models/coupon_model');
 const LoyaltyTransaction = require('../models/loyaltyTransaction_model');
 const User = require('../../user/models/user_model');
 
-// ── Reviews ──────────────────────────────────────────────────
 exports.createReview = async (data) => Review.create(data);
 
 exports.getReviews = async (restaurantId, filters, pagination) => {
@@ -37,7 +36,6 @@ exports.flagReview = async (id, restaurantId) => {
   return review;
 };
 
-// ── Coupons ──────────────────────────────────────────────────
 exports.createCoupon = async (data) => Coupon.create(data);
 
 exports.getCoupons = async (restaurantId) => Coupon.find({ restaurantId, isActive: true });
@@ -67,7 +65,6 @@ exports.deleteCoupon = async (id, restaurantId) => {
   return coupon;
 };
 
-// ── Loyalty ──────────────────────────────────────────────────
 exports.getLoyaltyBalance = async (customerId, restaurantId) => {
   const user = await User.findById(customerId).select('customerDetails.loyalty');
   if (!user) throw Object.assign(new Error('Customer not found'), { statusCode: 404 });

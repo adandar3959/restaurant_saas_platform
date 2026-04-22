@@ -4,7 +4,7 @@ const { protect, authorize, optionalAuth } = require('../../../utils/auth.middle
 const { validateCreateOrder, validateUpdateStatus, validatePayment } = require('../middlewares/order_middleware');
 
 const staff      = ['SuperAdmin', 'Admin', 'Manager', 'Waiter', 'Chef'];
-const fieldStaff = [...staff, 'Driver']; // Driver can read orders & update status only
+const fieldStaff = [...staff, 'Driver'];
 
 router.get('/my',    protect, authorize('Customer'),                                              ctrl.getMyOrders);
 router.get('/stats', protect, authorize('SuperAdmin', 'Admin', 'Manager'),                        ctrl.getOrderStats);

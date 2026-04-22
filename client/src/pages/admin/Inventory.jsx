@@ -106,7 +106,7 @@ export default function Inventory() {
         </button>
       </div>
 
-      {/* Low stock alert banner */}
+      {}
       {lowStock.length > 0 && (
         <div style={{
           display: 'flex', gap: 12, alignItems: 'center',
@@ -127,7 +127,7 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* Summary stats */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
         {[
           { label: 'Total Items', value: ingredients.length, icon: PackageCheck, color: 'var(--neon-cyan)', delay: 0 },
@@ -148,7 +148,7 @@ export default function Inventory() {
         ))}
       </div>
 
-      {/* Tabs + Search */}
+      {}
       <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
         <div className="orders-tabs" style={{ margin: 0 }}>
           <button className={`orders-tab ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>
@@ -234,7 +234,7 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
+      {}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

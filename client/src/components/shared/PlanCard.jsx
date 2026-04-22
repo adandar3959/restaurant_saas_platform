@@ -26,7 +26,7 @@ export default function PlanCard({ plan, isPopular, selectedPlan, onSelect }) {
         </div>
       )}
 
-      {/* Header */}
+      {}
       <div className="plan-header">
         <div className="plan-icon">{planIcons[plan.name] || '📦'}</div>
         <div>
@@ -35,7 +35,7 @@ export default function PlanCard({ plan, isPopular, selectedPlan, onSelect }) {
         </div>
       </div>
 
-      {/* Price */}
+      {}
       <div className="plan-price">
         {plan.price === 0 ? (
           <span className="price-value">Free</span>
@@ -53,7 +53,7 @@ export default function PlanCard({ plan, isPopular, selectedPlan, onSelect }) {
         </p>
       )}
 
-      {/* CTA */}
+      {}
       <button
         className={`btn w-full mt-6 ${isPopular ? 'btn-primary' : 'btn-outline'} ${isSelected ? 'btn-selected' : ''}`}
         onClick={handleCTA}
@@ -67,10 +67,10 @@ export default function PlanCard({ plan, isPopular, selectedPlan, onSelect }) {
         )}
       </button>
 
-      {/* Divider */}
+      {}
       <div className="plan-divider" />
 
-      {/* Features */}
+      {}
       <ul className="plan-features">
         {plan.features.map((f, i) => (
           <li key={i} className={`plan-feature ${f.included ? '' : 'feature-disabled'}`}>
@@ -82,7 +82,7 @@ export default function PlanCard({ plan, isPopular, selectedPlan, onSelect }) {
         ))}
       </ul>
 
-      {/* Limits */}
+      {}
       {plan.limits && (
         <div className="plan-limits">
           {plan.limits.map((l, i) => (

@@ -1,12 +1,5 @@
 import { useState, useCallback } from 'react';
 
-/**
- * useApi — wraps an async API function with loading/error state
- *
- * Usage:
- *   const { request, loading, error } = useApi();
- *   const data = await request(() => menuApi.getItems(restaurantId));
- */
 export function useApi() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);

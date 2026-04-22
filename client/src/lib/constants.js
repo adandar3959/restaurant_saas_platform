@@ -1,8 +1,6 @@
-// ─── App-wide Constants ────────────────────────────────────────────────────
 
 export const API_BASE = 'http://localhost:5000/api/v1';
 
-// ── Roles ──────────────────────────────────────────────────────────────────
 export const ROLES = {
   SUPER_ADMIN: 'SuperAdmin',
   ADMIN:       'Admin',
@@ -13,7 +11,6 @@ export const ROLES = {
   CUSTOMER:    'Customer',
 };
 
-// ── Order statuses ─────────────────────────────────────────────────────────
 export const ORDER_STATUS = {
   PENDING:          'Pending',
   ACCEPTED:         'Accepted',
@@ -34,10 +31,8 @@ export const ORDER_STATUS_COLORS = {
   Cancelled:       { bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
 };
 
-// ── Order types ────────────────────────────────────────────────────────────
 export const ORDER_TYPES = ['Dine-In', 'Takeaway', 'Delivery'];
 
-// ── Table statuses ─────────────────────────────────────────────────────────
 export const TABLE_STATUS = {
   AVAILABLE:      'Available',
   OCCUPIED:       'Occupied',
@@ -54,32 +49,23 @@ export const TABLE_STATUS_COLORS = {
   Inactive:      '#6B7280',
 };
 
-// ── Kitchen ticket statuses ────────────────────────────────────────────────
 export const TICKET_STATUS = ['Open', 'InProgress', 'Completed', 'Voided'];
 export const ITEM_STATUS   = ['Pending', 'Preparing', 'Ready', 'Served'];
 
-// ── Subscription plans ─────────────────────────────────────────────────────
 export const PLAN_TYPES = ['Free', 'Pro', 'Enterprise'];
 
-// ── Payment statuses ───────────────────────────────────────────────────────
 export const PAYMENT_STATUS = ['Unpaid', 'Paid', 'Refunded', 'PartialRefund'];
 
-// ── Payment methods ────────────────────────────────────────────────────────
 export const PAYMENT_METHODS = ['Cash', 'CreditCard', 'Wallet', 'Stripe', 'PayPal'];
 
-// ── Units of measurement ───────────────────────────────────────────────────
 export const UNITS = ['kg', 'g', 'L', 'ml', 'pcs', 'oz', 'lb', 'cup', 'tbsp', 'tsp'];
 
-// ── Dispatch statuses ──────────────────────────────────────────────────────
 export const DISPATCH_STATUS = ['Assigned', 'PickedUp', 'InTransit', 'Delivered', 'Failed', 'Returned'];
 
-// ── Vehicle types ──────────────────────────────────────────────────────────
 export const VEHICLE_TYPES = ['Bike', 'Scooter', 'Car', 'Van', 'Bicycle'];
 
-// ── Staff roles (creatable by admin) ──────────────────────────────────────
 export const STAFF_ROLES = ['Manager', 'Chef', 'Waiter', 'Driver'];
 
-// ── Admin sidebar nav items ────────────────────────────────────────────────
 export const ADMIN_NAV = [
   { key: 'dashboard',  label: 'Dashboard',   icon: 'LayoutDashboard', path: '' },
   { key: 'orders',     label: 'Orders',      icon: 'ShoppingBag',     path: '/orders' },

@@ -108,7 +108,6 @@ export default function CRM() {
     } catch { showToast('error', 'Failed to send reply'); }
   };
 
-  // Stats
   const avgRating  = reviews.length ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length) : 0;
   const ratingDist = [5, 4, 3, 2, 1].map(n => ({
     rating: n,
@@ -134,10 +133,10 @@ export default function CRM() {
         )}
       </div>
 
-      {/* Rating summary (only on reviews tab) */}
+      {}
       {tab === 'reviews' && reviews.length > 0 && (
         <div className="glass-panel animate-fade-up" style={{ display: 'flex', gap: 'var(--space-8)', alignItems: 'center', marginBottom: 'var(--space-6)', padding: 'var(--space-6)', flexWrap: 'wrap' }}>
-          {/* Big average */}
+          {}
           <div style={{ textAlign: 'center', minWidth: 120 }}>
             <div style={{ fontSize: 64, fontWeight: 900, color: '#F59E0B', lineHeight: 1, textShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }}>{avgRating.toFixed(1)}</div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 4, margin: '12px 0' }}>
@@ -147,13 +146,13 @@ export default function CRM() {
             </div>
             <div className="text-xs text-muted" style={{ fontWeight: 700, letterSpacing: '0.05em' }}>{reviews.length.toUpperCase()} REVIEWS</div>
           </div>
-          {/* Distribution bars */}
+          {}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
             {ratingDist.map(r => (
               <StarRow key={r.rating} {...r} total={reviews.length} />
             ))}
           </div>
-          {/* Stat cards grid */}
+          {}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', minWidth: 240 }}>
             {[
               { label: 'Replied',    value: reviews.filter(r => r.response).length, color: 'var(--neon-emerald)' },
@@ -170,7 +169,7 @@ export default function CRM() {
         </div>
       )}
 
-      {/* Tabs */}
+      {}
       <div className="orders-tabs" style={{ marginBottom: 'var(--space-4)' }}>
         <button className={`orders-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
           Reviews <span className="orders-tab-count">{reviews.length}</span>
@@ -185,7 +184,7 @@ export default function CRM() {
 
       {loading ? <div className="page-loading"><div className="spinner-lg" /></div> : (
         <>
-          {/* ── Reviews ─────────────────────────────────────────────────── */}
+          {}
           {tab === 'reviews' && (
             reviews.length === 0 ? (
               <div className="data-table-wrap">
@@ -259,7 +258,7 @@ export default function CRM() {
             )
           )}
 
-          {/* ── Coupons ──────────────────────────────────────────────────── */}
+          {}
           {tab === 'coupons' && (
             <div className="data-table-wrap glass-panel animate-fade-up">
               <table className="data-table">
@@ -323,7 +322,7 @@ export default function CRM() {
         </>
       )}
 
-      {/* ── Coupon Modal ──────────────────────────────────────────────────── */}
+      {}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

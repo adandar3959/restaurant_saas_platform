@@ -56,7 +56,7 @@ export default function AdminSettings() {
 
   return (
     <div>
-      {/* Toast */}
+      {}
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 9999,
@@ -83,7 +83,7 @@ export default function AdminSettings() {
         </button>
       </div>
 
-      {/* Settings tabs */}
+      {}
       <div className="orders-tabs" style={{ marginBottom: 'var(--space-6)' }}>
         {[['general','General'], ['hours','Opening Hours'], ['branding','Branding'], ['subscription','Subscription']].map(([k,l]) => (
           <button key={k} className={`orders-tab ${tab === k ? 'active' : ''}`} onClick={() => setTab(k)}>{l}</button>
@@ -183,7 +183,7 @@ export default function AdminSettings() {
             <CreditCard size={18} /> SUBSCRIPTION PLAN
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)', marginTop: 'var(--space-6)' }}>
-            {/* Current plan banner */}
+            {}
             <div style={{ 
               display: 'flex', alignItems: 'center', gap: 'var(--space-6)', padding: 'var(--space-6)', 
               background: 'rgba(56,189,248,0.05)', border: '1px solid var(--neon-cyan)', borderRadius: 16,
@@ -211,7 +211,7 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            {/* Plan feature grid */}
+            {}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-6)' }}>
               {[
                 { plan: 'Free',       price: '$0',    color: 'var(--text-muted)', details: 'Basic', features: ['1 location', '50 orders/mo', 'Basic reports', 'Email support'] },

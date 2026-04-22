@@ -1,7 +1,6 @@
 const MenuCategory = require('../models/menuCategory_model');
 const MenuItem = require('../models/menuItem_model');
 
-// ── Categories ──────────────────────────────────────────────
 exports.createCategory = async (data) => MenuCategory.create(data);
 
 exports.createManyCategories = async (categories, restaurantId) => {
@@ -34,7 +33,6 @@ exports.deleteCategory = async (id, restaurantId) => {
   return cat;
 };
 
-// ── Menu Items ───────────────────────────────────────────────
 exports.createItem = async (data) => MenuItem.create(data);
 
 exports.createManyItems = async (items, restaurantId) => {

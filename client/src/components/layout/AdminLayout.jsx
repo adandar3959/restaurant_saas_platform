@@ -11,16 +11,16 @@ import { getInitials } from '../../lib/utils';
 import './AdminLayout.css';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',  icon: LayoutDashboard, path: '',         roles: null },
-  { label: 'Orders',     icon: ShoppingBag,     path: 'orders',   roles: null },
-  { label: 'Menu',       icon: UtensilsCrossed, path: 'menu',     roles: null },
-  { label: 'Tables',     icon: Armchair,        path: 'tables',   roles: null },
-  { label: 'Staff',      icon: Users,           path: 'staff',    roles: null },
-  { label: 'Inventory',  icon: Package,         path: 'inventory',roles: null },
-  { label: 'Delivery',   icon: Truck,           path: 'delivery', roles: null },
-  { label: 'CRM',        icon: Heart,           path: 'crm',      roles: null },
-  // Settings: Admin only — Managers handle day-to-day ops but not restaurant config
-  { label: 'Settings',   icon: Settings,        path: 'settings', roles: ['admin'] },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '', roles: null },
+  { label: 'Orders', icon: ShoppingBag, path: 'orders', roles: null },
+  { label: 'Menu', icon: UtensilsCrossed, path: 'menu', roles: null },
+  { label: 'Tables', icon: Armchair, path: 'tables', roles: null },
+  { label: 'Staff', icon: Users, path: 'staff', roles: null },
+  { label: 'Inventory', icon: Package, path: 'inventory', roles: null },
+  { label: 'Delivery', icon: Truck, path: 'delivery', roles: null },
+  { label: 'CRM', icon: Heart, path: 'crm', roles: null },
+
+  { label: 'Settings', icon: Settings, path: 'settings', roles: ['admin'] },
 ];
 
 export default function AdminLayout() {
@@ -28,17 +28,16 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [collapsed,  setCollapsed]  = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [restaurant, setRestaurant] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Fetch restaurant info
   useEffect(() => {
     if (!restaurantId) return;
     tenantApi.getRestaurant(restaurantId)
       .then(r => setRestaurant(r.data?.data))
-      .catch(() => {});
+      .catch(() => { });
   }, [restaurantId]);
 
   const handleLogout = () => {
@@ -47,16 +46,15 @@ export default function AdminLayout() {
   };
 
   const basePath = `/admin/${restaurantId}`;
-  const isAdmin  = (user?.role || '').toLowerCase() === 'admin';
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
 
-  // Filter nav items by role
   const visibleNav = NAV_ITEMS.filter(item =>
     !item.roles || item.roles.includes((user?.role || '').toLowerCase())
   );
 
   const SidebarContent = () => (
     <>
-      {/* Logo / Brand */}
+      {}
       <div className="sidebar-brand">
         <div className="sidebar-logo">
           <Store size={20} />
@@ -73,7 +71,7 @@ export default function AdminLayout() {
         )}
       </div>
 
-      {/* Role badge */}
+      {}
       {!collapsed && (
         <div style={{ padding: '0 16px 8px', marginTop: -4 }}>
           <span style={{
@@ -87,7 +85,7 @@ export default function AdminLayout() {
         </div>
       )}
 
-      {/* Nav items */}
+      {}
       <nav className="sidebar-nav">
         {visibleNav.map(item => {
           const Icon = item.icon;
@@ -110,7 +108,7 @@ export default function AdminLayout() {
         })}
       </nav>
 
-      {/* Bottom: user info */}
+      {}
       <div className="sidebar-footer">
         <div className="sidebar-user" onClick={() => setUserMenuOpen(v => !v)}>
           <div className="sidebar-avatar">{getInitials(user?.name || 'A')}</div>
@@ -141,14 +139,13 @@ export default function AdminLayout() {
     </>
   );
 
-
   return (
     <div className="admin-layout">
-      {/* ── Desktop Sidebar ──────────────────────────────────────── */}
+      {}
       <aside className={`admin-sidebar ${collapsed ? 'sidebar-collapsed' : ''}`}>
         <SidebarContent />
 
-        {/* Collapse toggle */}
+        {}
         <button
           className="sidebar-collapse-btn"
           onClick={() => setCollapsed(v => !v)}
@@ -158,7 +155,7 @@ export default function AdminLayout() {
         </button>
       </aside>
 
-      {/* ── Mobile overlay ───────────────────────────────────────── */}
+      {}
       {mobileOpen && (
         <div className="mobile-sidebar-overlay" onClick={() => setMobileOpen(false)}>
           <aside className="mobile-sidebar" onClick={e => e.stopPropagation()}>
@@ -170,9 +167,9 @@ export default function AdminLayout() {
         </div>
       )}
 
-      {/* ── Main content ─────────────────────────────────────────── */}
+      {}
       <div className="admin-main">
-        {/* Top bar */}
+        {}
         <header className="admin-topbar">
           <div className="topbar-left">
             <button className="topbar-menu-btn" onClick={() => setMobileOpen(true)}>
@@ -200,7 +197,7 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* Page content */}
+        {}
         <main className="admin-content">
           <Outlet context={{ restaurantId, restaurant }} />
         </main>

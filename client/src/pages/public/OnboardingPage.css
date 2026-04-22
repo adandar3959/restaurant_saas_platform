@@ -16,7 +16,6 @@
 
 .onboarding-header { margin-bottom: var(--space-2); }
 
-/* Steps */
 .steps {
   display: flex;
   align-items: flex-start;
@@ -54,7 +53,6 @@
 }
 .step-line.done { background: var(--success); }
 
-/* Card */
 .onboarding-card {
   padding: var(--space-10);
   animation: fadeUp 0.4s var(--ease) both;
@@ -72,7 +70,6 @@
   margin-bottom: var(--space-1);
 }
 
-/* Plan selector */
 .plan-selector {
   display: flex;
   flex-direction: column;
@@ -149,14 +146,12 @@
 .plan-option-radio.selected { border-color: var(--primary); background: var(--primary); }
 .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
 
-/* Form grid */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-4);
 }
 
-/* Step nav */
 .step-nav {
   display: flex;
   justify-content: space-between;
@@ -164,7 +159,6 @@
   margin-top: var(--space-2);
 }
 
-/* Success */
 .success-icon { font-size: 72px; margin-bottom: var(--space-4); }
 
 .success-checklist {
@@ -186,7 +180,6 @@
   font-weight: 500;
 }
 
-/* Trust chips */
 .onboarding-trust {
   display: flex;
   justify-content: center;

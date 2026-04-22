@@ -5,7 +5,6 @@ import Footer from '../../components/layout/Footer';
 import PlanCard from '../../components/shared/PlanCard';
 import './PricingPage.css';
 
-// Plans mirroring SubscriptionPlan model
 const plans = [
   {
     id: 'Free',
@@ -126,7 +125,7 @@ export default function PricingPage() {
     <div>
       <Navbar />
       <div className="pricing-page">
-        {/* Hero */}
+        {}
         <div className="pricing-hero">
           <div className="container text-center">
             <div className="section-tag" style={{ marginBottom: 'var(--space-4)', display: 'inline-flex' }}>
@@ -142,7 +141,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Plans */}
+        {}
         <div className="container">
           <div className="plans-grid">
             {plans.map((plan, i) => (
@@ -150,7 +149,7 @@ export default function PricingPage() {
             ))}
           </div>
 
-          {/* Compare table */}
+          {}
           <div className="compare-section">
             <h2 className="text-2xl font-bold text-center mb-8">Compare All Features</h2>
             <div className="compare-table">
@@ -176,7 +175,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* FAQ */}
+          {}
           <div className="faq-section">
             <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
             <div className="faq-grid">

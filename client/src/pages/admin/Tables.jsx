@@ -36,7 +36,7 @@ export default function Tables() {
   const [reservations, setRes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState('floor');
-  const [modal,   setModal]   = useState(null); // 'table' | 'reservation'
+  const [modal,   setModal]   = useState(null);
   const [form,    setForm]    = useState({});
   const [saving,  setSaving]  = useState(false);
   const [toast,   setToast]   = useState(null);
@@ -61,7 +61,6 @@ export default function Tables() {
 
   useEffect(() => { load(); }, [restaurantId]);
 
-  // ── Table CRUD ────────────────────────────────────────────────────────────
   const handleSaveTable = async () => {
     if (!form.tableNumber || !form.capacity) {
       showToast('error', 'Table number and capacity are required');
@@ -97,7 +96,6 @@ export default function Tables() {
     } catch { showToast('error', 'Failed to delete'); }
   };
 
-  // ── Reservation CRUD ──────────────────────────────────────────────────────
   const handleSaveReservation = async () => {
     if (!form.guestName || !form.reservationTime || !form.guestCount) {
       showToast('error', 'Guest name, date/time, and guest count are required');
@@ -154,7 +152,7 @@ export default function Tables() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="orders-tabs" style={{ marginBottom: 'var(--space-6)' }}>
         <button className={`orders-tab ${tab === 'floor' ? 'active' : ''}`} onClick={() => setTab('floor')}>
           Floor Plan <span className="orders-tab-count">{tables.length}</span>
@@ -178,7 +176,7 @@ export default function Tables() {
           </div>
         ) : (
           <>
-            {/* Status legend */}
+            {}
             <div style={{ display: 'flex', gap: 16, marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
               {Object.entries(TABLE_STATUS_COLORS).map(([s, c]) => (
                 <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
@@ -221,7 +219,6 @@ export default function Tables() {
           </>
         )
       ) : (
-        // ── Reservations tab ─────────────────────────────────────────────────
         <div className="data-table-wrap glass-panel animate-fade-up">
           <table className="data-table">
             <thead>
@@ -300,7 +297,7 @@ export default function Tables() {
         </div>
       )}
 
-      {/* ── Add/Edit Table Modal ─────────────────────────────────────────── */}
+      {}
       {modal === 'table' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -340,7 +337,7 @@ export default function Tables() {
         </div>
       )}
 
-      {/* ── New Reservation Modal ────────────────────────────────────────── */}
+      {}
       {modal === 'reservation' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

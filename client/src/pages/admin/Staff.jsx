@@ -95,7 +95,6 @@ export default function Staff() {
 
   const filtered = filterRole === 'All' ? staff : staff.filter(s => s.role === filterRole);
 
-  // Summary counts
   const counts = STAFF_ROLES.reduce((acc, r) => ({ ...acc, [r]: staff.filter(s => s.role === r).length }), {});
 
   return (
@@ -112,7 +111,7 @@ export default function Staff() {
         </button>
       </div>
 
-      {/* Role summary cards */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
         {STAFF_ROLES.map((role, idx) => {
           const meta = ROLE_META[role] || {};
@@ -139,7 +138,7 @@ export default function Staff() {
         })}
       </div>
 
-      {/* Filter chips */}
+      {}
       <div className="orders-tabs" style={{ marginBottom: 'var(--space-5)' }}>
         <button className={`orders-tab ${filterRole === 'All' ? 'active' : ''}`} onClick={() => setFilterRole('All')}>
           All <span className="orders-tab-count">{staff.length}</span>
@@ -209,7 +208,7 @@ export default function Staff() {
         </div>
       )}
 
-      {/* Add Staff Modal */}
+      {}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -249,7 +248,7 @@ export default function Staff() {
                 <label className="form-label">Role</label>
                 <select className="form-select" value={form.role}
                   onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                  {/* Manager can only hire operational staff, not create Admins/Managers */}
+                  {}
                   {STAFF_ROLES.filter(r => isAdmin || !['Admin', 'Manager'].includes(r)).map(r => (
                     <option key={r} value={r}>{r}</option>
                   ))}

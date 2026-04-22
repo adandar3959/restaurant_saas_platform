@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const invoiceSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    invoiceNumber: { type: String, unique: true }, // e.g. "INV-2024-0042"
+    invoiceNumber: { type: String, unique: true },
 
     planName: { type: String },
     billingPeriodStart: { type: Date },

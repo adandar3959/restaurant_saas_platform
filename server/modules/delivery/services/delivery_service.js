@@ -2,7 +2,6 @@ const DeliveryZone = require('../models/deliveryZone_model');
 const Driver = require('../models/driver_model');
 const Dispatch = require('../models/dispatch_model');
 
-// ── Delivery Zones ───────────────────────────────────────────
 exports.createZone = async (data) => DeliveryZone.create(data);
 
 exports.getZones = async (restaurantId) => DeliveryZone.find({ restaurantId, isActive: true });
@@ -19,7 +18,6 @@ exports.deleteZone = async (id, restaurantId) => {
   return zone;
 };
 
-// ── Drivers ──────────────────────────────────────────────────
 exports.createDriver = async (data) => Driver.create(data);
 
 exports.getDrivers = async (restaurantId, filters) => {
@@ -44,7 +42,6 @@ exports.updateDriverLocation = async (id, restaurantId, coordinates) => {
   return driver;
 };
 
-// ── Dispatches ───────────────────────────────────────────────
 exports.createDispatch = async (data) => Dispatch.create(data);
 
 exports.getDispatches = async (restaurantId, filters, pagination) => {

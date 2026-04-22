@@ -13,7 +13,6 @@ const dispatchSchema = new mongoose.Schema(
       default: 'Assigned',
     },
 
-    // Location snapshots for tracking history
     pickupLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number] },
@@ -32,7 +31,7 @@ const dispatchSchema = new mongoose.Schema(
     deliveryFee: { type: Number },
 
     failureReason: { type: String },
-    proofOfDelivery: { type: String }, // URL to photo
+    proofOfDelivery: { type: String },
   },
   { timestamps: true }
 );

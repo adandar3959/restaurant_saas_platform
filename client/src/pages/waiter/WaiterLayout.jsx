@@ -15,7 +15,7 @@ export default function WaiterLayout() {
   const { restaurantId } = useParams();
   const { user, logout, updateUser } = useAuth();
   
-  const [activeTab, setActiveTab] = useState('tables'); // 'tables' or 'active'
+  const [activeTab, setActiveTab] = useState('tables');
   const [tables, setTables] = useState([]);
   const [orders, setOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
@@ -26,20 +26,16 @@ export default function WaiterLayout() {
   const [loading, setLoading] = useState(true);
   const fetchRef = useRef(null);
 
-  // POS State
   const [selectedTable, setSelectedTable] = useState(null); 
   const [cart, setCart] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Modifier Modal State
   const [activeItem, setActiveItem] = useState(null);
   const [modifierSelections, setModifierSelections] = useState({});
 
-  // Settlement / Tip State
   const [settlingTable, setSettlingTable] = useState(null);
   const [tipAmount, setTipAmount] = useState('');
 
-  // Profile Management State
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ 
     name: user?.name || '', 
@@ -62,7 +58,6 @@ export default function WaiterLayout() {
 
       setTables(tRes.data?.data?.tables || tRes.data?.data || []);
       
-      // Get all active orders (including KDS 'Ready' alerts for waiter to pick up)
       const fetchedOrders = oRes.data?.data?.orders || oRes.data?.data || [];
       setAllOrders(fetchedOrders);
       setOrders(fetchedOrders.filter(o => ['Pending', 'Accepted', 'Preparing', 'Ready'].includes(o.status)));
@@ -80,12 +75,10 @@ export default function WaiterLayout() {
 
   useEffect(() => {
     fetchData();
-    // Auto-poll to get updates on tables and orders from KDS
     fetchRef.current = setInterval(() => fetchData(true), 3000);
     return () => clearInterval(fetchRef.current);
   }, [restaurantId]);
 
-  // POS Logic
   const openPOS = (table) => {
     setSelectedTable(table);
     setCart([]);
@@ -97,13 +90,11 @@ export default function WaiterLayout() {
   };
 
   const handleItemClick = (item) => {
-    // If item has modifiers/sizes, open the modal
     if (item.modifierGroups && item.modifierGroups.length > 0) {
       setActiveItem(item);
       const initialMods = {};
       item.modifierGroups.forEach(g => {
         initialMods[g._id] = [];
-        // Auto-select defaults
         g.options.forEach(o => {
           if (o.isDefault) initialMods[g._id].push(o._id);
         });
@@ -111,13 +102,11 @@ export default function WaiterLayout() {
       setModifierSelections(initialMods);
       return;
     }
-    // Otherwise add directly
     addToCart(item, [], 0);
   };
 
   const getCombinedCartId = (itemId, modsArray) => {
     if (!modsArray || modsArray.length === 0) return itemId;
-    // Creates a unique hash/string so same item with different mods are split
     return `${itemId}_${modsArray.map(m => m._id).sort().join('_')}`;
   };
 
@@ -135,10 +124,10 @@ export default function WaiterLayout() {
         basePrice: item.price,
         unitPrice: item.price + extraTotal,
         quantity: 1,
-        selectedModifiers: selectedMods // Need to send to backend
+        selectedModifiers: selectedMods
       }];
     });
-    setActiveItem(null); // close modal
+    setActiveItem(null);
   };
 
   const updateQuantity = (cartId, delta) => {
@@ -151,7 +140,6 @@ export default function WaiterLayout() {
   };
 
   const confirmModifiers = () => {
-    // Validate required groups
     for (let bg of activeItem.modifierGroups) {
       const selectedCount = modifierSelections[bg._id]?.length || 0;
       if (bg.isRequired && selectedCount < (bg.minSelections || 1)) {
@@ -159,7 +147,6 @@ export default function WaiterLayout() {
       }
     }
 
-    // Build mod payload and calc price
     let flatMods = [];
     let extraCost = 0;
     activeItem.modifierGroups.forEach(g => {
@@ -185,9 +172,9 @@ export default function WaiterLayout() {
          clone[group._id] = current.filter(id => id !== option._id);
       } else {
          if (isSingle) {
-           clone[group._id] = [option._id]; // Replace completely
+           clone[group._id] = [option._id];
          } else {
-           if (current.length >= group.maxSelections) return prev; // Limit hit
+           if (current.length >= group.maxSelections) return prev;
            clone[group._id] = [...current, option._id];
          }
       }
@@ -218,16 +205,14 @@ export default function WaiterLayout() {
 
       await ordersApi.placeOrder(restaurantId, payload);
       
-      // Optimistically update table status if it was Available
       if (selectedTable.status === 'Available') {
          setTables(prev => prev.map(t => t._id === selectedTable._id ? { ...t, status: 'Occupied' } : t));
-         // Need to call updateTableStatus ideally, assuming backend auto-updates or we do it
          await tablesApi.updateTableStatus(restaurantId, selectedTable._id, 'Occupied');
       }
 
       closePOS();
       fetchData(true);
-      setActiveTab('active'); // Switch to active orders so they see the ticket sent
+      setActiveTab('active');
     } catch (e) {
       console.error(e);
       alert('Failed to place order.');
@@ -236,10 +221,8 @@ export default function WaiterLayout() {
     }
   };
 
-  // Kitchen serving
   const markServed = async (orderId) => {
     try {
-      // Opt UI Update
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Completed' } : o));
       await ordersApi.updateStatus(restaurantId, orderId, 'Completed');
     } catch (e) {
@@ -252,7 +235,7 @@ export default function WaiterLayout() {
     try {
       await tablesApi.updateTableStatus(restaurantId, selectedTable._id, newStatus);
       setTables(prev => prev.map(t => t._id === selectedTable._id ? { ...t, status: newStatus } : t));
-      closePOS(); // close the modal after freeing the table
+      closePOS();
     } catch (err) {
       alert('Failed to update table status');
     }
@@ -263,7 +246,6 @@ export default function WaiterLayout() {
     try {
       const numericTip = parseFloat(tipAmount);
       if (numericTip > 0) {
-        // Apply tip to the most recent completed order for this table
         const tableOrders = allOrders
           .filter(o => o.tableNumber === settlingTable.tableNumber && o.status === 'Completed')
           .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -286,7 +268,6 @@ export default function WaiterLayout() {
     }
   };
 
-  // Renderers
   const renderTables = () => {
     const availableTables = tables.filter(t => t.status === 'Available');
     const occupiedTables = tables.filter(t => t.status !== 'Available');
@@ -389,7 +370,6 @@ export default function WaiterLayout() {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    // LIFETIME METRICS
     const myLifetimeOrders = allOrders.filter(o => {
        const uId = user?._id;
        const matchWaiter = (o.waiterId?._id || o.waiterId) === uId;
@@ -399,7 +379,6 @@ export default function WaiterLayout() {
     const lifeSales = myLifetimeOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const lifeTips = myLifetimeOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
 
-    // TODAY METRICS
     const myServedOrders = myLifetimeOrders.filter(o => new Date(o.createdAt) >= startOfToday);
     const totalSales = myServedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const totalTips = myServedOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
@@ -471,7 +450,7 @@ export default function WaiterLayout() {
 
   return (
     <div className="waiter-layout">
-      {/* HEADER */}
+      {}
       <header className="waiter-header">
         <div className="waiter-brand">
           <Coffee size={24} color="#f59e0b" />
@@ -487,7 +466,7 @@ export default function WaiterLayout() {
         </div>
       </header>
 
-      {/* MAIN CONTENT PORT */}
+      {}
       <main className="waiter-main">
         {loading && tables.length===0 ? (
            <div className="waiter-loading">Loading floor plan...</div>
@@ -500,7 +479,7 @@ export default function WaiterLayout() {
         )}
       </main>
 
-      {/* BOTTOM NAVIGATION */}
+      {}
       <nav className="waiter-bottom-nav">
         <button className={`nav-item ${activeTab==='tables'?'active':''}`} onClick={()=>setActiveTab('tables')}>
           <LayoutDashboard size={24} />
@@ -521,7 +500,7 @@ export default function WaiterLayout() {
         </button>
       </nav>
 
-      {/* POS SLIDE OVER MODAL */}
+      {}
       <div className={`waiter-pos-modal ${selectedTable ? 'open' : ''}`}>
         {selectedTable && (
           <>
@@ -554,9 +533,9 @@ export default function WaiterLayout() {
               <button className="btn btn-ghost" onClick={closePOS}><X size={24}/></button>
             </div>
             <div className="pos-body">
-              {/* Menu Area (Left Side) */}
+              {}
               <div className="pos-menu-area">
-                {/* Horizontal Category Bar */}
+                {}
                 <div className="pos-categories-bar">
                   <button 
                     className={`pos-cat-pill ${selectedCategory === 'All' ? 'active' : ''}`}
@@ -575,7 +554,7 @@ export default function WaiterLayout() {
                   ))}
                 </div>
 
-                {/* Menu Grid */}
+                {}
                 <div className="pos-menu">
                   {menuItems
                     .filter(item => selectedCategory === 'All' || (item.categoryId?._id || item.categoryId) === selectedCategory)
@@ -595,7 +574,7 @@ export default function WaiterLayout() {
                 </div>
               </div>
 
-              {/* Cart Pane (Right Side) */}
+              {}
               <div className="pos-cart">
                 <div className="pos-cart-items">
                   {cart.length === 0 ? <div className="empty-cart">Cart is empty</div> : null}
@@ -640,7 +619,7 @@ export default function WaiterLayout() {
         )}
       </div>
 
-      {/* MODIFIER / SIZE SELECTION MODAL */}
+      {}
       {activeItem && (
         <div className="waiter-modal-backdrop">
           <div className="waiter-modal">
@@ -688,7 +667,7 @@ export default function WaiterLayout() {
         </div>
       )}
 
-      {/* TABLE SETTLEMENT MODAL */}
+      {}
       {settlingTable && (
         <div className="waiter-modal-backdrop" style={{zIndex: 300}}>
           <div className="waiter-modal settle-modal">
@@ -722,7 +701,7 @@ export default function WaiterLayout() {
         </div>
       )}
 
-      {/* FULL SCREEN PROFILE MANAGEMENT MODAL */}
+      {}
       {profileModalOpen && (
         <div className="waiter-modal-backdrop fade-in" style={{zIndex: 400}}>
           <div className="waiter-modal profile-settings-modal glass-panel">
@@ -735,13 +714,12 @@ export default function WaiterLayout() {
             
             <div className="w-modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', maxHeight: '70vh', overflowY: 'auto' }}>
               
-              {/* PERSONAL DETAILS FORM */}
+              {}
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 try {
                   const payload = { ...profileForm };
                   
-                  // Validation: No changes made
                   const isNoChange = 
                     payload.name === user?.name &&
                     payload.email === user?.email &&
@@ -759,7 +737,6 @@ export default function WaiterLayout() {
                   
                   const res = await axios.patch(`http://localhost:5000/api/v1/auth/me`, payload);
                   
-                  // Update AuthContext so changes persist after refresh
                   if (res.data?.data) {
                     updateUser(res.data.data);
                   } else {

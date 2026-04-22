@@ -9,7 +9,7 @@ const supplierSchema = new mongoose.Schema(
     phone: { type: String },
     address: { type: String },
     website: { type: String },
-    paymentTerms: { type: String }, // e.g. "Net 30", "COD"
+    paymentTerms: { type: String },
     notes: { type: String },
     isActive: { type: Boolean, default: true },
   },

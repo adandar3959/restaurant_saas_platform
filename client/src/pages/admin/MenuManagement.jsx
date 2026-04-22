@@ -5,7 +5,6 @@ import { menuApi } from '../../api/menu.api';
 import { truncate } from '../../lib/utils';
 import './MenuManagement.css';
 
-// categoryId from backend may be a populated object {_id, name} or a plain string
 const getId = (ref) => (ref && typeof ref === 'object') ? String(ref._id) : String(ref ?? '');
 
 export default function MenuManagement() {
@@ -13,10 +12,10 @@ export default function MenuManagement() {
   const [categories, setCategories] = useState([]);
   const [items,      setItems]      = useState([]);
   const [loading,    setLoading]    = useState(true);
-  const [activeTab,  setActiveTab]  = useState('items'); // 'categories' | 'items'
+  const [activeTab,  setActiveTab]  = useState('items');
   const [selCat,     setSelCat]     = useState('all');
   const [search,     setSearch]     = useState('');
-  const [modal,      setModal]      = useState(null); // {type: 'category'|'item', data?: obj}
+  const [modal,      setModal]      = useState(null);
   const [saving,     setSaving]     = useState(false);
   const [form,       setForm]       = useState({});
 
@@ -95,7 +94,7 @@ export default function MenuManagement() {
         </div>
       </div>
 
-      {/* Category filter chips */}
+      {}
       <div className="cat-chips glass-panel" style={{ padding: '8px', marginBottom: 'var(--space-6)', display: 'flex', gap: '8px', overflowX: 'auto', border: '1px solid var(--glass-border)' }}>
         <button className={`cat-chip ${selCat === 'all' ? 'active' : ''}`} onClick={() => setSelCat('all')}>
           ALL ({items.length})
@@ -111,7 +110,7 @@ export default function MenuManagement() {
         ))}
       </div>
 
-      {/* Search */}
+      {}
       <div className="orders-search" style={{ marginBottom: 'var(--space-4)' }}>
         <Search size={16} className="orders-search-icon" />
         <input
@@ -176,7 +175,7 @@ export default function MenuManagement() {
         </div>
       )}
 
-      {/* Categories section at bottom */}
+      {}
       <div style={{ marginTop: 'var(--space-10)' }}>
         <div className="page-header">
           <h2 className="dash-section-title">Categories ({categories.length})</h2>
@@ -208,7 +207,7 @@ export default function MenuManagement() {
         </div>
       </div>
 
-      {/* Modal */}
+      {}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

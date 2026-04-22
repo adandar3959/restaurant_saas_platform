@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require('./asyncHandler');
 const User = require('../modules/user/models/user_model');
 
-// Verify JWT and attach user to req
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
   if (req.headers.authorization?.startsWith('Bearer')) {
@@ -17,7 +16,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
-// Verify JWT if present but don't block if missing (for guest access)
 exports.optionalAuth = asyncHandler(async (req, res, next) => {
   let token;
   if (req.headers.authorization?.startsWith('Bearer')) {
@@ -28,7 +26,6 @@ exports.optionalAuth = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-passwordHash');
     } catch {
-      // invalid token — treat as guest
     }
   }
   next();
@@ -40,7 +37,6 @@ exports.authorize = (...roles) => (req, res, next) => {
   next();
 };
 
-// Ensure staff belongs to the restaurant they're operating on
 exports.belongsToRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId || req.body.restaurantId || req.query.restaurantId;
   if (req.user.role === 'SuperAdmin') return next();

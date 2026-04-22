@@ -40,7 +40,6 @@ exports.updateItemStatus = async (ticketId, restaurantId, itemId, status) => {
   return ticket;
 };
 
-// Prep Stations
 exports.getStations = async (restaurantId) => PrepStation.find({ restaurantId, isActive: true });
 
 exports.createStation = async (data) => PrepStation.create(data);

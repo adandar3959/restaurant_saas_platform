@@ -19,7 +19,6 @@ const DRIVER_STATUS_COLORS = {
   Offline:     { bg: 'rgba(107,114,128,0.15)', color: '#9CA3AF' },
 };
 
-// Next valid status transitions for dispatch
 const NEXT_DISPATCH = {
   Assigned: 'PickedUp', PickedUp: 'InTransit', InTransit: 'Delivered',
 };
@@ -50,7 +49,7 @@ export default function Delivery() {
   const [dispatches, setDispatches] = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [tab,        setTab]        = useState('dispatches');
-  const [modal,      setModal]      = useState(null); // 'zone' | 'dispatch'
+  const [modal,      setModal]      = useState(null);
   const [form,       setForm]       = useState({});
   const [saving,     setSaving]     = useState(false);
   const [toast,      setToast]      = useState(null);
@@ -77,7 +76,6 @@ export default function Delivery() {
 
   useEffect(() => { load(); }, [restaurantId]);
 
-  // ── Zone CRUD ─────────────────────────────────────────────────────────────
   const handleSaveZone = async () => {
     if (!form.name) { showToast('error', 'Zone name is required'); return; }
     setSaving(true);
@@ -101,7 +99,6 @@ export default function Delivery() {
     } catch { showToast('error', 'Failed to delete zone'); }
   };
 
-  // ── Dispatch actions ──────────────────────────────────────────────────────
   const handleCreateDispatch = async () => {
     if (!form.orderId || !form.driverId) {
       showToast('error', 'Order ID and driver are required');
@@ -127,7 +124,6 @@ export default function Delivery() {
     } catch { showToast('error', 'Failed to update dispatch status'); }
   };
 
-  // Stats
   const activeDispatches   = dispatches.filter(d => !['Delivered','Failed','Returned'].includes(d.status));
   const deliveredToday     = dispatches.filter(d => d.status === 'Delivered').length;
   const availableDrivers   = drivers.filter(d => d.status === 'Available').length;
@@ -160,7 +156,7 @@ export default function Delivery() {
         </div>
       </div>
 
-      {/* Summary stats */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
         {[
           { label: 'Active',         value: activeDispatches.length,   icon: Truck, color: 'var(--neon-cyan)', delay: 0 },
@@ -182,7 +178,7 @@ export default function Delivery() {
         ))}
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="orders-tabs" style={{ marginBottom: 'var(--space-4)' }}>
         {[
           { key: 'dispatches', label: 'Dispatches', count: dispatches.length },
@@ -197,7 +193,7 @@ export default function Delivery() {
 
       {loading ? <div className="page-loading"><div className="spinner-lg" /></div> : (
         <>
-          {/* ── Dispatches ────────────────────────────────────────────────── */}
+          {}
           {tab === 'dispatches' && (
             <div className="data-table-wrap glass-panel animate-fade-up">
               <table className="data-table">
@@ -262,7 +258,7 @@ export default function Delivery() {
             </div>
           )}
 
-          {/* ── Drivers ───────────────────────────────────────────────────── */}
+          {}
           {tab === 'drivers' && (
             drivers.length === 0 ? (
               <div className="data-table-wrap">
@@ -304,7 +300,7 @@ export default function Delivery() {
             )
           )}
 
-          {/* ── Zones ─────────────────────────────────────────────────────── */}
+          {}
           {tab === 'zones' && (
             <div className="data-table-wrap">
               <table className="data-table">
@@ -350,7 +346,7 @@ export default function Delivery() {
         </>
       )}
 
-      {/* ── Zone Modal ────────────────────────────────────────────────────── */}
+      {}
       {modal === 'zone' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -392,7 +388,7 @@ export default function Delivery() {
         </div>
       )}
 
-      {/* ── Dispatch Modal ────────────────────────────────────────────────── */}
+      {}
       {modal === 'dispatch' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>

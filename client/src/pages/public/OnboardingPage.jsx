@@ -55,12 +55,10 @@ export default function OnboardingPage() {
 
   const [form, setForm] = useState({
     planType: searchParams.get('plan') || 'Pro',
-    // Step 2
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    // Step 3
     restaurantName: '',
     cuisine: '',
     phone: '',
@@ -72,7 +70,6 @@ export default function OnboardingPage() {
   const set = (key, val) => setForm(p => ({ ...p, [key]: val }));
   const clearErr = (key) => setErrors(p => ({ ...p, [key]: '' }));
 
-  // ── Validation ────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {};
     if (step === 2) {
@@ -90,7 +87,6 @@ export default function OnboardingPage() {
     return Object.keys(errs).length === 0;
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validate()) return;
     const result = await onboard({
@@ -113,9 +109,7 @@ export default function OnboardingPage() {
   };
   const back = () => setStep(s => s - 1);
 
-  // ── Step 4 — success ──────────────────────────────────────────────────
   const handleGoToDashboard = () => {
-    // Use restaurantId from onboard response (or fall back to user state)
     const rid = restaurantIdAfterOnboard || user?.restaurantId;
     navigate(`/admin/${rid}`);
   };
@@ -124,13 +118,13 @@ export default function OnboardingPage() {
     <div className="onboarding-page">
       <Navbar />
       <div className="onboarding-container">
-        {/* Header */}
+        {}
         <div className="onboarding-header text-center">
           <h1 className="text-3xl font-black gradient-text">Set Up Your Restaurant</h1>
           <p className="text-muted mt-2">Takes less than 3 minutes. No credit card required.</p>
         </div>
 
-        {/* Step indicator */}
+        {}
         <div className="steps">
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
@@ -152,10 +146,10 @@ export default function OnboardingPage() {
           })}
         </div>
 
-        {/* Card */}
+        {}
         <div className="onboarding-card glass">
 
-          {/* ── Step 1: Choose Plan ──────────────────────────────────── */}
+          {}
           {step === 1 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -197,7 +191,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── Step 2: Account details ─────────────────────────────── */}
+          {}
           {step === 2 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -283,7 +277,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── Step 3: Restaurant info ─────────────────────────────── */}
+          {}
           {step === 3 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -365,7 +359,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── Step 4: Success ──────────────────────────────────────── */}
+          {}
           {step === 4 && (
             <div className="step-content text-center animate-fade-up">
               <div className="success-icon">🎉</div>
@@ -396,7 +390,7 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        {/* Trust signals */}
+        {}
         <div className="onboarding-trust">
           {['🔒 256-bit SSL', '✅ GDPR Compliant', '⚡ 99.9% Uptime', '💬 24/7 Support'].map(t => (
             <span key={t} className="trust-chip">{t}</span>

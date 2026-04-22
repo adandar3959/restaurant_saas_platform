@@ -61,7 +61,6 @@
   border-radius: 10px;
 }
 
-/* Stats */
 .driver-stats-header {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -90,7 +89,6 @@
   color: var(--text);
 }
 
-/* Tabs */
 .driver-tabs {
   display: flex;
   padding: 0 20px;
@@ -117,7 +115,6 @@
   box-shadow: var(--shadow-primary);
 }
 
-/* List */
 .delivery-list {
   padding: 0 20px;
   display: flex;
@@ -242,7 +239,6 @@
   box-shadow: 0 0 15px var(--neon-emerald-glow);
 }
 
-/* History mini cards */
 .delivery-card-mini {
   padding: 16px;
   display: flex;

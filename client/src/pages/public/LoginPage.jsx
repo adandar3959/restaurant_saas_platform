@@ -62,7 +62,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Email */}
+          {}
           <div className="form-group">
             <label htmlFor="login-email" className="form-label">Email Address</label>
             <div className="form-input-icon">
@@ -80,7 +80,7 @@ export default function LoginPage() {
             {formErrors.email && <span className="form-error">{formErrors.email}</span>}
           </div>
 
-          {/* Password */}
+          {}
           <div className="form-group">
             <div className="flex justify-between items-center">
               <label htmlFor="login-password" className="form-label">Password</label>
@@ -106,13 +106,13 @@ export default function LoginPage() {
             {formErrors.password && <span className="form-error">{formErrors.password}</span>}
           </div>
 
-          {/* Remember me */}
+          {}
           <label className="checkbox-label">
             <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
             Remember me for 30 days
           </label>
 
-          {/* Submit */}
+          {}
           <button
             type="submit"
             className="btn btn-primary w-full btn-lg"
@@ -128,7 +128,7 @@ export default function LoginPage() {
         </div>
       </form>
 
-      {/* Role hint */}
+      {}
       <div className="divider">All roles</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {Object.entries(ROLE_INFO).map(([role, info]) => (

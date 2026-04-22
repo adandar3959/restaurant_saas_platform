@@ -3,7 +3,6 @@ const Recipe = require('../models/recipe_model');
 const Supplier = require('../models/supplier_model');
 const PurchaseOrder = require('../models/purchaseOrder_model');
 
-// ── Ingredients ──────────────────────────────────────────────
 exports.createIngredient = async (data) => Ingredient.create(data);
 
 exports.getIngredients = async (restaurantId, pagination) => {
@@ -36,7 +35,6 @@ exports.deleteIngredient = async (id, restaurantId) => {
   return item;
 };
 
-// ── Recipes ──────────────────────────────────────────────────
 exports.createRecipe = async (data) => Recipe.create(data);
 
 exports.getRecipes = async (restaurantId) =>
@@ -54,7 +52,6 @@ exports.updateRecipe = async (id, restaurantId, data) => {
   return recipe;
 };
 
-// ── Suppliers ────────────────────────────────────────────────
 exports.createSupplier = async (data) => Supplier.create(data);
 
 exports.getSuppliers = async (restaurantId) => Supplier.find({ restaurantId, isActive: true });
@@ -65,9 +62,7 @@ exports.updateSupplier = async (id, restaurantId, data) => {
   return supplier;
 };
 
-// ── Purchase Orders ──────────────────────────────────────────
 exports.createPurchaseOrder = async (data) => {
-  // Auto-calculate totals
   data.items = data.items.map((i) => ({ ...i, totalCost: i.quantity * i.unitCost }));
   data.totalAmount = data.items.reduce((sum, i) => sum + i.totalCost, 0);
   const count = await PurchaseOrder.countDocuments({ restaurantId: data.restaurantId });
@@ -89,7 +84,6 @@ exports.updatePOStatus = async (id, restaurantId, status) => {
   const po = await PurchaseOrder.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!po) throw Object.assign(new Error('Purchase order not found'), { statusCode: 404 });
 
-  // If received, update ingredient stock
   if (status === 'Received') {
     for (const item of po.items) {
       await Ingredient.findByIdAndUpdate(item.ingredientId, { $inc: { currentStock: item.quantity } });

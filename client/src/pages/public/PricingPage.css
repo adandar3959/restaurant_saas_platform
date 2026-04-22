@@ -14,7 +14,6 @@
   align-items: start;
 }
 
-/* Compare table */
 .compare-section {
   margin: var(--space-24) 0;
 }
@@ -58,7 +57,6 @@
 }
 .compare-value { font-size: 14px; }
 
-/* FAQ */
 .faq-section { margin-bottom: var(--space-24); }
 
 .faq-grid {

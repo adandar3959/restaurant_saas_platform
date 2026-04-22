@@ -3,7 +3,6 @@ const asyncHandler = require('../../../utils/asyncHandler');
 const { sendSuccess } = require('../../../utils/apiResponse');
 const { paginate, paginateMeta } = require('../../../utils/paginate');
 
-// ── Tables ───────────────────────────────────────────────────
 exports.createTable = asyncHandler(async (req, res) => {
   const table = await tableService.createTable({ ...req.body, restaurantId: req.params.restaurantId });
   sendSuccess(res, table, 'Table created', 201);
@@ -34,7 +33,6 @@ exports.deleteTable = asyncHandler(async (req, res) => {
   sendSuccess(res, null, 'Table deleted');
 });
 
-// ── Reservations ─────────────────────────────────────────────
 exports.createReservation = asyncHandler(async (req, res) => {
   const reservation = await tableService.createReservation({ ...req.body, restaurantId: req.params.restaurantId });
   sendSuccess(res, reservation, 'Reservation created', 201);

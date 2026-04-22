@@ -5,12 +5,12 @@ import './AuthLayout.css';
 export default function AuthLayout({ children, title, subtitle, footerText, footerLink, footerLinkText }) {
   return (
     <div className="auth-page">
-      {/* Background blobs */}
+      {}
       <div className="auth-blob auth-blob-1" />
       <div className="auth-blob auth-blob-2" />
 
       <div className="auth-container">
-        {/* Logo */}
+        {}
         <Link to="/" className="auth-logo">
           <div className="nav-logo-icon">
             <UtensilsCrossed size={18} />
@@ -18,7 +18,7 @@ export default function AuthLayout({ children, title, subtitle, footerText, foot
           <span>DineFlow</span>
         </Link>
 
-        {/* Card */}
+        {}
         <div className="auth-card glass">
           <div className="auth-card-header">
             <h1 className="auth-title">{title}</h1>

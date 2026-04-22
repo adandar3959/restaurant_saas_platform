@@ -1,5 +1,3 @@
-// Reusable pagination helper
-// Usage: const { skip, limit, page } = paginate(req.query);
 const paginate = (query = {}) => {
   const page = Math.max(1, parseInt(query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(query.limit) || 20));
@@ -7,7 +5,6 @@ const paginate = (query = {}) => {
   return { page, limit, skip };
 };
 
-// Attach pagination meta to response
 const paginateMeta = (total, page, limit) => ({
   total,
   page,

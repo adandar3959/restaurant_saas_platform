@@ -5,14 +5,13 @@ const inviteSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, lowercase: true, trim: true },
     token: { type: String, required: true, unique: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // SuperAdmin
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     expiresAt: { type: Date, required: true },
-    usedAt: { type: Date, default: null }, // null = not yet used
+    usedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// Static method to generate a secure token
 inviteSchema.statics.generateToken = () => crypto.randomBytes(32).toString('hex');
 
 inviteSchema.index({ email: 1 });

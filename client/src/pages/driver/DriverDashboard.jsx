@@ -18,17 +18,14 @@ export default function DriverDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('deliveries'); // 'deliveries' | 'history'
+  const [activeTab, setActiveTab] = useState('deliveries');
 
   const fetchOrders = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      // Driver usually sees orders with type 'Delivery' and status Ready/OutForDelivery/Completed
       const res = await ordersApi.getOrders(restaurantId, { orderType: 'Delivery' });
       const all = res.data?.data?.orders || [];
       
-      // Filter for those assigned to this driver (if backend supports assignment) 
-      // or just all active deliveries for now if simplified
       setOrders(all);
     } catch (err) {
       setError('Failed to load deliveries');
@@ -48,7 +45,6 @@ export default function DriverDashboard() {
     try {
       await ordersApi.updateStatus(restaurantId, orderId, status);
       fetchOrders(true);
-      // Removed alert for smoother UX
     } catch (err) {
       console.error('Failed to update status', err);
     }
@@ -57,7 +53,6 @@ export default function DriverDashboard() {
   const activeDeliveries = orders.filter(o => ['Ready', 'Accepted', 'Preparing', 'OutForDelivery'].includes(o.status));
   const completedDeliveries = orders.filter(o => o.status === 'Completed');
 
-  // Stats
   const earningsToday = completedDeliveries.reduce((sum, o) => sum + (o.tipAmount || 0), 0);
 
   if (loading) return (
@@ -76,7 +71,7 @@ export default function DriverDashboard() {
 
   return (
     <div className="driver-app fade-in">
-      {/* ── Driver Navbar ── */}
+      {}
       <nav className="driver-nav glass-header">
         <div className="driver-brand">
           <div className="driver-logo-neon">
@@ -93,7 +88,7 @@ export default function DriverDashboard() {
         </div>
       </nav>
 
-      {/* ── Driver Metrics Header ── */}
+      {}
       <header className="driver-stats-header">
          <div className="d-stat-card animate-fade-up">
             <span className="d-stat-label">Deliveries Today</span>
@@ -105,7 +100,7 @@ export default function DriverDashboard() {
          </div>
       </header>
 
-      {/* ── Main View ── */}
+      {}
       <main className="driver-main">
         <div className="driver-tabs">
            <button className={`d-tab ${activeTab === 'deliveries' ? 'active' : ''}`} onClick={() => setActiveTab('deliveries')}>

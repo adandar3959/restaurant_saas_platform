@@ -3,7 +3,6 @@ const asyncHandler = require('../../../utils/asyncHandler');
 const { sendSuccess } = require('../../../utils/apiResponse');
 const { paginate, paginateMeta } = require('../../../utils/paginate');
 
-// ── Categories ──────────────────────────────────────────────
 exports.createCategory = asyncHandler(async (req, res) => {
   const cat = await menuService.createCategory({ ...req.body, restaurantId: req.params.restaurantId });
   sendSuccess(res, cat, 'Category created', 201);
@@ -34,7 +33,6 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
   sendSuccess(res, null, 'Category deleted');
 });
 
-// ── Menu Items ───────────────────────────────────────────────
 exports.createItem = asyncHandler(async (req, res) => {
   const item = await menuService.createItem({ ...req.body, restaurantId: req.params.restaurantId });
   sendSuccess(res, item, 'Menu item created', 201);

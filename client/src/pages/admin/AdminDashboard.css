@@ -12,7 +12,6 @@
   gap: var(--space-5);
 }
 
-/* Section */
 .dash-section { display: flex; flex-direction: column; gap: var(--space-4); }
 .dash-section-header {
   display: flex;
@@ -26,7 +25,6 @@
   letter-spacing: -0.01em;
 }
 
-/* Quick actions */
 .quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -65,7 +63,6 @@
 .qa-arrow { color: var(--text-subtle); transition: var(--transition); }
 .quick-action-card:hover .qa-arrow { color: var(--primary); transform: translateX(3px); }
 
-/* Order ID */
 .order-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
@@ -88,7 +85,6 @@
   letter-spacing: 0.02em;
 }
 
-/* Order type breakdown */
 .order-type-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -103,7 +99,6 @@
 .otc-bar-bg { height: 6px; background: var(--bg-surface-2); border-radius: 99px; overflow: hidden; }
 .otc-bar    { height: 100%; border-radius: 99px; transition: width 0.8s var(--ease); }
 
-/* Spinner */
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 

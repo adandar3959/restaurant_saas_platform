@@ -1,4 +1,3 @@
-// Converts a string to a URL-friendly slug e.g. "Joe's Pizza" -> "joes-pizza"
 const slugify = (text) =>
   text
     .toString()

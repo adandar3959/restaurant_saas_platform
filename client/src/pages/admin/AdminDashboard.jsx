@@ -15,7 +15,6 @@ import { formatCurrency, timeAgo } from '../../lib/utils';
 import { ORDER_STATUS_COLORS } from '../../lib/constants';
 import './AdminDashboard.css';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
 const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 function getLast7Days() {
@@ -35,7 +34,6 @@ function sameDay(a, b) {
   );
 }
 
-// ─── SVG Revenue Chart ───────────────────────────────────────────────────────
 function RevenueChart({ data }) {
   const maxVal = Math.max(...data.map(d => d.revenue), 1);
   const W = 700, H = 180, PL = 48, PB = 32, PR = 16, PT = 20;
@@ -51,7 +49,6 @@ function RevenueChart({ data }) {
   const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const areaPath = `${linePath} L${pts[pts.length-1].x},${PT+cH} L${pts[0].x},${PT+cH}Z`;
 
-  // y-axis ticks
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(t => ({
     val: maxVal * t,
     y: PT + cH - t * cH,
@@ -66,7 +63,7 @@ function RevenueChart({ data }) {
         </linearGradient>
       </defs>
 
-      {/* Grid lines */}
+      {}
       {ticks.map((t, i) => (
         <g key={i}>
           <line x1={PL} y1={t.y} x2={W-PR} y2={t.y} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
@@ -76,13 +73,13 @@ function RevenueChart({ data }) {
         </g>
       ))}
 
-      {/* Area fill */}
+      {}
       <path d={areaPath} fill="url(#revGrad)" />
 
-      {/* Line */}
+      {}
       <path d={linePath} fill="none" stroke="var(--neon-cyan)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* Points */}
+      {}
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r={4.5} fill="var(--neon-cyan)" stroke="var(--bg-surface)" strokeWidth={2} />
@@ -100,7 +97,6 @@ function RevenueChart({ data }) {
   );
 }
 
-// ─── Mini Stat Card ───────────────────────────────────────────────────────────
 function MiniStat({ label, value, icon: Icon, sub, trend, delay = 0 }) {
   return (
     <div className="stat-card animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
@@ -123,7 +119,6 @@ function MiniStat({ label, value, icon: Icon, sub, trend, delay = 0 }) {
   );
 }
 
-// ── Pulse dot ─────────────────────────────────────────────────────────────────
 function PulseDot({ color = '#FF6B35' }) {
   return (
     <span style={{ position: 'relative', display: 'inline-block', width: 10, height: 10 }}>
@@ -137,7 +132,6 @@ function PulseDot({ color = '#FF6B35' }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const { restaurantId, restaurant } = useOutletContext();
   const { user } = useAuth();
@@ -177,13 +171,11 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // ── Computed: common ────────────────────────────────────────────────────────
   const today = new Date(); today.setHours(0,0,0,0);
   const todayOrders   = orders.filter(o => sameDay(new Date(o.createdAt), today));
   const activeOrders  = orders.filter(o => ['Pending','Accepted','Preparing'].includes(o.status));
   const completedOrders = orders.filter(o => o.status === 'Completed');
 
-  // ── Computed: Admin financial ────────────────────────────────────────────────
   const paidOrders    = orders.filter(o => o.paymentStatus === 'Paid');
   const totalRevenue  = paidOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
   const todayRevenue  = todayOrders.filter(o => o.paymentStatus === 'Paid').reduce((s, o) => s + (o.totalAmount || 0), 0);
@@ -201,7 +193,6 @@ export default function AdminDashboard() {
     return { date: new Date(day), revenue: dayO.reduce((s, o) => s + (o.totalAmount || 0), 0), count: dayO.length };
   });
 
-  // ── Computed: Manager operational ────────────────────────────────────────────
   const occupiedTables   = tables.filter(t => t.status === 'Occupied').length;
   const availableTables  = tables.filter(t => t.status === 'Available').length;
   const tableOccupancy   = tables.length ? Math.round((occupiedTables / tables.length) * 100) : 0;
@@ -228,7 +219,7 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard">
 
-      {/* ── Greeting banner ─────────────────────────────────────────────────── */}
+      {}
       <div className="dash-greeting">
         <div>
           <h1 className="page-title" style={{ marginBottom: 4 }}>
@@ -241,7 +232,7 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-          {/* Live indicator */}
+          {}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '6px 14px', fontSize: 13 }}>
             <PulseDot color="#10B981" />
             <span className="text-muted">Live</span>
@@ -252,12 +243,10 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════════
-          ADMIN VIEW — Financial Focus
-      ════════════════════════════════════════════════════════════════════════ */}
+      {}
       {isAdmin && (
         <>
-          {/* Subscription banner (only if non-Free) */}
+          {}
           {restaurant?.subscription?.plan && restaurant.subscription.plan !== 'Free' && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 12,
@@ -276,7 +265,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Financial stat cards */}
+          {}
           <div className="dash-stats-grid">
             <MiniStat label="Total Revenue"    value={formatCurrency(totalRevenue)}   icon={DollarSign}   color="#10B981" sub={`${paidOrders.length} paid orders`}   trend={1} />
             <MiniStat label="Today's Revenue"  value={formatCurrency(todayRevenue)}   icon={TrendingUp}   color="#FF6B35" sub={`${todayOrders.length} orders today`}  trend={todayRevenue > 0 ? 1 : 0} />
@@ -284,7 +273,7 @@ export default function AdminDashboard() {
             <MiniStat label="Completion Rate"  value={`${completionRate}%`}           icon={CheckCircle}  color="#F59E0B" sub={`${completedOrders.length} completed`}  trend={completionRate >= 70 ? 1 : -1} />
           </div>
 
-          {/* Revenue chart */}
+          {}
           <div className="dash-section">
             <div className="dash-section-header">
               <h3 className="dash-section-title">Weekly Revenue Overview</h3>
@@ -292,7 +281,7 @@ export default function AdminDashboard() {
             </div>
             <div className="card-panel" style={{ padding: '24px 16px 12px' }}>
               <RevenueChart data={dailyRevenue} />
-              {/* Day summary row */}
+              {}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginTop: 'var(--space-4)', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-4)' }}>
                 {dailyRevenue.map((d, i) => (
                   <div key={i} style={{ textAlign: 'center' }}>
@@ -306,9 +295,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Order type + Payment breakdown */}
+          {}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-5)' }}>
-            {/* Order type breakdown */}
+            {}
             <div className="dash-section">
               <h2 className="dash-section-title">Order Type Mix</h2>
               <div className="card glass-panel" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -338,11 +327,11 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Payment status */}
+            {}
             <div className="dash-section">
               <h2 className="dash-section-title">Payment Overview</h2>
               <div className="card glass-panel" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-                {/* Donut-style visual */}
+                {}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
                   <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
                     <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)', width: 80, height: 80 }}>
@@ -382,7 +371,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Recent orders */}
+          {}
           <div className="dash-section">
             <div className="dash-section-header">
               <h2 className="dash-section-title">Recent Orders</h2>
@@ -395,12 +384,10 @@ export default function AdminDashboard() {
         </>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════════
-          MANAGER VIEW — Operational Focus
-      ════════════════════════════════════════════════════════════════════════ */}
+      {}
       {isManager && (
         <>
-          {/* Operational stat cards */}
+          {}
           <div className="dash-stats-grid">
             <MiniStat label="Active Orders"    value={activeOrders.length}    icon={Clock}       color="#F59E0B" sub="need attention"  trend={activeOrders.length > 0 ? -1 : 0} />
             <MiniStat label="Tables Occupied"  value={`${occupiedTables}/${tables.length}`} icon={Armchair}   color="#6366F1" sub={`${tableOccupancy}% occupancy`} />
@@ -408,7 +395,7 @@ export default function AdminDashboard() {
             <MiniStat label="Today's Orders"   value={todayOrders.length}     icon={ShoppingBag} color="#10B981" sub={`${completedOrders.length} completed`} trend={1} />
           </div>
 
-          {/* Active orders needing attention */}
+          {}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-5)' }}>
             <div className="dash-section">
               <div className="dash-section-header">
@@ -453,14 +440,14 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Table status */}
+            {}
             <div className="dash-section">
               <div className="dash-section-header">
                 <h2 className="dash-section-title">🪑 Tables Status</h2>
                 <button className="btn btn-ghost btn-xs" onClick={() => navigate(`${basePath}/tables`)}>Manage <ArrowRight size={12} /></button>
               </div>
               <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
-                {/* Status summary */}
+                {}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
                   {[
                     { label: 'Available', count: availableTables,                                       color: '#10B981' },
@@ -473,7 +460,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-                {/* Table grid */}
+                {}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 6 }}>
                   {tables.slice(0, 20).map(t => {
                     const colors = { Available: '#10B981', Occupied: '#F59E0B', Reserved: '#6366F1', NeedsCleaning: '#EF4444', Inactive: '#6B7280' };
@@ -495,10 +482,10 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Staff overview + Low stock + Today's reservations */}
+          {}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-5)' }}>
 
-            {/* Staff by role */}
+            {}
             <div className="dash-section">
               <h2 className="dash-section-title">👥 Staff</h2>
               <div className="card glass-panel" style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
@@ -524,7 +511,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Low stock */}
+            {}
             <div className="dash-section">
               <h2 className="dash-section-title">
                 📦 Low Stock {lowStock.length > 0 && <span style={{ color: 'var(--error)', fontSize: 14 }}>({lowStock.length})</span>}
@@ -555,7 +542,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Today's reservations */}
+            {}
             <div className="dash-section">
               <h2 className="dash-section-title">
                 📅 Reservations
@@ -594,7 +581,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Order flow KPIs */}
+          {}
           <div className="dash-section">
             <h2 className="dash-section-title">📊 Order Flow Today</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 'var(--space-3)' }}>
@@ -618,7 +605,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Recent orders for Manager */}
+          {}
           <div className="dash-section">
             <div className="dash-section-header">
               <h2 className="dash-section-title">Recent Orders</h2>
@@ -631,7 +618,7 @@ export default function AdminDashboard() {
         </>
       )}
 
-      {/* Quick actions (both roles) */}
+      {}
       <div className="dash-section">
         <h2 className="dash-section-title">Quick Actions</h2>
         <div className="quick-actions-grid">
@@ -675,7 +662,6 @@ export default function AdminDashboard() {
   );
 }
 
-// ── Shared Recent Orders Table ────────────────────────────────────────────────
 function RecentOrdersTable({ orders }) {
   if (!orders.length) {
     return (

@@ -6,7 +6,6 @@ const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
 exports.register = async (data) => {
-  // Customer registers freely — no token needed
   if (!data.role || data.role === 'Customer') {
     data.role = 'Customer';
     const existing = await User.findOne({ email: data.email });
@@ -17,7 +16,6 @@ exports.register = async (data) => {
     return { user, token };
   }
 
-  // Admin registration requires a valid invite token
   if (data.role === 'Admin') {
     if (!data.inviteToken) {
       throw Object.assign(new Error('An invite token is required to register as Admin'), { statusCode: 403 });
@@ -35,7 +33,6 @@ exports.register = async (data) => {
 
     const user = await User.create(data);
 
-    // Mark invite as used
     invite.usedAt = new Date();
     await invite.save();
 
@@ -44,11 +41,9 @@ exports.register = async (data) => {
     return { user, token };
   }
 
-  // Any other role is blocked from public registration
   throw Object.assign(new Error('You cannot self-assign this role'), { statusCode: 403 });
 };
 
-// Self-serve onboarding — creates Admin + Restaurant in one shot
 exports.onboard = async (data) => {
   const existing = await User.findOne({ email: data.email });
   if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
@@ -56,7 +51,6 @@ exports.onboard = async (data) => {
   const Tenant = require('../../tenant/models/tenant_model');
   const slugify = require('../../../utils/slugify');
 
-  // Create Admin user
   const user = await User.create({
     name: data.name,
     email: data.email,
@@ -65,7 +59,6 @@ exports.onboard = async (data) => {
     phone: data.phone || null,
   });
 
-  // Create Restaurant linked to this Admin
   const slug = slugify(data.restaurantName);
   const tenant = await Tenant.create({
     ownerId: user._id,
@@ -74,11 +67,10 @@ exports.onboard = async (data) => {
     subscription: {
       planType: data.planType || 'Free',
       status: data.planType && data.planType !== 'Free' ? 'Trial' : 'Active',
-      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },
   });
 
-  // Link restaurantId back to the user
   await User.findByIdAndUpdate(user._id, { restaurantId: tenant._id });
   user.restaurantId = tenant._id;
 
@@ -87,27 +79,23 @@ exports.onboard = async (data) => {
   return { user, tenant, token };
 };
 exports.createInvite = async (email, superAdminId) => {
-  // Invalidate any existing unused invite for this email
   await Invite.deleteMany({ email: email.toLowerCase(), usedAt: null });
 
   const token = Invite.generateToken();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const invite = await Invite.create({ email, token, createdBy: superAdminId, expiresAt });
   return invite;
 };
 
-// SuperAdmin lists all invites
 exports.getInvites = async () => Invite.find().populate('createdBy', 'name email').sort({ createdAt: -1 });
 
-// SuperAdmin revokes an invite
 exports.revokeInvite = async (id) => {
   const invite = await Invite.findByIdAndDelete(id);
   if (!invite) throw Object.assign(new Error('Invite not found'), { statusCode: 404 });
   return invite;
 };
 
-// Called by Admin/Manager to create staff accounts (Waiter, Chef, Driver, Manager)
 exports.createStaff = async (data, createdBy) => {
   const staffRoles = ['Manager', 'Chef', 'Waiter', 'Driver'];
   if (!staffRoles.includes(data.role)) {
@@ -127,7 +115,6 @@ exports.login = async (email, password) => {
   if (user.status !== 'Active') {
     throw Object.assign(new Error('Account is not active'), { statusCode: 403 });
   }
-  // Use updateOne to avoid triggering the pre-save hook
   await User.updateOne({ _id: user._id }, { lastLoginAt: new Date() });
   const token = signToken(user._id);
   user.passwordHash = undefined;
@@ -170,7 +157,6 @@ exports.getMe = async (id) => {
 };
 
 exports.updateMe = async (id, data) => {
-  // Prevent role/status changes through this endpoint
   const forbidden = ['role', 'status', 'passwordHash', 'restaurantId'];
   forbidden.forEach((f) => delete data[f]);
   return User.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });

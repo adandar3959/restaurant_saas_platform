@@ -16,7 +16,6 @@ export default function SignupPage() {
   const set = (key, val) => setForm(p => ({ ...p, [key]: val }));
   const clearErr = key => setFormErrors(p => ({ ...p, [key]: '' }));
 
-  // Password strength
   const strength = (() => {
     const p = form.password;
     if (!p) return 0;
@@ -72,7 +71,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          {/* Name */}
+          {}
           <div className="form-group">
             <label htmlFor="signup-name" className="form-label">Full Name</label>
             <div className="form-input-icon">
@@ -90,7 +89,7 @@ export default function SignupPage() {
             {formErrors.name && <span className="form-error">{formErrors.name}</span>}
           </div>
 
-          {/* Email */}
+          {}
           <div className="form-group">
             <label htmlFor="signup-email" className="form-label">Email Address</label>
             <div className="form-input-icon">
@@ -108,7 +107,7 @@ export default function SignupPage() {
             {formErrors.email && <span className="form-error">{formErrors.email}</span>}
           </div>
 
-          {/* Password */}
+          {}
           <div className="form-group">
             <label htmlFor="signup-password" className="form-label">Password</label>
             <div className="form-input-icon" style={{ position: 'relative' }}>
@@ -145,7 +144,7 @@ export default function SignupPage() {
             {formErrors.password && <span className="form-error">{formErrors.password}</span>}
           </div>
 
-          {/* Confirm password */}
+          {}
           <div className="form-group">
             <label htmlFor="signup-confirm" className="form-label">Confirm Password</label>
             <div className="form-input-icon">
@@ -163,7 +162,7 @@ export default function SignupPage() {
             {formErrors.confirmPassword && <span className="form-error">{formErrors.confirmPassword}</span>}
           </div>
 
-          {/* Terms */}
+          {}
           <div>
             <label className="checkbox-label">
               <input
@@ -181,7 +180,7 @@ export default function SignupPage() {
             {formErrors.agreed && <span className="form-error">{formErrors.agreed}</span>}
           </div>
 
-          {/* Submit */}
+          {}
           <button
             type="submit"
             className="btn btn-primary w-full btn-lg"
@@ -197,7 +196,7 @@ export default function SignupPage() {
         </div>
       </form>
 
-      {/* Staff note */}
+      {}
       <div style={{
         background: 'var(--bg-surface-2)',
         border: '1px solid var(--border)',

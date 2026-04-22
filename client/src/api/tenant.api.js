@@ -8,7 +8,6 @@ export const tenantApi = {
   getBySlug:           (slug)    => api.get(`/tenants/slug/${slug}`),
   updateRestaurant:    (id, data)=> api.patch(`/tenants/${id}`, data),
   updateSubscription:  (id, data)=> api.patch(`/tenants/${id}/subscription`, data),
-  // SuperAdmin
   getAllRestaurants:    (params)  => api.get('/tenants', { params }),
   deleteRestaurant:    (id)      => api.delete(`/tenants/${id}`),
 };
@@ -24,7 +23,6 @@ export const authApi = {
   getUser:      (id)   => api.get(`/auth/${id}`),
   updateUser:   (id, data) => api.patch(`/auth/${id}`, data),
   deleteUser:   (id)   => api.delete(`/auth/${id}`),
-  // Invites (SuperAdmin)
   createInvite: (data) => api.post('/auth/invites', data),
   getInvites:   ()     => api.get('/auth/invites'),
   revokeInvite: (id)   => api.delete(`/auth/invites/${id}`),

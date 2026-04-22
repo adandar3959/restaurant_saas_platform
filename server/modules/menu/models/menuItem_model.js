@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const modifierOptionSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },   // e.g. "Large", "Extra Cheese"
+    name: { type: String, required: true },
     extraPrice: { type: Number, default: 0 },
     isDefault: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
@@ -12,7 +12,7 @@ const modifierOptionSchema = new mongoose.Schema(
 
 const modifierGroupSchema = new mongoose.Schema(
   {
-    groupName: { type: String, required: true }, // e.g. "Choose Size"
+    groupName: { type: String, required: true },
     isRequired: { type: Boolean, default: false },
     minSelections: { type: Number, default: 0 },
     maxSelections: { type: Number, default: 1 },
@@ -29,30 +29,27 @@ const menuItemSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     description: { type: String },
     price: { type: Number, required: true, min: 0 },
-    costPrice: { type: Number, min: 0 }, // for profit margin calculation
-    image: { type: String }, // URL
+    costPrice: { type: Number, min: 0 },
+    image: { type: String },
 
-    isAvailable: { type: Boolean, default: true }, // quick out-of-stock toggle
-    isFeatured: { type: Boolean, default: false },  // highlight on storefront
+    isAvailable: { type: Boolean, default: true },
+    isFeatured: { type: Boolean, default: false },
 
-    // Dietary & allergen tags
-    tags: [{ type: String }], // ['Vegan', 'Gluten-Free', 'Spicy', 'Contains Nuts']
-    allergens: [{ type: String }], // ['Peanuts', 'Dairy', 'Gluten', 'Shellfish']
+    tags: [{ type: String }],
+    allergens: [{ type: String }],
 
     modifierGroups: [modifierGroupSchema],
 
-    // Nutritional info (optional, for health-conscious menus)
     nutrition: {
       calories: { type: Number },
-      protein: { type: Number },  // grams
+      protein: { type: Number },
       carbs: { type: Number },
       fat: { type: Number },
     },
 
-    preparationTime: { type: Number, default: 15 }, // minutes
+    preparationTime: { type: Number, default: 15 },
     displayOrder: { type: Number, default: 0 },
 
-    // For inventory auto-deduction — links to Recipe
     recipeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
 
     deletedAt: { type: Date, default: null },

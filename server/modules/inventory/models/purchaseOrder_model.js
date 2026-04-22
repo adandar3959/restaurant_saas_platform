@@ -8,7 +8,7 @@ const poItemSchema = new mongoose.Schema(
     unit: { type: String },
     unitCost: { type: Number, required: true },
     totalCost: { type: Number, required: true },
-    receivedQuantity: { type: Number, default: 0 }, // for partial deliveries
+    receivedQuantity: { type: Number, default: 0 },
   },
   { _id: true }
 );
@@ -17,7 +17,7 @@ const purchaseOrderSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
     supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
-    poNumber: { type: String, unique: true }, // e.g. "PO-0042"
+    poNumber: { type: String, unique: true },
 
     items: [poItemSchema],
 

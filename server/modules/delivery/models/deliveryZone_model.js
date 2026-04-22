@@ -3,24 +3,22 @@ const mongoose = require('mongoose');
 const deliveryZoneSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    name: { type: String, required: true }, // e.g. "Zone A - Downtown"
+    name: { type: String, required: true },
 
-    // GeoJSON Polygon for geofencing
     boundary: {
       type: { type: String, enum: ['Polygon'], default: 'Polygon' },
-      coordinates: { type: [[[Number]]] }, // GeoJSON polygon coordinates
+      coordinates: { type: [[[Number]]] },
     },
 
-    // Alternatively, radius-based zone
     center: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number] }, // [lng, lat]
+      coordinates: { type: [Number] },
     },
-    radiusKm: { type: Number }, // radius in km if using circle-based zone
+    radiusKm: { type: Number },
 
     deliveryFee: { type: Number, required: true, default: 0 },
     minimumOrderAmount: { type: Number, default: 0 },
-    estimatedDeliveryTime: { type: Number, default: 30 }, // minutes
+    estimatedDeliveryTime: { type: Number, default: 30 },
 
     isActive: { type: Boolean, default: true },
   },

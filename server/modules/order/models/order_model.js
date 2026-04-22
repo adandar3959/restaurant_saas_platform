@@ -12,19 +12,19 @@ const selectedModifierSchema = new mongoose.Schema(
 const orderItemSchema = new mongoose.Schema(
   {
     menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem', required: true },
-    name: { type: String, required: true },       // snapshot at time of order
-    image: { type: String },                       // snapshot
+    name: { type: String, required: true },
+    image: { type: String },
     quantity: { type: Number, required: true, min: 1 },
-    unitPrice: { type: Number, required: true },   // snapshot at time of order
+    unitPrice: { type: Number, required: true },
     selectedModifiers: [selectedModifierSchema],
-    itemTotal: { type: Number, required: true },   // (unitPrice + modifiers) * quantity
-    specialInstructions: { type: String },         // per-item notes e.g. "no onions"
+    itemTotal: { type: Number, required: true },
+    specialInstructions: { type: String },
     kitchenStatus: {
       type: String,
       enum: ['Pending', 'Preparing', 'Ready', 'Served'],
       default: 'Pending',
     },
-    prepStation: { type: String }, // e.g. "Grill", "Bar", "Fryer"
+    prepStation: { type: String },
   },
   { _id: true }
 );
@@ -37,7 +37,7 @@ const deliveryAddressSchema = new mongoose.Schema(
     zipCode: { type: String },
     coordinates: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number] }, // [lng, lat]
+      coordinates: { type: [Number] },
     },
     deliveryInstructions: { type: String },
   },
@@ -46,9 +46,9 @@ const deliveryAddressSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
-    orderNumber: { type: String, unique: true }, // e.g. "ORD-1042" — auto-generated
+    orderNumber: { type: String, unique: true },
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // null = guest
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     waiterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
@@ -58,16 +58,13 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Dine-In specific
     tableId: { type: mongoose.Schema.Types.ObjectId, ref: 'Table', default: null },
     tableNumber: { type: String },
 
-    // Delivery specific
     deliveryAddress: deliveryAddressSchema,
     estimatedDeliveryTime: { type: Date },
     actualDeliveryTime: { type: Date },
 
-    // Scheduled orders
     scheduledFor: { type: Date, default: null },
 
     items: [orderItemSchema],
@@ -94,7 +91,7 @@ const orderSchema = new mongoose.Schema(
     payment: {
       status: { type: String, enum: ['Unpaid', 'Paid', 'Refunded', 'PartialRefund'], default: 'Unpaid' },
       method: { type: String, enum: ['Cash', 'CreditCard', 'Wallet', 'Stripe', 'PayPal'] },
-      transactionId: { type: String },   // Stripe/PayPal payment intent ID
+      transactionId: { type: String },
       paidAt: { type: Date },
       refundedAt: { type: Date },
       refundAmount: { type: Number },
@@ -104,7 +101,6 @@ const orderSchema = new mongoose.Schema(
     cancellationReason: { type: String },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
-    // Timestamps for each status transition (for analytics & KDS)
     statusTimestamps: {
       acceptedAt: { type: Date },
       preparingAt: { type: Date },
@@ -114,7 +110,6 @@ const orderSchema = new mongoose.Schema(
       cancelledAt: { type: Date },
     },
 
-    // Loyalty points awarded for this order
     loyaltyPointsEarned: { type: Number, default: 0 },
     loyaltyPointsRedeemed: { type: Number, default: 0 },
 

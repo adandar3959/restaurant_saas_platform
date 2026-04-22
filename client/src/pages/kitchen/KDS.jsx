@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import './KDS.css';
 
-// ─── Formatting helpers ───────────────────────────────────────────────────────
 const formatTime = (dateObj) => {
   return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
@@ -21,7 +20,6 @@ const getElapsedMins = (createdAt) => {
   return Math.floor((new Date() - new Date(createdAt)) / 60000);
 };
 
-// ─── Synthetic Audio Alert ────────────────────────────────────────────────────
 const playDing = () => {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,7 +28,7 @@ const playDing = () => {
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
     osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1); 
     gain.gain.setValueAtTime(1, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
@@ -51,13 +49,11 @@ export default function KDS() {
   const [error, setError] = useState('');
   const [time, setTime] = useState(new Date());
 
-  // KDS Advanced States
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeStation, setActiveStation] = useState('All');
   const [showHistory, setShowHistory] = useState(false);
   
-  // Dashboard & Profile UI States
-  const [activeTab, setActiveTab] = useState('kds'); // 'kds' | 'dashboard'
+  const [activeTab, setActiveTab] = useState('kds');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ 
     name: user?.name || '', 
@@ -68,7 +64,6 @@ export default function KDS() {
   const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '' });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  // Refs for auto-refresh and sound tracking
   const fetchRef = useRef(null);
   const knownOrderIds = useRef(new Set());
 
@@ -81,7 +76,6 @@ export default function KDS() {
       const active = allOrders.filter(o => ['Pending', 'Accepted', 'Preparing', 'Ready'].includes(o.status));
       const history = allOrders.filter(o => ['Completed', 'Cancelled'].includes(o.status));
 
-      // Check for new orders to play sound
       let hasNewOrder = false;
       active.forEach(o => {
         if (!knownOrderIds.current.has(o._id)) {
@@ -110,9 +104,8 @@ export default function KDS() {
       clearInterval(fetchRef.current);
       clearInterval(clockInterval);
     };
-  }, [restaurantId, soundEnabled]); // re-bind interval if soundEnabled changes
+  }, [restaurantId, soundEnabled]);
 
-  // ─── Actions ─────────────────────────────────────────────────────────────────
   const updateStatus = async (orderId, newStatus) => {
     try {
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
@@ -124,10 +117,8 @@ export default function KDS() {
   };
 
   const handleItemToggle = async (orderId, itemId, currentStatus) => {
-    // Toggle logic: if Ready, unset it to Pending. Otherwise set to Ready.
     const newStatus = currentStatus === 'Ready' ? 'Pending' : 'Ready';
     
-    // Optimistic Update
     setOrders(prev => prev.map(o => {
       if (o._id !== orderId) return o;
       return {
@@ -141,12 +132,10 @@ export default function KDS() {
     } catch (e) {
       alert(`Error hitting DB: ${e?.response?.data?.message || e.message}`);
       console.error('Failed to update item status', e);
-      fetchOrders(true); // revert
+      fetchOrders(true);
     }
   };
 
-  // ─── Filtering & Routing ────────────────────────────────────────────────────
-  // Extract unique stations from active orders
   const stations = new Set(['All']);
   orders.forEach(o => {
     o.items?.forEach(i => {
@@ -155,7 +144,6 @@ export default function KDS() {
   });
   const stationTabs = Array.from(stations).sort();
 
-  // Route active orders into columns
   const newOrders = orders.filter(o => ['Pending', 'Accepted'].includes(o.status));
   const prepOrders = orders.filter(o => o.status === 'Preparing');
   const readyOrders = orders.filter(o => o.status === 'Ready');
@@ -169,17 +157,14 @@ export default function KDS() {
     );
   }
 
-  // ─── Render Dashboard ────────────────────────────────────────────────────────
   const renderDashboard = () => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const allMyOrders = [...orders, ...historyOrders]; // Simplified approximation of lifetime since history pulls last 100
+    const allMyOrders = [...orders, ...historyOrders];
     
-    // TODAY METRICS (Completed/Ready)
     const todayOrders = historyOrders.filter(o => new Date(o.createdAt) >= startOfToday && (o.status === 'Completed' || o.status === 'Ready'));
     
-    // LIFETIME METRICS
     const lifetimeOrders = historyOrders.filter(o => o.status === 'Completed' || o.status === 'Ready');
 
     return (
@@ -230,7 +215,7 @@ export default function KDS() {
   return (
     <div className="kds-app-container">
       
-      {/* GLOWING SIDEBAR */}
+      {}
       <nav className="kds-sidebar">
         <div className="sidebar-top">
           <div className="sidebar-brand">
@@ -257,7 +242,7 @@ export default function KDS() {
       </nav>
 
       <div className="kds-layout">
-      {/* HEADER */}
+      {}
       <header className="kds-header">
         <div className="kds-title">
           <Monitor color="var(--primary)" size={24} />
@@ -267,7 +252,7 @@ export default function KDS() {
           </span>
         </div>
 
-        {/* Station Routing Tabs */}
+        {}
         {stationTabs.length > 1 && (
           <div className="kds-station-tabs" style={{ padding: '4px', background: 'var(--bg-surface-2)', borderRadius: 24, border: '1px solid var(--border)' }}>
             {stationTabs.map(st => (
@@ -282,7 +267,7 @@ export default function KDS() {
           </div>
         )}
 
-        {/* Right Nav */}
+        {}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
           <button 
             className="btn btn-ghost btn-circle" 
@@ -316,7 +301,7 @@ export default function KDS() {
           {renderDashboard()}
         </main>
       ) : (
-        /* KANBAN BOARD */
+        
         <main className="kds-board">
           <KDSColumn
             title="New"
@@ -354,7 +339,7 @@ export default function KDS() {
         </main>
       )}
 
-      {/* HISTORY DRAWER */}
+      {}
       <HistoryDrawer 
         isOpen={showHistory} 
         onClose={() => setShowHistory(false)} 
@@ -362,7 +347,7 @@ export default function KDS() {
       />
       </div>
 
-      {/* FULL SCREEN PROFILE MANAGEMENT MODAL */}
+      {}
       {profileModalOpen && (
         <div className="kds-modal-backdrop fade-in" style={{zIndex: 9999}}>
           <div className="kds-profile-settings-modal glass-panel">
@@ -380,7 +365,6 @@ export default function KDS() {
                 try {
                   const payload = { ...profileForm };
 
-                  // Validation: No changes made
                   const isNoChange = 
                     payload.name === user?.name &&
                     payload.email === user?.email &&
@@ -398,7 +382,6 @@ export default function KDS() {
                   
                   const res = await axios.patch(`http://localhost:5000/api/v1/auth/me`, payload);
                   
-                  // Update AuthContext so changes persist after refresh
                   if (res.data?.data) {
                     updateUser(res.data.data);
                   } else {
@@ -496,9 +479,7 @@ export default function KDS() {
   );
 }
 
-// ─── SUB-COMPONENT: Column ────────────────────────────────────────────────────
 function KDSColumn({ title, orders, icon, colColor, time, activeStation, onAction, actionBtn, onItemToggle }) {
-  // Filter out orders that have NO items belonging to the activeStation
   const filteredOrders = orders.filter(o => {
     if (activeStation === 'All') return true;
     return o.items?.some(i => i.prepStation === activeStation);
@@ -538,7 +519,6 @@ function KDSColumn({ title, orders, icon, colColor, time, activeStation, onActio
   );
 }
 
-// ─── SUB-COMPONENT: Order Card ────────────────────────────────────────────────
 function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemToggle }) {
   const mins = getElapsedMins(order.createdAt);
   
@@ -548,15 +528,12 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
 
   const typeIcon = order.orderType === 'Delivery' ? <Truck size={14} /> : order.orderType === 'Dine-In' ? <Monitor size={14} /> : <ShoppingBag size={14} />;
 
-  // Filter items if a specific station is selected
   const displayItems = activeStation === 'All' 
     ? order.items 
     : order.items.filter(i => i.prepStation === activeStation);
 
-  // Check if ALL items in this specific card/station are checked off
   const allItemsReady = displayItems.every(i => i.kitchenStatus === 'Ready');
   
-  // Only the Preparing column needs item-level checkboxes
   const isPreparingCol = actionBtn.label.includes('Ready');
   const canProceed = !isPreparingCol || allItemsReady;
 
@@ -589,7 +566,7 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
               key={item._id || idx} 
               className={`kds-item ${isDone && isPreparingCol ? 'done' : ''}`}
             >
-              {/* Checkbox Toggle ONLY in Preparing Column */}
+              {}
               {isPreparingCol && (
                 <button 
                   className="kds-item-toggle" 
@@ -650,7 +627,6 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
   );
 }
 
-// ─── SUB-COMPONENT: History Drawer ────────────────────────────────────────────
 function HistoryDrawer({ isOpen, onClose, historyOrders }) {
   return (
     <div className={`kds-history-drawer ${isOpen ? 'open' : ''}`}>

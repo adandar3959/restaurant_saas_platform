@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Tracks every earn/redeem event for a customer's loyalty points
 const loyaltyTransactionSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
@@ -8,10 +7,10 @@ const loyaltyTransactionSchema = new mongoose.Schema(
     orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
 
     type: { type: String, enum: ['Earn', 'Redeem', 'Expire', 'Adjust'], required: true },
-    points: { type: Number, required: true }, // positive = earn, negative = redeem/expire
+    points: { type: Number, required: true },
     balanceAfter: { type: Number, required: true },
 
-    description: { type: String }, // e.g. "Earned for Order #1042", "Redeemed for $5 off"
+    description: { type: String },
     expiresAt: { type: Date },
   },
   { timestamps: true }

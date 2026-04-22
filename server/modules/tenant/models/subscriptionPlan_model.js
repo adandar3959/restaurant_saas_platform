@@ -1,14 +1,12 @@
 const mongoose = require('mongoose');
 
-// Defines the platform's subscription tiers (managed by SuperAdmin)
 const subscriptionPlanSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, unique: true }, // "Free", "Pro", "Enterprise"
-    price: { type: Number, required: true, default: 0 },  // monthly price in USD
+    name: { type: String, required: true, unique: true },
+    price: { type: Number, required: true, default: 0 },
     billingCycle: { type: String, enum: ['Monthly', 'Yearly'], default: 'Monthly' },
     trialDays: { type: Number, default: 14 },
 
-    // Feature limits
     limits: {
       maxMenuItems: { type: Number, default: 50 },
       maxStaffAccounts: { type: Number, default: 5 },
@@ -16,7 +14,6 @@ const subscriptionPlanSchema = new mongoose.Schema(
       maxOrdersPerMonth: { type: Number, default: 500 },
     },
 
-    // Feature flags unlocked by this plan
     features: {
       onlineOrdering: { type: Boolean, default: true },
       tableReservations: { type: Boolean, default: false },

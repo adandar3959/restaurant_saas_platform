@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Component } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// ── Public pages
 import LandingPage        from './pages/public/LandingPage';
 import PricingPage        from './pages/public/PricingPage';
 import OnboardingPage     from './pages/public/OnboardingPage';
@@ -10,7 +9,6 @@ import LoginPage          from './pages/public/LoginPage';
 import SignupPage         from './pages/public/SignupPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 
-// ── Admin layout + pages
 import AdminLayout     from './components/layout/AdminLayout';
 import AdminDashboard  from './pages/admin/AdminDashboard';
 import Orders          from './pages/admin/Orders';
@@ -22,16 +20,12 @@ import Delivery        from './pages/admin/Delivery';
 import CRM             from './pages/admin/CRM';
 import AdminSettings   from './pages/admin/AdminSettings';
 
-// ── Kitchen (KDS)
 import KDS             from './pages/kitchen/KDS';
 
-// ── Waiter View (Phase 5)
 import WaiterLayout    from './pages/waiter/WaiterLayout';
 
-// ── Driver View
 import DriverDashboard from './pages/driver/DriverDashboard';
 
-// ─── Error Boundary ──────────────────────────────────────────────────────────
 class AdminErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(err) { return { error: err }; }
@@ -55,17 +49,14 @@ class AdminErrorBoundary extends Component {
   }
 }
 
-// ─── Route guards ───────────────────────────────────────────────────────────
 function RequireAuth({ children, allowedRoles }) {
   const { user, isHydrated } = useAuth();
-  // Wait for localStorage rehydration — prevents flash-redirect to /login
   if (!isHydrated) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
-  // Case-insensitive role check
   if (allowedRoles) {
     const userRoleLower = (user.role || '').toLowerCase();
     const allowed = allowedRoles.map(r => r.toLowerCase());
@@ -81,21 +72,20 @@ function GuestOnly({ children }) {
   return children;
 }
 
-// ─── App routes ─────────────────────────────────────────────────────────────
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
+      {}
       <Route path="/"             element={<LandingPage />} />
       <Route path="/pricing"      element={<PricingPage />} />
       <Route path="/onboarding"   element={<OnboardingPage />} />
 
-      {/* Auth */}
+      {}
       <Route path="/login"           element={<GuestOnly><LoginPage /></GuestOnly>} />
       <Route path="/signup"          element={<GuestOnly><SignupPage /></GuestOnly>} />
       <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />
 
-      {/* ── Admin Dashboard (Phase 3) ───────────────────────────── */}
+      {}
       <Route
         path="/admin/:restaurantId"
         element={<RequireAuth allowedRoles={['Admin','Manager']}><AdminLayout /></RequireAuth>}
@@ -111,19 +101,12 @@ function AppRoutes() {
         <Route path="settings"  element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
       </Route>
 
-      {/* ── Kitchen Display (Phase 4) ───────────────────────────── */}
+      {}
       <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
 
-      {/* Placeholder: other roles (future phases) */}
-      <Route path="/superadmin/*" element={<RequireAuth allowedRoles={['SuperAdmin']}><PlaceholderDash role="SuperAdmin Dashboard" /></RequireAuth>} />
-      
-      {/* ── Waiter Layout ───────────────────────────── */}
-      <Route path="/waiter/:restaurantId/*" element={<RequireAuth allowedRoles={['Waiter']}><AdminErrorBoundary><WaiterLayout /></AdminErrorBoundary></RequireAuth>} />
-      
-      <Route path="/driver/:restaurantId/*" element={<RequireAuth allowedRoles={['Driver']}><AdminErrorBoundary><DriverDashboard /></AdminErrorBoundary></RequireAuth>} />
-      <Route path="/account/*"    element={<RequireAuth allowedRoles={['Customer']}><PlaceholderDash role="Customer Account" /></RequireAuth>} />
-
-      {/* 404 */}
+      {}
+      <Route path="/superadmin}
+      <Route path="/waiter/:restaurantId}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

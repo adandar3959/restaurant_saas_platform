@@ -1,6 +1,5 @@
 .landing { overflow-x: hidden; }
 
-/* ─── Hero (keep dark) ───────────────────────────────────────────────── */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -75,7 +74,6 @@
 }
 .trust-avatar:first-child { margin-left: 0; }
 
-/* Hero visual */
 .hero-visual {
   position: relative;
   display: flex;
@@ -139,7 +137,6 @@
 .hero-float-card  { bottom: -20px; left: -30px; }
 .hero-float-card-2 { top: 20px; right: -30px; }
 
-/* ─── Stats bar — white ──────────────────────────────────────────────── */
 .stats-bar {
   background: linear-gradient(180deg, #0A0A12 0%, #ffffff 18%);
   border-bottom: 1px solid #e5e7eb;
@@ -182,7 +179,6 @@
   font-weight: 500;
 }
 
-/* ─── Light section base ─────────────────────────────────────────────── */
 .section-light {
   background: #ffffff;
   padding: 96px 0;
@@ -195,7 +191,6 @@
   border-bottom: 1px solid #ede9fe;
 }
 
-/* ─── Section header (light) ─────────────────────────────────────────── */
 .section-header { margin-bottom: var(--space-16); }
 
 .section-tag-light {
@@ -236,7 +231,6 @@
   margin: 0 auto;
 }
 
-/* ─── Features (light) ───────────────────────────────────────────────── */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -310,7 +304,6 @@
   transform: translateX(4px);
 }
 
-/* ─── How it works (light alt) ───────────────────────────────────────── */
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -370,7 +363,6 @@
   line-height: 1.65;
 }
 
-/* ─── Testimonials (light) ───────────────────────────────────────────── */
 .testimonials-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -442,7 +434,6 @@
   color: #9ca3af;
 }
 
-/* ─── CTA Banner (light) ─────────────────────────────────────────────── */
 .cta-banner-light {
   background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
   border-radius: 24px;
@@ -507,7 +498,6 @@
   color: #9ca3af;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .features-grid { grid-template-columns: repeat(2, 1fr); }
   .testimonials-grid { grid-template-columns: repeat(2, 1fr); }

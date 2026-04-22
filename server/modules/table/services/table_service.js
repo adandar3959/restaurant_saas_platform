@@ -1,7 +1,6 @@
 const Table = require('../models/table_model');
 const Reservation = require('../models/reservation_model');
 
-// ── Tables ───────────────────────────────────────────────────
 exports.createTable = async (data) => Table.create(data);
 
 exports.getTables = async (restaurantId, filters) => {
@@ -35,7 +34,6 @@ exports.deleteTable = async (id, restaurantId) => {
   return table;
 };
 
-// ── Reservations ─────────────────────────────────────────────
 exports.createReservation = async (data) => Reservation.create(data);
 
 exports.getReservations = async (restaurantId, filters, pagination) => {
