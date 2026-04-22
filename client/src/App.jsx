@@ -105,8 +105,9 @@ function AppRoutes() {
       <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
 
       {}
-      <Route path="/superadmin}
-      <Route path="/waiter/:restaurantId}
+      <Route path="/superadmin"           element={<RequireAuth allowedRoles={['SuperAdmin']}><PlaceholderDash role="SuperAdmin" /></RequireAuth>} />
+      <Route path="/waiter/:restaurantId" element={<RequireAuth allowedRoles={['Waiter']}><WaiterLayout /></RequireAuth>} />
+      <Route path="/driver/:restaurantId" element={<RequireAuth allowedRoles={['Driver']}><DriverDashboard /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

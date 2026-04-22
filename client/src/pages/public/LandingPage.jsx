@@ -41,7 +41,7 @@ export default function LandingPage() {
     <div className="landing">
       <Navbar />
 
-      {}
+      { }
       <section className="hero">
         <div className="hero-bg-glow" />
         <div className="container">
@@ -119,7 +119,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {}
+      { }
       <section className="stats-bar">
         <div className="container">
           <div className="stats-grid">
@@ -133,7 +133,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {}
+      { }
       <section className="section-light" id="features">
         <div className="container">
           <div className="section-header text-center">
@@ -162,7 +162,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {}
+      { }
       <section className="section-light-alt" id="how-it-works">
         <div className="container">
           <div className="section-header text-center">
@@ -187,11 +187,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {}
+      { }
       <section className="section-light">
         <div className="container">
           <div className="section-header text-center">
-            <div className="section-tag-light">❤️ Loved by Owners</div>
+            <div className="section-tag-light">Loved by Owners</div>
             <h2 className="section-title-light">
               Don't Take Our <span>Word for It</span>
             </h2>
@@ -222,7 +222,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {}
+      { }
       <section className="section-light-alt">
         <div className="container">
           <div className="cta-banner-light">

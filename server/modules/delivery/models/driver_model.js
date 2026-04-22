@@ -20,9 +20,10 @@ const driverSchema = new mongoose.Schema(
       default: 'Offline',
     },
 
-    isThirdParty: { type: Boolean, default: false },
-    thirdPartyProvider: { type: String },
-    thirdPartyDriverId: { type: String },
+    // -- NOT IN USE: third-party delivery provider integration is not implemented.
+    // isThirdParty: { type: Boolean, default: false },
+    // thirdPartyProvider: { type: String },
+    // thirdPartyDriverId: { type: String },
 
     rating: { type: Number, default: 5, min: 1, max: 5 },
     totalDeliveries: { type: Number, default: 0 },

@@ -65,7 +65,9 @@ const orderSchema = new mongoose.Schema(
     estimatedDeliveryTime: { type: Date },
     actualDeliveryTime: { type: Date },
 
-    scheduledFor: { type: Date, default: null },
+    // -- NOT IN USE: allowScheduledOrders setting exists in Tenant but no scheduling
+    // logic is implemented in the order service.
+    // scheduledFor: { type: Date, default: null },
 
     items: [orderItemSchema],
 
@@ -110,8 +112,10 @@ const orderSchema = new mongoose.Schema(
       cancelledAt: { type: Date },
     },
 
-    loyaltyPointsEarned: { type: Number, default: 0 },
-    loyaltyPointsRedeemed: { type: Number, default: 0 },
+
+    // The CRM loyalty service handles points via LoyaltyTransaction model directly.
+    // loyaltyPointsEarned: { type: Number, default: 0 },
+    // loyaltyPointsRedeemed: { type: Number, default: 0 },
 
     source: { type: String, enum: ['Web', 'App', 'POS', 'QR'], default: 'Web' },
   },

@@ -50,7 +50,9 @@ const menuItemSchema = new mongoose.Schema(
     preparationTime: { type: Number, default: 15 },
     displayOrder: { type: Number, default: 0 },
 
-    recipeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
+    // -- NOT IN USE: recipes reference MenuItem via Recipe.menuItemId.
+    // This reverse ref is never populated or queried in any service.
+    // recipeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
 
     deletedAt: { type: Date, default: null },
   },

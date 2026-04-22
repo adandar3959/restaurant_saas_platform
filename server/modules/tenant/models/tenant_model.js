@@ -21,8 +21,9 @@ const subscriptionSchema = new mongoose.Schema(
     status: { type: String, enum: ['Active', 'Suspended', 'Expired', 'Trial'], default: 'Trial' },
     trialEndsAt: { type: Date },
     validUntil: { type: Date },
-    stripeCustomerId: { type: String },
-    stripeSubscriptionId: { type: String },
+
+    // stripeCustomerId: { type: String },
+    // stripeSubscriptionId: { type: String },
   },
   { _id: false }
 );
@@ -73,7 +74,7 @@ const tenantSchema = new mongoose.Schema(
     subscription: subscriptionSchema,
 
     settings: {
-      currency: { type: String, default: 'USD' },
+      currency: { type: String, default: 'PKR' },
       taxRate: { type: Number, default: 0, min: 0, max: 100 },
       serviceChargeRate: { type: Number, default: 0, min: 0, max: 100 },
       timezone: { type: String, default: 'America/New_York' },
@@ -86,16 +87,18 @@ const tenantSchema = new mongoose.Schema(
     businessHours: [businessHoursSchema],
 
     features: {
-      onlineOrdering: { type: Boolean, default: true },
-      tableReservations: { type: Boolean, default: false },
+
       inventoryTracking: { type: Boolean, default: false },
-      loyaltyProgram: { type: Boolean, default: false },
-      multiLocation: { type: Boolean, default: false },
-      kdsEnabled: { type: Boolean, default: false },
+
+      // onlineOrdering: { type: Boolean, default: true },
+      // tableReservations: { type: Boolean, default: false },
+      // loyaltyProgram: { type: Boolean, default: false },
+      // multiLocation: { type: Boolean, default: false },
+      // kdsEnabled: { type: Boolean, default: false },
     },
 
-    parentRestaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', default: null },
-    isBranch: { type: Boolean, default: false },
+    // parentRestaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', default: null },
+    // isBranch: { type: Boolean, default: false },
 
     isActive: { type: Boolean, default: true },
     deletedAt: { type: Date, default: null },
