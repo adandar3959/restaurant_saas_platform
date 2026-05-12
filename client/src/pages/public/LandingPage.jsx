@@ -13,7 +13,7 @@ const features = [
   { icon: <ChefHat size={22} />, color: '#6366F1', bg: '#eef2ff', title: 'Kitchen Display System', desc: 'Real-time KDS for your kitchen. Tickets routed to the right prep station automatically. No more paper tickets.' },
   { icon: <Utensils size={22} />, color: '#10B981', bg: '#ecfdf5', title: 'Table Management', desc: 'Visual floor plan, QR-code ordering, and reservation management. Keep every table turning smoothly.' },
   { icon: <Truck size={22} />, color: '#8B5CF6', bg: '#f5f3ff', title: 'Delivery Management', desc: 'Assign drivers, track deliveries in real-time with GPS, and manage delivery zones with geofencing.' },
-  { icon: <BarChart3 size={22} />, color: '#A78BFA', bg: '#ede9fe', title: 'Inventory & Recipes', desc: 'Track ingredients, link recipes to menu items, get low-stock alerts, and auto-deduct stock on orders.' },
+  { icon: <BarChart3 size={22} />, color: '#A78BFA', bg: '#ede9fe', title: 'Inventory', desc: 'Track ingredients, link recipes to menu items, get low-stock alerts, and auto-deduct stock on orders.' },
   { icon: <Users size={22} />, color: '#6D28D9', bg: '#f5f3ff', title: 'CRM & Loyalty', desc: 'Reward your regulars with loyalty points, coupons, and reviews. Turn first-time visitors into loyal fans.' },
 ];
 
