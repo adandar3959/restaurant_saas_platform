@@ -20,6 +20,13 @@ export const menuApi = {
   updateItem:      (rid, id, data) => api.patch(`/restaurants/${rid}/menu/items/${id}`, data),
   deleteItem:      (rid, id)     => api.delete(`/restaurants/${rid}/menu/items/${id}`),
   toggleItem:      (rid, id)     => api.patch(`/restaurants/${rid}/menu/items/${id}/toggle`),
+
+  // Deals
+  getDeals:        (rid)         => api.get(`/restaurants/${rid}/menu/deals`),
+  createDeal:      (rid, data)   => api.post(`/restaurants/${rid}/menu/deals`, data),
+  updateDeal:      (rid, id, data) => api.patch(`/restaurants/${rid}/menu/deals/${id}`, data),
+  deleteDeal:      (rid, id)     => api.delete(`/restaurants/${rid}/menu/deals/${id}`),
+  toggleDeal:      (rid, id)     => api.patch(`/restaurants/${rid}/menu/deals/${id}/toggle`),
 };
 
 export default api;
