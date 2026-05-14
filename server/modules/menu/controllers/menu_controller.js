@@ -68,3 +68,34 @@ exports.toggleAvailability = asyncHandler(async (req, res) => {
   const item = await menuService.toggleAvailability(req.params.id, req.params.restaurantId);
   sendSuccess(res, item, `Item marked as ${item.isAvailable ? 'available' : 'unavailable'}`);
 });
+
+// --- Deal Controllers ----------------------------------------
+exports.createDeal = asyncHandler(async (req, res) => {
+  const deal = await menuService.createDeal({ ...req.body, restaurantId: req.params.restaurantId });
+  sendSuccess(res, deal, 'Deal created', 201);
+});
+
+exports.getDeals = asyncHandler(async (req, res) => {
+  const deals = await menuService.getDeals(req.params.restaurantId, req.query);
+  sendSuccess(res, deals);
+});
+
+exports.getDealById = asyncHandler(async (req, res) => {
+  const deal = await menuService.getDealById(req.params.id, req.params.restaurantId);
+  sendSuccess(res, deal);
+});
+
+exports.updateDeal = asyncHandler(async (req, res) => {
+  const deal = await menuService.updateDeal(req.params.id, req.params.restaurantId, req.body);
+  sendSuccess(res, deal, 'Deal updated');
+});
+
+exports.deleteDeal = asyncHandler(async (req, res) => {
+  await menuService.deleteDeal(req.params.id, req.params.restaurantId);
+  sendSuccess(res, null, 'Deal deleted');
+});
+
+exports.toggleDeal = asyncHandler(async (req, res) => {
+  const deal = await menuService.toggleDeal(req.params.id, req.params.restaurantId);
+  sendSuccess(res, deal, `Deal marked as ${deal.isAvailable ? 'available' : 'unavailable'}`);
+});

@@ -9,6 +9,14 @@ import LoginPage          from './pages/public/LoginPage';
 import SignupPage         from './pages/public/SignupPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 
+// Customer
+import MenuPage              from './pages/customer/MenuPage';
+import CartPage              from './pages/customer/CartPage';
+import OrderConfirmedPage   from './pages/customer/OrderConfirmedPage';
+import OrderTrackingPage    from './pages/customer/OrderTrackingPage';
+import CustomerLoginPage    from './pages/customer/CustomerLoginPage';
+import CustomerAccountPage  from './pages/customer/CustomerAccountPage';
+
 import AdminLayout     from './components/layout/AdminLayout';
 import AdminDashboard  from './pages/admin/AdminDashboard';
 import Orders          from './pages/admin/Orders';
@@ -75,12 +83,22 @@ function GuestOnly({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      {}
+      {/* Public pages */}
       <Route path="/"             element={<LandingPage />} />
       <Route path="/pricing"      element={<PricingPage />} />
       <Route path="/onboarding"   element={<OnboardingPage />} />
 
-      {}
+      {/* Customer — public menu + ordering (no auth needed) */}
+      <Route path="/menu/:restaurantId"                          element={<MenuPage />} />
+      <Route path="/menu/:restaurantId/cart"                     element={<CartPage />} />
+      <Route path="/menu/:restaurantId/order-confirmed/:orderId" element={<OrderConfirmedPage />} />
+      <Route path="/menu/:restaurantId/track/:orderId"           element={<OrderTrackingPage />} />
+
+      {/* Customer auth & account */}
+      <Route path="/customer/login"  element={<CustomerLoginPage />} />
+      <Route path="/account"         element={<CustomerAccountPage />} />
+
+      {/* Staff Auth */}
       <Route path="/login"           element={<GuestOnly><LoginPage /></GuestOnly>} />
       <Route path="/signup"          element={<GuestOnly><SignupPage /></GuestOnly>} />
       <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />

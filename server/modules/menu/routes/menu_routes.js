@@ -21,3 +21,11 @@ router.delete('/items/:id', protect, authorize(...staff), ctrl.deleteItem);
 router.patch('/items/:id/toggle', protect, authorize(...staff), ctrl.toggleAvailability);
 
 module.exports = router;
+
+// Deals (public GET, protected write)
+router.get('/deals',              ctrl.getDeals);
+router.post('/deals',             protect, authorize(...staff), ctrl.createDeal);
+router.get('/deals/:id',          ctrl.getDealById);
+router.patch('/deals/:id',        protect, authorize(...staff), ctrl.updateDeal);
+router.delete('/deals/:id',       protect, authorize(...staff), ctrl.deleteDeal);
+router.patch('/deals/:id/toggle', protect, authorize(...staff), ctrl.toggleDeal);

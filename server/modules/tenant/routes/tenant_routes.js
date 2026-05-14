@@ -5,6 +5,9 @@ const { validateCreateTenant, validateUpdateTenant, validateSubscription } = req
 
 router.get('/slug/:slug', ctrl.getTenantBySlug);
 
+// Public — used by customer menu page to show restaurant name/info
+router.get('/public/:id', ctrl.getTenantById);
+
 router.get('/', protect, authorize('SuperAdmin'), ctrl.getAllTenants);
 router.delete('/:id', protect, authorize('SuperAdmin'), ctrl.deleteTenant);
 router.patch('/:id/subscription', protect, authorize('SuperAdmin'), validateSubscription, ctrl.updateSubscription);

@@ -1,5 +1,6 @@
 const MenuCategory = require('../models/menuCategory_model');
-const MenuItem = require('../models/menuItem_model');
+const MenuItem     = require('../models/menuItem_model');
+const Deal         = require('../models/deal_model');
 
 exports.createCategory = async (data) => MenuCategory.create(data);
 
@@ -83,4 +84,47 @@ exports.toggleAvailability = async (id, restaurantId) => {
   if (!item) throw Object.assign(new Error('Menu item not found'), { statusCode: 404 });
   item.isAvailable = !item.isAvailable;
   return item.save();
+};
+
+// --- Deal Services -------------------------------------------
+exports.createDeal = async (data) => Deal.create(data);
+
+exports.getDeals = async (restaurantId, filters = {}) => {
+  const query = { restaurantId, deletedAt: null };
+  if (filters.isAvailable !== undefined) query.isAvailable = filters.isAvailable === 'true';
+  if (filters.isFeatured  !== undefined) query.isFeatured  = filters.isFeatured  === 'true';
+  return Deal.find(query).sort({ displayOrder: 1, createdAt: -1 });
+};
+
+exports.getDealById = async (id, restaurantId) => {
+  const deal = await Deal.findOne({ _id: id, restaurantId, deletedAt: null });
+  if (!deal) throw Object.assign(new Error('Deal not found'), { statusCode: 404 });
+  return deal;
+};
+
+exports.updateDeal = async (id, restaurantId, data) => {
+  const deal = await Deal.findOneAndUpdate(
+    { _id: id, restaurantId },
+    data,
+    { returnDocument: 'after', runValidators: true }
+  );
+  if (!deal) throw Object.assign(new Error('Deal not found'), { statusCode: 404 });
+  return deal;
+};
+
+exports.deleteDeal = async (id, restaurantId) => {
+  const deal = await Deal.findOneAndUpdate(
+    { _id: id, restaurantId },
+    { deletedAt: new Date(), isAvailable: false },
+    { returnDocument: 'after' }
+  );
+  if (!deal) throw Object.assign(new Error('Deal not found'), { statusCode: 404 });
+  return deal;
+};
+
+exports.toggleDeal = async (id, restaurantId) => {
+  const deal = await Deal.findOne({ _id: id, restaurantId });
+  if (!deal) throw Object.assign(new Error('Deal not found'), { statusCode: 404 });
+  deal.isAvailable = !deal.isAvailable;
+  return deal.save();
 };
