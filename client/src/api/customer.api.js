@@ -13,14 +13,14 @@ api.interceptors.request.use(cfg => {
 
 export const customerApi = {
   // Restaurant info — public endpoints
-  getRestaurant:        (rid)  => api.get(`/tenants/public/${rid}`),
-  getRestaurantBySlug:  (slug) => api.get(`/tenants/public/slug/${slug}`),
+  getRestaurant: (rid) => api.get(`/tenants/public/${rid}`),
+  getRestaurantBySlug: (slug) => api.get(`/tenants/public/slug/${slug}`),
 
   // Public menu — no auth needed
   getCategories: (rid) => api.get(`/restaurants/${rid}/menu/categories`),
-  getMenuItems:  (rid, params) => api.get(`/restaurants/${rid}/menu/items`, { params }),
-  getMenuItem:   (rid, id) => api.get(`/restaurants/${rid}/menu/items/${id}`),
-  getDeals:      (rid) => api.get(`/restaurants/${rid}/menu/deals`),
+  getMenuItems: (rid, params) => api.get(`/restaurants/${rid}/menu/items`, { params }),
+  getMenuItem: (rid, id) => api.get(`/restaurants/${rid}/menu/items/${id}`),
+  getDeals: (rid) => api.get(`/restaurants/${rid}/menu/deals`),
 
   // Order placement — optionalAuth, works without login
   placeOrder: (rid, data) => api.post(`/restaurants/${rid}/orders`, data),
