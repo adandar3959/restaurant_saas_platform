@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { customerApi } from '../../api/customer.api';
@@ -115,14 +115,33 @@ export default function CustomerAccountPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('orders');
 
-  useEffect(() => {
-    if (isHydrated && !user) navigate('/customer/login');
-  }, [isHydrated, user, navigate]);
-
-  if (!isHydrated || !user) {
+  // Don't hard-redirect — show a friendly prompt instead
+  if (!isHydrated) {
     return (
-      <div className="customer-root" style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}>
-        <div className="c-spinner"/>
+      <div className="customer-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div className="c-spinner" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="customer-root c-auth-wrap">
+        <div className="c-auth-card">
+          <div className="c-auth-logo">👤</div>
+          <h1 className="c-auth-title">Your Account</h1>
+          <p className="c-auth-sub">Sign in to view your order history and manage your profile.</p>
+          <button
+            className="c-btn-primary"
+            style={{ marginTop: 8 }}
+            onClick={() => navigate('/customer/login')}
+          >
+            → Sign In / Create Account
+          </button>
+          <div style={{ marginTop: 20, textAlign: 'center' }}>
+            <Link to="/" style={{ fontSize: 13, color: 'var(--c-text-muted)', fontWeight: 600 }}>← Back to Home</Link>
+          </div>
+        </div>
       </div>
     );
   }

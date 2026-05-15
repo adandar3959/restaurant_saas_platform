@@ -89,6 +89,27 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const customerRegister = async (name, email, password, restaurantId = null) => {
+    dispatch({ type: 'LOADING' });
+    try {
+      const res = await axios.post(`${API_BASE}/auth/customer/register`, {
+        name, email, password, restaurantId,
+      });
+      const { user, token } = res.data.data;
+
+      localStorage.setItem('rms_token', token);
+      localStorage.setItem('rms_user', JSON.stringify(user));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { token, user } });
+      return { success: true };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+      dispatch({ type: 'ERROR', payload: msg });
+      return { success: false, error: msg };
+    }
+  };
+
   const onboard = async ({ name, email, password, restaurantName, planType }) => {
     dispatch({ type: 'LOADING' });
     try {
@@ -138,7 +159,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, onboard, logout, clearError, updateUser, getDashboardRoute }}>
+    <AuthContext.Provider value={{ ...state, login, register, customerRegister, onboard, logout, clearError, updateUser, getDashboardRoute }}>
       {children}
     </AuthContext.Provider>
   );

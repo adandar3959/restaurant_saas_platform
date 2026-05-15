@@ -2,10 +2,48 @@ const userService = require('../services/user_service');
 const asyncHandler = require('../../../utils/asyncHandler');
 const { sendSuccess } = require('../../../utils/apiResponse');
 const { paginate, paginateMeta } = require('../../../utils/paginate');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user_model');
+
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
 exports.register = asyncHandler(async (req, res) => {
   const { user, token } = await userService.register(req.body);
   sendSuccess(res, { user, token }, 'Registered successfully', 201);
+});
+
+// Customer self-registration — accepts { name, email, password, restaurantId? }
+exports.customerRegister = asyncHandler(async (req, res) => {
+  const { name, email, password, restaurantId } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ message: 'Valid email is required' });
+  }
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  }
+
+  const exists = await User.findOne({ email: email.toLowerCase() });
+  if (exists) {
+    return res.status(400).json({ message: 'Email already in use' });
+  }
+
+  const user = await User.create({
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    passwordHash: password,   // pre-save hook will hash this
+    role: 'Customer',
+    restaurantId: restaurantId || null,
+  });
+
+  const token = signToken(user._id);
+  user.passwordHash = undefined;
+
+  sendSuccess(res, { user, token }, 'Account created', 201);
 });
 
 exports.onboard = asyncHandler(async (req, res) => {

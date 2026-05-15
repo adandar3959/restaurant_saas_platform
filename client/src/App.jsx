@@ -16,6 +16,7 @@ import OrderConfirmedPage   from './pages/customer/OrderConfirmedPage';
 import OrderTrackingPage    from './pages/customer/OrderTrackingPage';
 import CustomerLoginPage    from './pages/customer/CustomerLoginPage';
 import CustomerAccountPage  from './pages/customer/CustomerAccountPage';
+import RestaurantSlugPage   from './pages/customer/RestaurantSlugPage';
 
 import AdminLayout     from './components/layout/AdminLayout';
 import AdminDashboard  from './pages/admin/AdminDashboard';
@@ -88,11 +89,15 @@ function AppRoutes() {
       <Route path="/pricing"      element={<PricingPage />} />
       <Route path="/onboarding"   element={<OnboardingPage />} />
 
+      {/* Customer — slug entry point (simple URL) */}
+      <Route path="/r/:slug"                                    element={<RestaurantSlugPage />} />
+
       {/* Customer — public menu + ordering (no auth needed) */}
       <Route path="/menu/:restaurantId"                          element={<MenuPage />} />
       <Route path="/menu/:restaurantId/cart"                     element={<CartPage />} />
       <Route path="/menu/:restaurantId/order-confirmed/:orderId" element={<OrderConfirmedPage />} />
       <Route path="/menu/:restaurantId/track/:orderId"           element={<OrderTrackingPage />} />
+
 
       {/* Customer auth & account */}
       <Route path="/customer/login"  element={<CustomerLoginPage />} />

@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/customer.css';
 
 export default function CustomerLoginPage() {
-  const { login, register, isLoading, error, clearError } = useAuth();
+  const { login, customerRegister, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Preserve restaurantId so we can redirect back after login
+  const restaurantId = searchParams.get('restaurantId');
+  const returnTo     = searchParams.get('returnTo') || (restaurantId ? `/menu/${restaurantId}` : '/account');
+
   const [mode, setMode]         = useState('login'); // 'login' | 'signup'
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
@@ -20,15 +26,15 @@ export default function CustomerLoginPage() {
     if (mode === 'login') {
       const res = await login(email, password);
       if (res.success) {
-        navigate('/account');
+        navigate(returnTo, { replace: true });
       } else {
         setLocalErr(res.error || 'Login failed.');
       }
     } else {
       if (!name.trim()) return setLocalErr('Please enter your name.');
-      const res = await register(name, email, password);
+      const res = await customerRegister(name, email, password, restaurantId || null);
       if (res.success) {
-        navigate('/account');
+        navigate(returnTo, { replace: true });
       } else {
         setLocalErr(res.error || 'Sign up failed.');
       }
@@ -60,23 +66,45 @@ export default function CustomerLoginPage() {
           {mode === 'signup' && (
             <div>
               <div className="c-field-label">Full Name</div>
-              <input className="c-field-input" type="text" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} required />
+              <input
+                className="c-field-input"
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+              />
             </div>
           )}
           <div>
             <div className="c-field-label">Email</div>
-            <input className="c-field-input" type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)} required />
+            <input
+              className="c-field-input"
+              type="email"
+              placeholder="you@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div>
             <div className="c-field-label">Password</div>
-            <input className="c-field-input" type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6} />
+            <input
+              className="c-field-input"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
           </div>
 
           <button
             type="submit"
             className="c-btn-primary"
             disabled={isLoading}
-            style={{marginTop:4}}
+            style={{ marginTop: 4 }}
           >
             {isLoading ? '⏳ Please wait...' : (mode === 'login' ? '→ Sign In' : '→ Create Account')}
           </button>
@@ -87,8 +115,19 @@ export default function CustomerLoginPage() {
           {' '}<button onClick={toggleMode}>{mode === 'login' ? 'Sign Up' : 'Sign In'}</button>
         </div>
 
-        <div style={{marginTop:20,textAlign:'center'}}>
-          <Link to="/" style={{fontSize:13,color:'var(--c-text-muted)',fontWeight:600}}>← Back to Home</Link>
+        <div style={{ marginTop: 20, textAlign: 'center' }}>
+          {restaurantId ? (
+            <Link
+              to={`/menu/${restaurantId}`}
+              style={{ fontSize: 13, color: 'var(--c-text-muted)', fontWeight: 600 }}
+            >
+              ← Continue without signing in
+            </Link>
+          ) : (
+            <Link to="/" style={{ fontSize: 13, color: 'var(--c-text-muted)', fontWeight: 600 }}>
+              ← Back to Home
+            </Link>
+          )}
         </div>
       </div>
     </div>

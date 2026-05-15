@@ -12,8 +12,9 @@ api.interceptors.request.use(cfg => {
 });
 
 export const customerApi = {
-  // Restaurant info — public endpoint
-  getRestaurant: (rid) => api.get(`/tenants/public/${rid}`),
+  // Restaurant info — public endpoints
+  getRestaurant:        (rid)  => api.get(`/tenants/public/${rid}`),
+  getRestaurantBySlug:  (slug) => api.get(`/tenants/public/slug/${slug}`),
 
   // Public menu — no auth needed
   getCategories: (rid) => api.get(`/restaurants/${rid}/menu/categories`),
