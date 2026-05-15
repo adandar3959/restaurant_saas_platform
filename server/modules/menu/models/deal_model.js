@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 // Each item included in a deal (loosely referenced — no strict ObjectId require)
 const dealItemSchema = new mongoose.Schema(
   {
-    name:       { type: String, required: true },          // display name e.g. "Zinger Burger"
+    name:       { type: String, required: true },          // display name e.g. "Zinger Burger (Large)"
     quantity:   { type: Number, required: true, default: 1 },
     menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' }, // optional link
+    sizeName:   { type: String },                          // e.g. "Regular", "Large" — if item has sizes
   },
   { _id: false }
 );

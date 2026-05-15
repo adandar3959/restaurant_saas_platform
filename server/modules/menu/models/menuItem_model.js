@@ -21,6 +21,14 @@ const modifierGroupSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const sizeSchema = new mongoose.Schema(
+  {
+    name:  { type: String, required: true, trim: true }, // e.g. "Regular", "Large", "Family"
+    price: { type: Number, required: true, min: 0 },
+  },
+  { _id: false }
+);
+
 const menuItemSchema = new mongoose.Schema(
   {
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
@@ -28,9 +36,12 @@ const menuItemSchema = new mongoose.Schema(
 
     name: { type: String, required: true, trim: true },
     description: { type: String },
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, required: true, min: 0 }, // base / default price
     costPrice: { type: Number, min: 0 },
     image: { type: String },
+
+    // Size variants — if defined, customer picks one before adding to cart
+    sizes: { type: [sizeSchema], default: [] },
 
     isAvailable: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
