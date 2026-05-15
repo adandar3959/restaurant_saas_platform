@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Dancing+Script:wght@700&family=Raleway:wght@400;600;700;800&display=swap');
 
 :root {
   --c-bg:           #FAFAF8;
@@ -807,7 +808,6 @@
 /* ═══════════════════════════════════════════════════════════════
    MEZAMI RESTAURANT THEME  –  customer menu redesign
    ═══════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Dancing+Script:wght@700&family=Raleway:wght@400;600;700;800&display=swap');
 
 :root {
   --mz-dark:   #1B4332;
@@ -816,51 +816,81 @@
   --mz-light:  #95BF98;
   --mz-cream:  #F5F0E6;
   --mz-off:    #FAF8F3;
-  --mz-gold:   #C9A84C;
-  --mz-nav-h:  62px;
+  --mz-gold:   #d4c99a;
+  --mz-nav-h:  130px;
 }
 
 /* ── Root ─────────────────────────────────────────────────── */
 .mz-root { background: var(--mz-dark); min-height:100vh; overflow-x:hidden; }
 
-/* ── Nav ──────────────────────────────────────────────────── */
+/* ── Nav (2-row like mezami) ──────────────────────────────── */
 .mz-nav {
   position: fixed; top:0; left:0; right:0; z-index:100;
-  height: var(--mz-nav-h);
   background: var(--mz-dark);
-  display: flex; align-items: center;
-  padding: 0 32px; gap: 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column;
+}
+
+/* Row 1: Logo + Cart */
+.mz-nav-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 40px 12px; /* 2x vertical spacing */
 }
 .mz-nav-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; font-weight: 600; font-style: italic;
-  color: #fff; white-space: nowrap; margin-right: 40px; letter-spacing:0.02em;
+  font-family: 'Dancing Script', cursive;
+  font-size: 32px; font-weight: 700;
+  color: var(--mz-gold); letter-spacing: 0.01em; line-height: 1;
 }
-.mz-nav-logo span { display:block; font-size:9px; font-style:normal; font-weight:400; letter-spacing:0.25em; color:var(--mz-light); text-transform:uppercase; }
-.mz-nav-links { display:flex; align-items:center; gap:0; overflow-x:auto; scrollbar-width:none; flex:1; }
-.mz-nav-links::-webkit-scrollbar { display:none; }
-.mz-nav-link {
-  padding: 0 18px; height: var(--mz-nav-h);
+.mz-nav-logo span {
+  display: block; font-family: 'Raleway', sans-serif;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.35em;
+  text-transform: uppercase; color: rgba(255,255,255,0.45);
+  margin-top: 4px;
+}
+
+/* Row 2: Category links */
+.mz-nav-bottom {
   display: flex; align-items: center;
-  font-family:'Raleway',sans-serif; font-size:11px; font-weight:700;
-  letter-spacing:0.14em; text-transform:uppercase;
-  color: rgba(255,255,255,0.6); white-space:nowrap;
-  border:none; background:none; cursor:pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
+  padding: 0 40px; overflow-x: auto; scrollbar-width: none;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  gap: 24px; /* 1.3x horizontal space */
 }
-.mz-nav-link:hover { color:#fff; }
-.mz-nav-link.active { color:#fff; border-bottom-color:#fff; }
+.mz-nav-bottom::-webkit-scrollbar { display: none; }
+
+.mz-nav-link {
+  position: relative;
+  padding: 0 4px; height: 48px; /* taller click target */
+  display: flex; align-items: center;
+  font-family: 'Raleway', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); white-space: nowrap;
+  border: none; background: none; cursor: pointer;
+  transition: color 0.25s ease;
+}
+/* animated underline from left */
+.mz-nav-link::after {
+  content: '';
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  height: 1.5px;
+  background: var(--mz-gold); /* yellow highlight */
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.mz-nav-link:hover { color: rgba(255,255,255,0.85); }
+.mz-nav-link:hover::after { transform: scaleX(1); }
+.mz-nav-link.active { color: var(--mz-gold); } /* highlighted yellow */
+.mz-nav-link.active::after { transform: scaleX(1); }
+
 .mz-nav-cart {
-  margin-left:auto; padding:8px 18px;
-  background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
-  border-radius:9999px; color:#fff; font-family:'Raleway',sans-serif;
-  font-size:12px; font-weight:700; letter-spacing:0.06em;
-  cursor:pointer; white-space:nowrap; transition:all 0.2s ease; text-decoration:none;
-  display:flex; align-items:center; gap:6px;
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 9999px; color: #fff; font-family: 'Raleway', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
+  text-decoration: none; display: flex; align-items: center; gap: 6px;
 }
-.mz-nav-cart:hover { background:rgba(255,255,255,0.18); }
+.mz-nav-cart:hover { background: rgba(255,255,255,0.16); }
+
 
 /* ── Page wrapper (below fixed nav) ───────────────────────── */
 .mz-page { padding-top: var(--mz-nav-h); }

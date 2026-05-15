@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { customerApi } from '../../api/customer.api';
 import { CartProvider, useCart } from '../../context/CartContext';
@@ -21,13 +21,6 @@ function getEmoji(name = '') {
 }
 
 const SCRIPT_WORDS = ['Culinary','Freshness','Artisan','Symphony','Heritage','Savor','Delight','Fusion','Crafted','Baked'];
-const TILE_BG = [
-  'linear-gradient(135deg,#2d6a4f,#1b4332)',
-  'linear-gradient(135deg,#40916c,#2d6a4f)',
-  'linear-gradient(135deg,#52b788,#40916c)',
-  'linear-gradient(135deg,#1b4332,#081c15)',
-  'linear-gradient(135deg,#74c69d,#52b788)',
-];
 
 // ── Item Detail Modal ─────────────────────────────────────────────
 function ItemModal({ item, onClose, onAdded }) {
@@ -90,72 +83,65 @@ function ItemModal({ item, onClose, onAdded }) {
   );
 }
 
-// ── Mosaic Slide for one category ────────────────────────────────
-function CategorySlide({ cat, items, catIdx, totalCats, activeCatIdx, onGoTo, onViewMenu }) {
-  const isActive = catIdx === activeCatIdx;
-  const word1 = SCRIPT_WORDS[catIdx % SCRIPT_WORDS.length];
-  const word2 = SCRIPT_WORDS[(catIdx + 3) % SCRIPT_WORDS.length];
-  const tiles  = items.slice(0, 5);
+// ── 3-Column Mosaic (pure mosaic, no overlay) ────────────────────
+function CategorySlide({ cat, items }) {
+  const word1 = SCRIPT_WORDS[cat._id?.charCodeAt(0) % SCRIPT_WORDS.length ?? 0];
+  const word2 = SCRIPT_WORDS[(cat._id?.charCodeAt(1) ?? 3) % SCRIPT_WORDS.length];
+  const imgs   = items.filter(i => i.imageUrl).map(i => i.imageUrl);
 
-  const makeTile = (pos, gridCol, gridRow, scriptWord) => {
-    if (scriptWord) {
-      return (
-        <div key={`s${pos}`} className="mz-tile mz-tile-script-bg" style={{ gridColumn: gridCol, gridRow }}>
-          <span className="mz-script-text">{scriptWord}</span>
-        </div>
-      );
-    }
-    const item = tiles[pos];
+  const imgTile = (idx, style = {}) => {
+    const src = imgs[idx];
     return (
-      <div
-        key={`t${pos}`}
-        className="mz-tile"
-        style={{
-          gridColumn: gridCol, gridRow,
-          background: item?.imageUrl ? `url(${item.imageUrl}) center/cover no-repeat` : TILE_BG[pos % TILE_BG.length],
-        }}
-      >
-        {!item?.imageUrl && (
-          <span className="mz-tile-emoji">{getEmoji(item?.name || cat.name)}</span>
-        )}
+      <div style={{
+        borderRadius: 10, overflow: 'hidden',
+        background: src ? undefined : 'linear-gradient(135deg,#2d6a4f,#1b4332)',
+        backgroundImage: src ? `url(${src})` : undefined,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        ...style,
+      }}>
+        {!src && <span style={{ fontSize: 28 }}>{getEmoji(cat.name)}</span>}
       </div>
     );
   };
 
+  const scriptTile = (word, showArrow = false, style = {}) => (
+    <div style={{
+      borderRadius: 10, overflow: 'hidden',
+      background: 'linear-gradient(135deg,#1b4332,#0a2118)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', ...style,
+    }}>
+      {showArrow && (
+        <div style={{
+          position: 'absolute', top: 8, left: 8,
+          width: 24, height: 24, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, color: '#fff',
+        }}>↗</div>
+      )}
+      <span style={{
+        fontFamily: "'Dancing Script', cursive",
+        fontSize: 16, color: 'rgba(255,255,255,0.75)', fontWeight: 600,
+        textAlign: 'center', padding: '0 10px',
+      }}>{word}</span>
+    </div>
+  );
+
   return (
-    <div className="mz-slide" id={`cat-${cat._id}`}>
-      <div className="mz-mosaic">
-        {makeTile(null, 1, '1/3', word1)}
-        {makeTile(0,    2, 1,     null)}
-        {makeTile(1,    3, '1/3', null)}
-        {makeTile(2,    2, 2,     null)}
-        {makeTile(3,    1, 3,     null)}
-        {makeTile(null, 2, 3,     word2)}
-        {makeTile(4,    3, 3,     null)}
-      </div>
-
-      {/* Overlay: category name + MENU button */}
-      <div className="mz-slide-overlay">
-        <h1 className="mz-slide-cat-name">{cat.name.toUpperCase()}</h1>
-        <button className="mz-slide-menu-btn" onClick={onViewMenu}>MENU ↓</button>
-      </div>
-
-      {/* Bottom nav: PREV · dots · NEXT */}
-      <div className="mz-slide-foot">
-        {catIdx > 0
-          ? <button className="mz-arrow-btn" onClick={() => onGoTo(catIdx - 1)}>PREV</button>
-          : <span />
-        }
-        <div className="mz-dots">
-          {Array.from({ length: totalCats }).map((_, i) => (
-            <span key={i} className={`mz-dot ${i === activeCatIdx ? 'active' : ''}`} onClick={() => onGoTo(i)} />
-          ))}
-        </div>
-        {catIdx < totalCats - 1
-          ? <button className="mz-arrow-btn" onClick={() => onGoTo(catIdx + 1)}>NEXT</button>
-          : <span />
-        }
-      </div>
+    <div style={{
+      height: '100%', background: '#8aaa78',
+      display: 'grid',
+      gridTemplateColumns: '1fr 1.15fr 1fr',
+      gridTemplateRows: '1fr 1fr',
+      gap: 5, padding: 8,
+    }}>
+      {scriptTile(word1, true, { gridColumn: 1, gridRow: 1 })}
+      {imgTile(0, { gridColumn: 2, gridRow: '1 / 3' })}
+      {imgTile(1, { gridColumn: 3, gridRow: 1 })}
+      {imgTile(2, { gridColumn: 1, gridRow: 2 })}
+      {scriptTile(word2, false, { gridColumn: 3, gridRow: 2 })}
     </div>
   );
 }
@@ -178,35 +164,31 @@ function ItemsPanel({ cat, items, nextCat, onNextCat, onItemSelect }) {
             onClick={() => item.isAvailable !== false && onItemSelect(item)}
             style={{ cursor: item.isAvailable !== false ? 'pointer' : 'default' }}
           >
-            <div className="mz-item-left">
-              <span className="mz-item-new">New</span>
-              <h3 className="mz-item-name">{item.name}</h3>
-              {item.description && <p className="mz-item-desc">{item.description}</p>}
-              {item.sizes?.length > 0
-                ? <div className="mz-item-price">Rs {Math.min(...item.sizes.map(s => s.price)).toLocaleString()} – {Math.max(...item.sizes.map(s => s.price)).toLocaleString()}</div>
-                : <div className="mz-item-price">Rs {item.price?.toLocaleString()}</div>
-              }
-              {item.isAvailable === false && <span style={{ fontSize: 12, color: '#999', marginTop: 4, display: 'block' }}>Unavailable</span>}
+            <div className="mz-item-info">
+              <div className="mz-item-name">{item.name}</div>
+              {item.description && <div className="mz-item-desc">{item.description}</div>}
+              <div className="mz-item-price">
+                {item.sizes?.length > 0
+                  ? `From Rs ${Math.min(...item.sizes.map(s => s.price)).toLocaleString()}`
+                  : `Rs ${item.price?.toLocaleString()}`}
+              </div>
             </div>
-            {item.imageUrl
-              ? <img src={item.imageUrl} alt={item.name} className="mz-item-img" />
-              : <div className="mz-item-emoji-box"><span>{getEmoji(item.name)}</span></div>
-            }
+            {item.imageUrl && (
+              <div className="mz-item-img" style={{ backgroundImage: `url(${item.imageUrl})` }} />
+            )}
           </div>
         ))}
+        {nextCat && (
+          <button className="mz-up-next" onClick={onNextCat}>
+            Up Next → {nextCat.name}
+          </button>
+        )}
       </div>
-
-      {nextCat && (
-        <div className="mz-next-teaser" onClick={onNextCat}>
-          Up Next
-          <span className="mz-next-teaser-name">{nextCat.name}</span>
-        </div>
-      )}
     </div>
   );
 }
 
-// ── Main Menu Content ────────────────────────────────────────────
+// ── Main menu content ────────────────────────────────────────────
 function MenuContent({ restaurantId, tableNo }) {
   const [restaurant,   setRestaurant]   = useState(null);
   const [categories,   setCategories]   = useState([]);
@@ -214,11 +196,15 @@ function MenuContent({ restaurantId, tableNo }) {
   const [deals,        setDeals]        = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [activeCatIdx, setActiveCatIdx] = useState(0);
-  const [openCatIdx,   setOpenCatIdx]   = useState(null); // which category's items are showing
+  const [openCatIdx,   setOpenCatIdx]   = useState(null);
   const [selItem,      setSelItem]      = useState(null);
   const [toast,        setToast]        = useState('');
-  const { items: cartItems, totalItems } = useCart();
-  const sectionRefs = useRef([]);
+  const { totalItems }                  = useCart();
+
+  // Clone-based infinite carousel state
+  const [displayIdx,   setDisplayIdx]   = useState(1); // 1..n = real, 0=clone-last, n+1=clone-first
+  const trackRef    = useRef(null);
+  const transitioning = useRef(false);
 
   // ── fetch all data ──────────────────────────────────────────
   useEffect(() => {
@@ -232,9 +218,12 @@ function MenuContent({ restaurantId, tableNo }) {
     ]).then(([rRes, cRes, iRes, dRes]) => {
       const r = rRes.data?.data || rRes.data;
       setRestaurant(r);
-      setCategories(cRes.data?.data || []);
-      setItems(iRes.data?.data || iRes.data?.items || []);
-      setDeals(dRes.data?.data || []);
+      const rawItems = iRes.data?.data?.items ?? iRes.data?.data ?? iRes.data?.items ?? iRes.data ?? [];
+      const rawCats  = cRes.data?.data ?? cRes.data ?? [];
+      const rawDeals = dRes.data?.data ?? dRes.data ?? [];
+      setCategories(Array.isArray(rawCats)  ? rawCats  : []);
+      setItems(     Array.isArray(rawItems) ? rawItems : []);
+      setDeals(     Array.isArray(rawDeals) ? rawDeals : []);
       if (r?.branding) applyTheme(r.branding);
     }).finally(() => setLoading(false));
   }, [restaurantId]);
@@ -246,19 +235,65 @@ function MenuContent({ restaurantId, tableNo }) {
     if (b.secondaryColor) root.style.setProperty('--mz-cream', b.secondaryColor);
   };
 
-  // ── navigate to category slide ──────────────────────────────
-  const goToCat = useCallback((idx) => {
-    if (idx < 0 || idx >= categories.length) return;
-    setActiveCatIdx(idx);
+  const n = categories.length;
+
+  // ── Clone-based infinite carousel navigation ───────────────
+  const advance = useCallback((dir) => {
+    if (transitioning.current || n === 0) return;
+    transitioning.current = true;
+
+    setDisplayIdx(prev => {
+      const next = prev + dir;
+      // Update real active index
+      setActiveCatIdx(((next - 1) % n + n) % n);
+      setOpenCatIdx(null);
+      return next;
+    });
+
+    setTimeout(() => {
+      // After slide animation completes, snap to real position if at clone
+      setDisplayIdx(prev => {
+        if (prev <= 0) {
+          // Animate to clone of last → snap to real last (n)
+          if (trackRef.current) {
+            trackRef.current.style.transition = 'none';
+          }
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (trackRef.current) trackRef.current.style.transition = '';
+            transitioning.current = false;
+          }));
+          return n;
+        }
+        if (prev >= n + 1) {
+          // Animate to clone of first → snap to real first (1)
+          if (trackRef.current) {
+            trackRef.current.style.transition = 'none';
+          }
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (trackRef.current) trackRef.current.style.transition = '';
+            transitioning.current = false;
+          }));
+          return 1;
+        }
+        transitioning.current = false;
+        return prev;
+      });
+    }, 680);
+  }, [n]);
+
+  const goToCat = useCallback((realIdx) => {
+    if (n === 0) return;
+    const wrapped = ((realIdx % n) + n) % n;
+    setActiveCatIdx(wrapped);
     setOpenCatIdx(null);
-    const el = document.getElementById(`cat-${categories[idx]._id}`);
-    el?.scrollIntoView({ behavior: 'smooth' });
-  }, [categories]);
+    setDisplayIdx(wrapped + 1); // displayIdx is 1-based
+  }, [n]);
 
   const openCatItems = (idx) => {
     setOpenCatIdx(idx);
-    const el = document.getElementById(`items-${categories[idx]._id}`);
-    setTimeout(() => el?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    setTimeout(() => {
+      document.getElementById('mz-items-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
   };
 
   const handleAdded = (name) => {
@@ -277,18 +312,39 @@ function MenuContent({ restaurantId, tableNo }) {
 
   const catItems = (cat) => items.filter(i => getId(i.categoryId) === cat._id);
 
+  // Extended categories for clone-based infinite loop:
+  // [clone_of_last, cat0, cat1, ..., cat(n-1), clone_of_first]
+  const extendedCats = n > 0
+    ? [categories[n - 1], ...categories, categories[0]]
+    : [];
+
   return (
     <div className="mz-root">
-      {/* ── Fixed Top Nav ─────────────────────────────────── */}
+      {/* ── Fixed Top Nav (2-row mezami style) ─────────────── */}
       <nav className="mz-nav">
-        <div className="mz-nav-logo">
-          {restaurant?.restaurantName || 'Restaurant'}
-          {restaurant?.description && <span>{restaurant.description.slice(0, 30)}</span>}
+        {/* Row 1: Logo + Cart */}
+        <div className="mz-nav-top">
+          <div
+            className="mz-nav-logo"
+            onClick={() => { goToCat(0); }}
+            style={{ cursor: 'pointer' }}
+          >
+            {restaurant?.restaurantName || 'Restaurant'}
+            <span>Oriental Fusion</span>
+          </div>
+          <Link
+            to={`/menu/${restaurantId}/cart${tableNo ? `?table=${tableNo}` : ''}`}
+            className="mz-nav-cart"
+          >
+            🛒 {totalItems > 0 ? `Cart (${totalItems})` : 'Cart'}
+          </Link>
         </div>
-        <div className="mz-nav-links">
-          <button className="mz-nav-link" onClick={() => { setOpenCatIdx(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            HOME
-          </button>
+        {/* Row 2: Category links */}
+        <div className="mz-nav-bottom">
+          <button
+            className="mz-nav-link"
+            onClick={() => { goToCat(0); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          >HOME</button>
           {categories.map((cat, idx) => (
             <button
               key={cat._id}
@@ -299,78 +355,143 @@ function MenuContent({ restaurantId, tableNo }) {
             </button>
           ))}
         </div>
-        <Link
-          to={`/menu/${restaurantId}/cart${tableNo ? `?table=${tableNo}` : ''}`}
-          className="mz-nav-cart"
-        >
-          🛒 {totalItems > 0 ? `Cart (${totalItems})` : 'Cart'}
-        </Link>
       </nav>
 
-      {/* ── Page ──────────────────────────────────────────── */}
+      {/* ── Page ───────────────────────────────────────────── */}
       <div className="mz-page">
 
-        {/* ── Deals strip (if any) ─────────────────────── */}
-        {deals.length > 0 && (
-          <div className="mz-deals-wrap">
-            <div className="mz-deals-heading">🔥 DEALS & COMBOS</div>
-            <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '0 32px', paddingBottom: 8, scrollbarWidth: 'none' }}>
-              {deals.filter(d => d.isAvailable).map(deal => (
-                <div key={deal._id} style={{
-                  minWidth: 220, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 12, padding: '18px 20px', flexShrink: 0,
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 800, fontSize: 14, color: '#fff' }}>{deal.name}</span>
-                    {deal.originalPrice && deal.dealPrice && (
-                      <span style={{ background: '#c9a84c', color: '#1b4332', fontFamily: 'Raleway,sans-serif', fontWeight: 800, fontSize: 10, padding: '2px 8px', borderRadius: 9999 }}>
-                        {Math.round((1 - deal.dealPrice / deal.originalPrice) * 100)}% OFF
-                      </span>
+        {/* ── Carousel wrapper: clips sides but allows name to overflow bottom ── */}
+        <div
+          id="mz-carousel"
+          style={{
+            /* define slide dimensions for perfect math centering */
+            '--slide-w': 'min(85vw, 592px)',
+            '--slide-gap': '80px',
+            /* clip-path clips left/right (side slides hidden) but allows vertical overflow */
+            clipPath: 'inset(0 0 -9999px 0)',
+            background: 'var(--mz-dark)',
+            paddingTop: '24px',
+            paddingBottom: '32px',
+          }}
+        >
+          <div
+            ref={trackRef}
+            style={{
+              display: 'flex',
+              gap: 'var(--slide-gap)',
+              /* Start track exactly at center of viewport */
+              marginLeft: '50%',
+              /* Pull back by half a slide, and then shift left by displayIdx slides */
+              transform: `translateX(calc( -1 * (var(--slide-w) / 2) - ${displayIdx} * (var(--slide-w) + var(--slide-gap)) ))`,
+              transition: 'transform 0.65s cubic-bezier(0.77,0,0.175,1)',
+              willChange: 'transform',
+            }}
+          >
+            {extendedCats.map((cat, extIdx) => {
+              const realIdx = extIdx === 0 ? n - 1 : extIdx === n + 1 ? 0 : extIdx - 1;
+              const isActive = realIdx === activeCatIdx && extIdx === displayIdx;
+              return (
+                <div
+                  key={`${extIdx}-${cat._id}`}
+                  style={{
+                    width: 'var(--slide-w)',
+                    flexShrink: 0,
+                    position: 'relative',
+                    cursor: !isActive ? 'pointer' : 'default',
+                  }}
+                  onClick={() => !isActive && goToCat(realIdx)}
+                >
+                  {/* Mosaic box — fixed 592:331 aspect ratio */}
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '592 / 331',
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    opacity: isActive ? 1 : 0.55,
+                    transition: 'opacity 0.4s ease',
+                    boxShadow: isActive ? '0 8px 40px rgba(0,0,0,0.4)' : 'none',
+                    position: 'relative',
+                  }}>
+                    <CategorySlide cat={cat} items={catItems(cat)} />
+                    {/* Bottom gradient fade on active (so name blends out of box) */}
+                    {isActive && (
+                      <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        height: '40%',
+                        background: 'linear-gradient(to top, rgba(10,30,20,0.85) 0%, transparent 100%)',
+                        borderRadius: '0 0 14px 14px',
+                        pointerEvents: 'none',
+                      }} />
                     )}
                   </div>
-                  <div style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 10, lineHeight: 1.4 }}>
-                    {deal.items?.map(i => i.name).join(' + ')}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 800, fontSize: 16, color: '#95bf98' }}>Rs {deal.dealPrice?.toLocaleString()}</span>
-                    {deal.originalPrice && <span style={{ fontFamily: 'Raleway,sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'line-through' }}>Rs {deal.originalPrice?.toLocaleString()}</span>}
-                  </div>
+
+                  {/* Category name: straddles box bottom using negative margin */}
+                  {isActive && (
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                      zIndex: 10,
+                      position: 'relative',
+                      marginTop: '-2rem', /* pulls it up to straddle the bottom edge */
+                    }}>
+                      <h1 style={{
+                        margin: 0, lineHeight: 1,
+                        fontFamily: "'Raleway', sans-serif",
+                        fontWeight: 900,
+                        fontSize: 'clamp(32px, 5vw, 60px)',
+                        color: '#fff',
+                        letterSpacing: '0.06em',
+                        textShadow: '0 2px 18px rgba(0,0,0,0.8)',
+                      }}>{cat.name.toUpperCase()}</h1>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); goToCat(realIdx); openCatItems(realIdx); }}
+                        style={{
+                          padding: '7px 26px',
+                          background: 'rgba(255,255,255,0.12)',
+                          border: '1px solid rgba(255,255,255,0.35)',
+                          borderRadius: 9999, color: '#fff',
+                          fontFamily: "'Raleway', sans-serif",
+                          fontSize: 10, fontWeight: 800, letterSpacing: '0.15em',
+                          cursor: 'pointer', backdropFilter: 'blur(8px)',
+                        }}
+                      >VIEW MENU ↓</button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Carousel footer: PREV · dots · NEXT ──────────── */}
+        <div style={{
+          height: 56, background: 'var(--mz-dark)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 32px',
+          /* push down past straddling name */
+          marginTop: 'calc(clamp(24px, 4vw, 48px) * 0.5)',
+        }}>
+          <button className="mz-arrow-btn" onClick={() => advance(-1)}>PREV</button>
+          <div className="mz-dots">
+            {categories.map((_, i) => (
+              <span key={i} className={`mz-dot ${i === activeCatIdx ? 'active' : ''}`} onClick={() => goToCat(i)} />
+            ))}
+          </div>
+          <button className="mz-arrow-btn" onClick={() => advance(1)}>NEXT</button>
+        </div>
+
+        {/* ── Items panel ──────────────────────────────────── */}
+        {openCatIdx !== null && categories[openCatIdx] && (
+          <div id="mz-items-panel">
+            <ItemsPanel
+              cat={categories[openCatIdx]}
+              items={catItems(categories[openCatIdx])}
+              nextCat={categories[openCatIdx + 1] || null}
+              onNextCat={() => goToCat(openCatIdx + 1)}
+              onItemSelect={setSelItem}
+            />
           </div>
         )}
 
-        {/* ── Category Sections ─────────────────────────── */}
-        {categories.map((cat, idx) => (
-          <section key={cat._id} className="mz-cat-section" ref={el => sectionRefs.current[idx] = el}>
-            {/* Full-screen mosaic slide */}
-            <CategorySlide
-              cat={cat}
-              items={catItems(cat)}
-              catIdx={idx}
-              totalCats={categories.length}
-              activeCatIdx={activeCatIdx}
-              onGoTo={goToCat}
-              onViewMenu={() => { setActiveCatIdx(idx); openCatItems(idx); }}
-            />
-
-            {/* Items panel — visible when this category is open */}
-            {openCatIdx === idx && (
-              <div id={`items-${cat._id}`}>
-                <ItemsPanel
-                  cat={cat}
-                  items={catItems(cat)}
-                  nextCat={categories[idx + 1] || null}
-                  onNextCat={() => goToCat(idx + 1)}
-                  onItemSelect={setSelItem}
-                />
-              </div>
-            )}
-          </section>
-        ))}
-
-        {/* Empty state */}
         {categories.length === 0 && (
           <div className="mz-loading" style={{ height: '80vh' }}>
             <span style={{ fontSize: 48 }}>🍽️</span>
@@ -379,7 +500,7 @@ function MenuContent({ restaurantId, tableNo }) {
         )}
       </div>
 
-      {/* ── Item Detail Modal ──────────────────────────── */}
+      {/* ── Item Detail Modal ────────────────────────────── */}
       {selItem && (
         <ItemModal
           item={selItem}
@@ -388,7 +509,7 @@ function MenuContent({ restaurantId, tableNo }) {
         />
       )}
 
-      {/* ── Toast ─────────────────────────────────────── */}
+      {/* ── Toast ────────────────────────────────────────── */}
       {toast && <div className="mz-toast">✓ {toast}</div>}
     </div>
   );
