@@ -22,6 +22,7 @@ export default function AdminSettings() {
     if (restaurant) {
       setForm({
         restaurantName: restaurant.restaurantName || '',
+        slug:           restaurant.slug || '',
         description:    restaurant.description || '',
         phone:          restaurant.contactInfo?.phone || '',
         email:          restaurant.contactInfo?.email || '',
@@ -42,6 +43,7 @@ export default function AdminSettings() {
     try {
       await tenantApi.updateRestaurant(restaurantId, {
         restaurantName: form.restaurantName,
+        slug:           form.slug,
         description:    form.description,
         contactInfo: { phone: form.phone, email: form.email },
         address: { city: form.city, country: form.country },
@@ -99,6 +101,22 @@ export default function AdminSettings() {
             <div className="form-group" style={{ gridColumn: '1/-1' }}>
               <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>RESTAURANT NAME</label>
               <input className="form-input" value={form.restaurantName || ''} onChange={e => set('restaurantName', e.target.value)} style={{ background: 'rgba(255,255,255,0.02)' }} />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1/-1' }}>
+              <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>RESTAURANT URL SLUG</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', padding: '0 var(--space-3)' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>localhost:5173/r/</span>
+                <input
+                  className="form-input"
+                  value={form.slug || ''}
+                  onChange={e => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''))}
+                  placeholder="my-restaurant"
+                  style={{ background: 'transparent', border: 'none', flex: 1, padding: 'var(--space-2) 0' }}
+                />
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 'var(--space-2)', fontWeight: 500 }}>
+                💡 Share this URL with customers: <span style={{ color: 'var(--neon-cyan)', fontWeight: 700 }}>localhost:5173/r/{form.slug || 'your-slug'}</span>
+              </p>
             </div>
             <div className="form-group" style={{ gridColumn: '1/-1' }}>
               <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>DESCRIPTION</label>

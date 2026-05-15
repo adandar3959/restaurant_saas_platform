@@ -35,6 +35,13 @@ exports.getTenantBySlug = async (slug) => {
 
 exports.updateTenant = async (id, data) => {
   if (data.restaurantName && !data.slug) data.slug = slugify(data.restaurantName);
+  
+  // If slug is being changed, check for uniqueness
+  if (data.slug) {
+    const existing = await Tenant.findOne({ slug: data.slug, _id: { $ne: id } });
+    if (existing) throw Object.assign(new Error('Slug already taken'), { statusCode: 400 });
+  }
+  
   const tenant = await Tenant.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;
