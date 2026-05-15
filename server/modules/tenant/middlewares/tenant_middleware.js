@@ -10,7 +10,9 @@ exports.validateCreateTenant = [
 
 exports.validateUpdateTenant = [
   body('restaurantName').optional().trim().notEmpty().withMessage('Restaurant name cannot be empty'),
-  body('contactInfo.email').optional().isEmail().withMessage('Valid email required'),
+  body('contactInfo.email')
+    .optional({ checkFalsy: true })  // treats empty string as "not provided"
+    .isEmail().withMessage('Valid email required'),
   body('settings.taxRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Tax rate must be 0-100'),
   validate,
 ];

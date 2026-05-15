@@ -41,15 +41,29 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await tenantApi.updateRestaurant(restaurantId, {
+      const payload = {
         restaurantName: form.restaurantName,
         slug:           form.slug,
         description:    form.description,
-        contactInfo: { phone: form.phone, email: form.email },
-        address: { city: form.city, country: form.country },
-        settings: { currency: form.currency, taxRate: parseFloat(form.taxRate), openingHours: form.hours },
+        contactInfo: {
+          ...(form.phone && { phone: form.phone }),
+          ...(form.email && { email: form.email }),
+        },
+        settings: {
+          currency:      form.currency,
+          taxRate:       parseFloat(form.taxRate) || 0,
+          openingHours:  form.hours,
+        },
         branding: { primaryColor: form.primaryColor },
-      });
+      };
+      // Only include address fields if they have values
+      if (form.city || form.country) {
+        payload.address = {
+          ...(form.city    && { city: form.city }),
+          ...(form.country && { country: form.country }),
+        };
+      }
+      await tenantApi.updateRestaurant(restaurantId, payload);
       showToast('success', 'Settings saved successfully');
     } catch (e) {
       showToast('error', e?.response?.data?.message || 'Failed to save settings');

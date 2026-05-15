@@ -57,7 +57,7 @@ const tenantSchema = new mongoose.Schema(
   {
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     restaurantName: { type: String, required: true, trim: true },
-    slug: { type: String, unique: true, lowercase: true, trim: true },
+    slug: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     description: { type: String, maxlength: 500 },
 
     contactInfo: {
@@ -106,7 +106,7 @@ const tenantSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-tenantSchema.index({ 'address.coordinates': '2dsphere' });
+tenantSchema.index({ 'address.coordinates': '2dsphere', sparse: true });
 tenantSchema.index({ ownerId: 1 });
 
 module.exports = mongoose.model('Tenant', tenantSchema);

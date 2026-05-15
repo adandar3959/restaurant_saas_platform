@@ -41,8 +41,25 @@ exports.updateTenant = async (id, data) => {
     const existing = await Tenant.findOne({ slug: data.slug, _id: { $ne: id } });
     if (existing) throw Object.assign(new Error('Slug already taken'), { statusCode: 400 });
   }
-  
-  const tenant = await Tenant.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
+
+  // Build a flat $set object to avoid touching geo coordinates entirely
+  const $set = {};
+  if (data.restaurantName)        $set.restaurantName          = data.restaurantName;
+  if (data.slug)                  $set.slug                    = data.slug;
+  if (data.description !== undefined) $set.description         = data.description;
+  if (data.contactInfo?.phone)    $set['contactInfo.phone']    = data.contactInfo.phone;
+  if (data.contactInfo?.email)    $set['contactInfo.email']    = data.contactInfo.email;
+  if (data.address?.city)         $set['address.city']         = data.address.city;
+  if (data.address?.country)      $set['address.country']      = data.address.country;
+  if (data.settings?.currency)    $set['settings.currency']    = data.settings.currency;
+  if (data.settings?.taxRate !== undefined) $set['settings.taxRate'] = data.settings.taxRate;
+  if (data.branding?.primaryColor) $set['branding.primaryColor'] = data.branding.primaryColor;
+
+  const tenant = await Tenant.findByIdAndUpdate(
+    id,
+    { $set },
+    { returnDocument: 'after', runValidators: false }
+  );
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;
 };
