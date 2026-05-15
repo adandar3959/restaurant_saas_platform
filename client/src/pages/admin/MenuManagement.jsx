@@ -21,6 +21,8 @@ export default function MenuManagement() {
   const [form,       setForm]       = useState({});
   // deal items builder
   const [dealItems,  setDealItems]  = useState([{ name: '', quantity: 1 }]);
+  // sizes builder for menu items
+  const [sizeRows,   setSizeRows]   = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -42,7 +44,18 @@ export default function MenuManagement() {
   const openModal = (type, data = {}) => {
     setForm(data);
     if (type === 'deal') {
-      setDealItems(data.items?.length ? data.items : [{ name: '', quantity: 1 }]);
+      const existing = data.items?.length
+        ? data.items.map(it => ({
+            name:       it.name || '',
+            quantity:   it.quantity || 1,
+            menuItemId: it.menuItemId ? String(it.menuItemId?._id ?? it.menuItemId) : '',
+            sizeName:   it.sizeName || '',
+          }))
+        : [{ name: '', quantity: 1, menuItemId: '', sizeName: '' }];
+      setDealItems(existing);
+    }
+    if (type === 'item') {
+      setSizeRows(data.sizes?.length ? data.sizes : []);
     }
     setModal({ type, data });
   };
@@ -58,8 +71,10 @@ export default function MenuManagement() {
         if (form._id) await menuApi.updateDeal(restaurantId, form._id, payload);
         else          await menuApi.createDeal(restaurantId, payload);
       } else {
-        if (form._id) await menuApi.updateItem(restaurantId, form._id, form);
-        else          await menuApi.createItem(restaurantId, form);
+        // item — attach cleaned sizes
+        const payload = { ...form, sizes: sizeRows.filter(s => s.name?.trim() && s.price >= 0) };
+        if (form._id) await menuApi.updateItem(restaurantId, form._id, payload);
+        else          await menuApi.createItem(restaurantId, payload);
       }
       setModal(null);
       load();
@@ -85,9 +100,13 @@ export default function MenuManagement() {
     try { await menuApi.toggleDeal(restaurantId, id); load(); } catch {}
   };
 
-  const addDealItem   = () => setDealItems(p => [...p, { name: '', quantity: 1 }]);
-  const removeDealItem = (i) => setDealItems(p => p.filter((_, idx) => idx !== i));
-  const updateDealItem = (i, field, val) => setDealItems(p => p.map((it, idx) => idx === i ? { ...it, [field]: val } : it));
+  const addDealItem    = () => setDealItems(p => [...p, { name: '', quantity: 1, menuItemId: '', sizeName: '' }]);
+  const removeDealItem  = (i) => setDealItems(p => p.filter((_, idx) => idx !== i));
+  const updateDealItem  = (i, field, val) => setDealItems(p => p.map((it, idx) => idx === i ? { ...it, [field]: val } : it));
+
+  const addSizeRow    = () => setSizeRows(p => [...p, { name: '', price: '' }]);
+  const removeSizeRow  = (i) => setSizeRows(p => p.filter((_, idx) => idx !== i));
+  const updateSizeRow  = (i, field, val) => setSizeRows(p => p.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
 
   const filteredItems = items.filter(i => {
     const matchCat = selCat === 'all' || getId(i.categoryId) === selCat;
@@ -336,30 +355,126 @@ export default function MenuManagement() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">What's Included *</label>
-                    {dealItems.map((item, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                        <input
-                          className="form-input"
-                          style={{ flex: 1 }}
-                          placeholder={`Item ${i + 1} name, e.g. Zinger Burger`}
-                          value={item.name}
-                          onChange={e => updateDealItem(i, 'name', e.target.value)}
-                        />
-                        <input
-                          className="form-input"
-                          type="number" min="1"
-                          style={{ width: 64 }}
-                          value={item.quantity}
-                          onChange={e => updateDealItem(i, 'quantity', parseInt(e.target.value) || 1)}
-                          title="Quantity"
-                        />
-                        <button
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', flexShrink: 0 }}
-                          onClick={() => removeDealItem(i)}
-                          disabled={dealItems.length === 1}
-                        ><Trash2 size={15} /></button>
-                      </div>
-                    ))}
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, marginTop: -4 }}>
+                      Select items from your menu. If an item has sizes, pick the size too.
+                    </p>
+                    {dealItems.map((dealItem, i) => {
+                      // Find the full menu item object to check if it has sizes
+                      const menuItem = items.find(m => m._id === dealItem.menuItemId);
+                      const hasSizes = menuItem?.sizes?.length > 0;
+
+                      return (
+                        <div key={i} style={{ marginBottom: 10 }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            {/* Item select */}
+                            <select
+                              className="form-select"
+                              style={{ flex: 1 }}
+                              value={dealItem.menuItemId || ''}
+                              onChange={e => {
+                                const selected = items.find(m => m._id === e.target.value);
+                                if (selected) {
+                                  // If item has sizes, don't set name yet — wait for size selection
+                                  const baseName = selected.sizes?.length > 0 ? '' : selected.name;
+                                  updateDealItem(i, 'menuItemId', selected._id);
+                                  updateDealItem(i, 'name', baseName);
+                                  updateDealItem(i, 'sizeName', ''); // reset size
+                                } else {
+                                  updateDealItem(i, 'menuItemId', '');
+                                  updateDealItem(i, 'name', '');
+                                  updateDealItem(i, 'sizeName', '');
+                                }
+                              }}
+                            >
+                              <option value="">— Select a menu item —</option>
+                              {categories.map(cat => {
+                                const catItems = items.filter(m => getId(m.categoryId) === cat._id);
+                                if (catItems.length === 0) return null;
+                                return (
+                                  <optgroup key={cat._id} label={cat.name}>
+                                    {catItems.map(m => (
+                                      <option key={m._id} value={m._id}>
+                                        {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — Rs ${m.price?.toLocaleString()}`}
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                );
+                              })}
+                              {items.filter(m => !categories.some(c => c._id === getId(m.categoryId))).length > 0 && (
+                                <optgroup label="Other">
+                                  {items.filter(m => !categories.some(c => c._id === getId(m.categoryId))).map(m => (
+                                    <option key={m._id} value={m._id}>
+                                      {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — Rs ${m.price?.toLocaleString()}`}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </select>
+
+                            {/* Quantity */}
+                            <input
+                              className="form-input"
+                              type="number" min="1"
+                              style={{ width: 68, flexShrink: 0 }}
+                              value={dealItem.quantity}
+                              onChange={e => updateDealItem(i, 'quantity', parseInt(e.target.value) || 1)}
+                              title="Quantity"
+                            />
+                            <button
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', flexShrink: 0 }}
+                              onClick={() => removeDealItem(i)}
+                              disabled={dealItems.length === 1}
+                            ><Trash2 size={15} /></button>
+                          </div>
+
+
+                          {/* Size pill selector — appears only when selected item has sizes */}
+                          {hasSizes && (
+                            <div style={{ marginTop: 8, paddingLeft: 4 }}>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 6 }}>
+                                Pick size for <strong>{menuItem.name}</strong>:
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {menuItem.sizes.map(s => {
+                                  const selected = dealItem.sizeName === s.name;
+                                  return (
+                                    <button
+                                      key={s.name}
+                                      type="button"
+                                      onClick={() => {
+                                        updateDealItem(i, 'sizeName', s.name);
+                                        updateDealItem(i, 'name', `${menuItem.name} (${s.name})`);
+                                      }}
+                                      style={{
+                                        padding: '6px 14px',
+                                        border: `2px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                                        borderRadius: 9999,
+                                        background: selected ? 'var(--primary)' : 'var(--bg-card)',
+                                        color: selected ? '#fff' : 'var(--text-secondary)',
+                                        fontWeight: 700, fontSize: 13,
+                                        cursor: 'pointer', fontFamily: 'inherit',
+                                        transition: 'all 0.18s ease',
+                                        display: 'flex', flexDirection: 'column',
+                                        alignItems: 'center', gap: 1,
+                                        lineHeight: 1.3,
+                                      }}
+                                    >
+                                      <span>{s.name}</span>
+                                      <span style={{ fontSize: 11, fontWeight: 600, opacity: selected ? 0.9 : 0.65 }}>
+                                        Rs {s.price?.toLocaleString()}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {!dealItem.sizeName && (
+                                <div style={{ fontSize: 11, color: 'var(--error)', marginTop: 4 }}>⚠ Please pick a size</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                     <button className="btn btn-outline btn-sm" onClick={addDealItem} style={{ marginTop: 4 }}>
                       <Plus size={14} /> Add Item
                     </button>
@@ -386,7 +501,7 @@ export default function MenuManagement() {
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                         <div className="form-group">
-                          <label className="form-label">Price *</label>
+                          <label className="form-label">Base Price (Rs) *</label>
                           <input className="form-input" type="number" min="0" step="0.01" value={form.price || ''} onChange={e => setForm(p => ({ ...p, price: parseFloat(e.target.value) }))} placeholder="0.00" />
                         </div>
                         <div className="form-group">
@@ -401,8 +516,78 @@ export default function MenuManagement() {
                         <label className="form-label">Preparation Time (min)</label>
                         <input className="form-input" type="number" min="1" value={form.preparationTime || ''} onChange={e => setForm(p => ({ ...p, preparationTime: parseInt(e.target.value) }))} placeholder="15" />
                       </div>
+
+                      {/* ── SIZES ── */}
+                      <div className="form-group">
+                        <label className="form-label">
+                          Size Options{' '}
+                          <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>(optional)</span>
+                        </label>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10, marginTop: -4 }}>
+                          Define sizes below. Customer picks one before adding to cart.
+                        </p>
+
+                        {/* Input rows to define sizes */}
+                        {sizeRows.map((s, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                            <input
+                              className="form-input"
+                              style={{ flex: 1 }}
+                              placeholder="Size name (e.g. Regular, Large)"
+                              value={s.name}
+                              onChange={e => updateSizeRow(i, 'name', e.target.value)}
+                            />
+                            <input
+                              className="form-input"
+                              type="number" min="0"
+                              style={{ width: 110, flexShrink: 0 }}
+                              placeholder="Rs Price"
+                              value={s.price}
+                              onChange={e => updateSizeRow(i, 'price', parseFloat(e.target.value) || 0)}
+                            />
+                            <button
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', flexShrink: 0 }}
+                              onClick={() => removeSizeRow(i)}
+                            ><Trash2 size={15} /></button>
+                          </div>
+                        ))}
+                        <button className="btn btn-outline btn-sm" onClick={addSizeRow} style={{ marginTop: 2 }}>
+                          <Plus size={14} /> Add Size
+                        </button>
+
+                        {/* Live pill preview */}
+                        {sizeRows.filter(s => s.name?.trim()).length > 0 && (
+                          <div style={{ marginTop: 14 }}>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8 }}>
+                              Preview (how customer sees it):
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              {sizeRows.filter(s => s.name?.trim()).map((s, idx) => (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    padding: '8px 18px',
+                                    border: `2px solid ${idx === 0 ? 'var(--primary)' : 'var(--border)'}`,
+                                    borderRadius: 9999,
+                                    background: idx === 0 ? 'var(--primary)' : 'var(--bg-card)',
+                                    color: idx === 0 ? '#fff' : 'var(--text-secondary)',
+                                    display: 'flex', flexDirection: 'column',
+                                    alignItems: 'center', gap: 2, lineHeight: 1.3,
+                                    opacity: idx === 0 ? 1 : 0.75,
+                                  }}
+                                >
+                                  <span style={{ fontWeight: 800, fontSize: 13 }}>{s.name}</span>
+                                  <span style={{ fontWeight: 700, fontSize: 12 }}>Rs {Number(s.price || 0).toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>First option is selected by default</div>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
+
                 </>
               )}
             </div>
