@@ -9,11 +9,11 @@ import '../../styles/customer.css';
 const getId = (v) => (v && typeof v === 'object' ? String(v._id ?? v) : String(v ?? ''));
 
 const FOOD_EMOJI = {
-  burger:'🍔',pizza:'🍕',pasta:'🍝',chicken:'🍗',rice:'🍚',sandwich:'🥪',
-  dessert:'🍰',cake:'🎂',coffee:'☕',drink:'🥤',wrap:'🌯',steak:'🥩',
-  wings:'🍗',curry:'🍛',biryani:'🍛',salad:'🥗',soup:'🍜',fish:'🐟',
-  sushi:'🍱',taco:'🌮',starter:'🥗',appetizer:'🥗',bakery:'🥐',
-  bread:'🍞',breakfast:'🍳',noodle:'🍜',
+  burger: '🍔', pizza: '🍕', pasta: '🍝', chicken: '🍗', rice: '🍚', sandwich: '🥪',
+  dessert: '🍰', cake: '🎂', coffee: '☕', drink: '🥤', wrap: '🌯', steak: '🥩',
+  wings: '🍗', curry: '🍛', biryani: '🍛', salad: '🥗', soup: '🍜', fish: '🐟',
+  sushi: '🍱', taco: '🌮', starter: '🥗', appetizer: '🥗', bakery: '🥐',
+  bread: '🍞', breakfast: '🍳', noodle: '🍜',
 };
 function getEmoji(name = '') {
   const n = name.toLowerCase();
@@ -21,20 +21,26 @@ function getEmoji(name = '') {
   return '🍽️';
 }
 
-const SCRIPT_WORDS = ['Culinary','Freshness','Artisan','Symphony','Heritage','Savor','Delight','Fusion','Crafted','Baked'];
+const SCRIPT_WORDS = ['Culinary', 'Freshness', 'Artisan', 'Symphony', 'Heritage', 'Savor', 'Delight', 'Fusion', 'Crafted', 'Baked'];
 
 // ── Item Detail Modal ─────────────────────────────────────────────
 function ItemModal({ item, onClose, onAdded }) {
   const hasSizes = item.sizes?.length > 0;
-  const [qty, setQty]         = useState(1);
+  const [qty, setQty] = useState(1);
   const [selSize, setSelSize] = useState(hasSizes ? item.sizes[0] : null);
-  const { addItem }           = useCart();
-  const price = hasSizes ? (selSize?.price ?? item.price) : item.price;
+  const { addItem } = useCart();
+  const isDeal = item.dealPrice !== undefined;
+  const price = hasSizes ? (selSize?.price ?? item.price) : (isDeal ? item.dealPrice : item.price);
 
   const handleAdd = () => {
-    const ci = hasSizes
-      ? { ...item, _id: `${item._id}_${selSize.name}`, name: `${item.name} (${selSize.name})`, price: selSize.price }
-      : item;
+    let ci;
+    if (hasSizes) {
+      ci = { ...item, _id: `${item._id}_${selSize.name}`, name: `${item.name} (${selSize.name})`, price: selSize.price };
+    } else if (isDeal) {
+      ci = { ...item, price: item.dealPrice };
+    } else {
+      ci = item;
+    }
     addItem(ci, qty);
     onAdded && onAdded(hasSizes ? `${item.name} (${selSize.name})` : item.name);
     onClose();
@@ -48,8 +54,17 @@ function ItemModal({ item, onClose, onAdded }) {
           <button className="mz-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="mz-modal-body">
-          {item.description && <p className="mz-modal-desc">{item.description}</p>}
-          <div className="mz-modal-price">Rs {price?.toLocaleString()}</div>
+          {item.description ? <p className="mz-modal-desc">{item.description}</p> : (isDeal && item.items ? <p className="mz-modal-desc">{item.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</p> : null)}
+          <div className="mz-modal-price">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Rs {price?.toLocaleString()}</span>
+              {isDeal && item.originalPrice && item.originalPrice > item.dealPrice && (
+                <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.6em' }}>
+                  Rs {item.originalPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
 
           {hasSizes && (
             <div style={{ marginBottom: 20 }}>
@@ -88,7 +103,7 @@ function ItemModal({ item, onClose, onAdded }) {
 function CategorySlide({ cat, items }) {
   const word1 = SCRIPT_WORDS[(cat._id?.charCodeAt(0) ?? 0) % SCRIPT_WORDS.length];
   const word2 = SCRIPT_WORDS[(cat._id?.charCodeAt(1) ?? 3) % SCRIPT_WORDS.length];
-  const imgs   = items.filter(i => i.imageUrl).map(i => i.imageUrl);
+  const imgs = items.filter(i => i.imageUrl).map(i => i.imageUrl);
 
   const imgTile = (idx, style = {}) => {
     const src = imgs[idx];
@@ -167,11 +182,26 @@ function ItemsPanel({ cat, items, nextCat, onNextCat, onItemSelect }) {
           >
             <div className="mz-item-info">
               <div className="mz-item-name">{item.name}</div>
-              {item.description && <div className="mz-item-desc">{item.description}</div>}
+              {item.description ? (
+                 <div className="mz-item-desc">{item.description}</div>
+              ) : item.dealPrice !== undefined && item.items ? (
+                 <div className="mz-item-desc">{item.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</div>
+              ) : null}
               <div className="mz-item-price">
-                {item.sizes?.length > 0
-                  ? `From Rs ${Math.min(...item.sizes.map(s => s.price)).toLocaleString()}`
-                  : `Rs ${item.price?.toLocaleString()}`}
+                {item.dealPrice !== undefined ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Rs {item.dealPrice.toLocaleString()}</span>
+                    {item.originalPrice && item.originalPrice > item.dealPrice && (
+                      <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.85em' }}>
+                        Rs {item.originalPrice.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                ) : item.sizes?.length > 0 ? (
+                  `From Rs ${Math.min(...item.sizes.map(s => s.price)).toLocaleString()}`
+                ) : (
+                  `Rs ${item.price?.toLocaleString()}`
+                )}
               </div>
             </div>
             {item.imageUrl && (
@@ -191,21 +221,21 @@ function ItemsPanel({ cat, items, nextCat, onNextCat, onItemSelect }) {
 
 // ── Main menu content ────────────────────────────────────────────
 function MenuContent({ restaurantId, tableNo }) {
-  const [restaurant,   setRestaurant]   = useState(null);
-  const [categories,   setCategories]   = useState([]);
-  const [items,        setItems]        = useState([]);
-  const [deals,        setDeals]        = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [restaurant, setRestaurant] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeCatIdx, setActiveCatIdx] = useState(0);
-  const [openCatIdx,   setOpenCatIdx]   = useState(null);
-  const [selItem,      setSelItem]      = useState(null);
-  const [toast,        setToast]        = useState('');
-  const [isCartOpen,   setIsCartOpen]   = useState(false);
-  const { totalItems }                  = useCart();
+  const [openCatIdx, setOpenCatIdx] = useState(null);
+  const [selItem, setSelItem] = useState(null);
+  const [toast, setToast] = useState('');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { totalItems } = useCart();
 
   // Clone-based infinite carousel state
-  const [displayIdx,   setDisplayIdx]   = useState(2); // 2..n+1 = real, 0..1=clones-left, n+2..n+3=clones-right
-  const trackRef    = useRef(null);
+  const [displayIdx, setDisplayIdx] = useState(2); // 2..n+1 = real, 0..1=clones-left, n+2..n+3=clones-right
+  const trackRef = useRef(null);
   const transitioning = useRef(false);
 
   // ── fetch all data ──────────────────────────────────────────
@@ -221,11 +251,22 @@ function MenuContent({ restaurantId, tableNo }) {
       const r = rRes.data?.data || rRes.data;
       setRestaurant(r);
       const rawItems = iRes.data?.data?.items ?? iRes.data?.data ?? iRes.data?.items ?? iRes.data ?? [];
-      const rawCats  = cRes.data?.data ?? cRes.data ?? [];
+      let rawCats = cRes.data?.data ?? cRes.data ?? [];
       const rawDeals = dRes.data?.data ?? dRes.data ?? [];
-      setCategories(Array.isArray(rawCats)  ? rawCats  : []);
-      setItems(     Array.isArray(rawItems) ? rawItems : []);
-      setDeals(     Array.isArray(rawDeals) ? rawDeals : []);
+
+      if (!Array.isArray(rawCats)) rawCats = [];
+      const finalDeals = Array.isArray(rawDeals) ? rawDeals : [];
+
+      if (finalDeals.length > 0) {
+        rawCats = [
+          { _id: 'mz-deals-pseudo', name: 'Deals & Combos', isDealCategory: true, image: 'https://images.unsplash.com/photo-1594212848116-b8dbbd5064e4?auto=format&fit=crop&w=800' },
+          ...rawCats
+        ];
+      }
+
+      setCategories(rawCats);
+      setItems(Array.isArray(rawItems) ? rawItems : []);
+      setDeals(finalDeals);
       if (r?.branding) applyTheme(r.branding);
     }).finally(() => setLoading(false));
   }, [restaurantId]);
@@ -233,7 +274,7 @@ function MenuContent({ restaurantId, tableNo }) {
   const applyTheme = (b) => {
     if (!b) return;
     const root = document.documentElement;
-    if (b.primaryColor)   root.style.setProperty('--mz-mid',  b.primaryColor);
+    if (b.primaryColor) root.style.setProperty('--mz-mid', b.primaryColor);
     if (b.secondaryColor) root.style.setProperty('--mz-cream', b.secondaryColor);
   };
 
@@ -314,7 +355,10 @@ function MenuContent({ restaurantId, tableNo }) {
     );
   }
 
-  const catItems = (cat) => items.filter(i => getId(i.categoryId) === cat._id);
+  const catItems = (cat) => {
+    if (cat.isDealCategory) return deals;
+    return items.filter(i => getId(i.categoryId) === cat._id);
+  };
 
   const getCat = (i) => categories[((i % n) + n) % n];
 
@@ -523,11 +567,11 @@ function MenuContent({ restaurantId, tableNo }) {
       {toast && <div className="mz-toast">✓ {toast}</div>}
 
       {/* ── Cart Sidebar ───────────────────────────────────── */}
-      <CartSidebar 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        restaurantId={restaurantId} 
-        tableNo={tableNo} 
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        restaurantId={restaurantId}
+        tableNo={tableNo}
       />
     </div>
   );
@@ -535,9 +579,9 @@ function MenuContent({ restaurantId, tableNo }) {
 
 // ── Exported page (wraps CartProvider) ───────────────────────────
 export default function MenuPage() {
-  const { restaurantId }  = useParams();
-  const [searchParams]    = useSearchParams();
-  const tableNo           = searchParams.get('table');
+  const { restaurantId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tableNo = searchParams.get('table');
   return (
     <CartProvider restaurantId={restaurantId}>
       <MenuContent restaurantId={restaurantId} tableNo={tableNo} />
