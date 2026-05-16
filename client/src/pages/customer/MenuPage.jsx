@@ -183,9 +183,9 @@ function ItemsPanel({ cat, items, nextCat, onNextCat, onItemSelect }) {
             <div className="mz-item-info">
               <div className="mz-item-name">{item.name}</div>
               {item.description ? (
-                 <div className="mz-item-desc">{item.description}</div>
+                <div className="mz-item-desc">{item.description}</div>
               ) : item.dealPrice !== undefined && item.items ? (
-                 <div className="mz-item-desc">{item.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</div>
+                <div className="mz-item-desc">{item.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</div>
               ) : null}
               <div className="mz-item-price">
                 {item.dealPrice !== undefined ? (
@@ -447,9 +447,15 @@ function MenuContent({ restaurantId, tableNo }) {
                     width: 'var(--slide-w)',
                     flexShrink: 0,
                     position: 'relative',
-                    cursor: !isActive ? 'pointer' : 'default',
+                    cursor: 'pointer',
                   }}
-                  onClick={() => !isActive && goToCat(realIdx)}
+                  onClick={() => {
+                    if (isActive) {
+                      openCatItems(realIdx);
+                    } else {
+                      goToCat(realIdx);
+                    }
+                  }}
                 >
                   {/* Mosaic box — fixed 592:331 aspect ratio */}
                   <div style={{
@@ -573,6 +579,19 @@ function MenuContent({ restaurantId, tableNo }) {
         restaurantId={restaurantId}
         tableNo={tableNo}
       />
+
+      {/* ── Floating Deals Button ───────────────────────────── */}
+      {deals.length > 0 && (
+        <button
+          className="mz-floating-deals"
+          onClick={() => {
+            goToCat(0);
+            openCatItems(0);
+          }}
+        >
+          <span>🎁</span> DEALS
+        </button>
+      )}
     </div>
   );
 }
