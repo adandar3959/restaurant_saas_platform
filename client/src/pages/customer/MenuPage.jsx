@@ -241,6 +241,9 @@ function MenuContent({ restaurantId, tableNo }) {
   const advance = useCallback((dir) => {
     if (transitioning.current || n === 0) return;
     transitioning.current = true;
+    if (trackRef.current) {
+      trackRef.current.style.transition = 'transform 0.65s cubic-bezier(0.77,0,0.175,1)';
+    }
 
     setDisplayIdx(prev => {
       const next = prev + dir;
@@ -279,6 +282,9 @@ function MenuContent({ restaurantId, tableNo }) {
 
   const goToCat = useCallback((realIdx) => {
     if (n === 0) return;
+    if (trackRef.current) {
+      trackRef.current.style.transition = 'transform 0.65s cubic-bezier(0.77,0,0.175,1)';
+    }
     const wrapped = ((realIdx % n) + n) % n;
     setActiveCatIdx(wrapped);
     setOpenCatIdx(null);
@@ -368,7 +374,7 @@ function MenuContent({ restaurantId, tableNo }) {
             clipPath: 'inset(0 0 -9999px 0)',
             background: 'var(--mz-dark)',
             paddingTop: '24px',
-            paddingBottom: '32px',
+            paddingBottom: '8px', /* Reduced padding */
           }}
         >
           <div
@@ -380,7 +386,6 @@ function MenuContent({ restaurantId, tableNo }) {
               marginLeft: '50%',
               /* Pull back by half a slide, and then shift left by displayIdx slides */
               transform: `translateX(calc( -1 * (var(--slide-w) / 2) - ${displayIdx} * (var(--slide-w) + var(--slide-gap)) ))`,
-              transition: 'transform 0.65s cubic-bezier(0.77,0,0.175,1)',
               willChange: 'transform',
             }}
           >
@@ -435,10 +440,11 @@ function MenuContent({ restaurantId, tableNo }) {
                         margin: 0, lineHeight: 1,
                         fontFamily: "'Raleway', sans-serif",
                         fontWeight: 900,
-                        fontSize: 'clamp(32px, 5vw, 60px)',
+                        fontSize: 'clamp(24px, 4.5vw, 50px)',
                         color: '#fff',
                         letterSpacing: '0.06em',
                         textShadow: '0 2px 18px rgba(0,0,0,0.8)',
+                        whiteSpace: 'nowrap',
                       }}>{cat.name.toUpperCase()}</h1>
                       <button
                         onClick={(e) => { e.stopPropagation(); goToCat(realIdx); openCatItems(realIdx); }}
@@ -465,8 +471,7 @@ function MenuContent({ restaurantId, tableNo }) {
           height: 56, background: 'var(--mz-dark)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 32px',
-          /* push down past straddling name */
-          marginTop: 'calc(clamp(24px, 4vw, 48px) * 0.5)',
+          marginTop: 0, /* Removed extra margin */
         }}>
           <button className="mz-arrow-btn" onClick={() => advance(-1)}>PREV</button>
           <div className="mz-dots">
