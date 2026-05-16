@@ -33,6 +33,9 @@ export const customerApi = {
 
   // Payment
   createCheckoutSession: (rid, data) => api.post(`/restaurants/${rid}/payment/create-checkout-session`, data),
+  
+  // Tables
+  getTables: (rid) => api.get(`/restaurants/${rid}/tables/public`),
 };
 
 export default api;

@@ -106,27 +106,30 @@ export default function OrderTrackingPage() {
               {/* Stepper */}
               {!isCancelled && (
                 <div className="c-stepper">
-                  {STEPS.filter(s => s.key !== 'OutForDelivery' || order.orderType === 'Delivery').map((step, i) => {
-                    const isDone   = i < currentStepIdx;
-                    const isActive = i === currentStepIdx;
-                    const isLast   = i === STEPS.length - 1;
-                    return (
-                      <div key={step.key} className="c-step-row">
-                        <div className="c-step-left">
-                          <div className={`c-step-dot${isDone?' done':isActive?' active':''}`}>
-                            {isDone ? '✓' : step.emoji}
+                  {(() => {
+                    const filteredSteps = STEPS.filter(s => s.key !== 'OutForDelivery' || order.orderType === 'Delivery');
+                    return filteredSteps.map((step, i) => {
+                      const isDone   = filteredSteps.findIndex(s => s.key === order.status) > i;
+                      const isActive = step.key === order.status;
+                      const isLast   = i === filteredSteps.length - 1;
+                      return (
+                        <div key={step.key} className="c-step-row">
+                          <div className="c-step-left">
+                            <div className={`c-step-dot${isDone?' done':isActive?' active':''}`}>
+                              {isDone ? '✓' : step.emoji}
+                            </div>
+                            {!isLast && <div className={`c-step-line${isDone?' done':''}`}/>}
                           </div>
-                          {!isLast && <div className={`c-step-line${isDone?' done':''}`}/>}
-                        </div>
-                        <div className="c-step-info">
-                          <div className="c-step-name" style={{fontWeight: isActive ? 900 : 700, color: isActive ? 'var(--c-primary-dark)' : undefined}}>
-                            {step.label}
+                          <div className="c-step-info">
+                            <div className="c-step-name" style={{fontWeight: isActive ? 900 : 700, color: isActive ? 'var(--c-primary-dark)' : undefined}}>
+                              {step.label}
+                            </div>
+                            {isActive && <div className="c-step-desc">{step.desc}</div>}
                           </div>
-                          {isActive && <div className="c-step-desc">{step.desc}</div>}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
 
@@ -156,8 +159,22 @@ export default function OrderTrackingPage() {
             <div className="c-track-detail-card">
               <div className="c-track-detail-title">Order Info</div>
               <div className="c-track-item-row"><span>Type</span><span style={{fontWeight:700}}>{order.orderType}</span></div>
-              {order.tableId && <div className="c-track-item-row"><span>Table</span><span style={{fontWeight:700}}>{order.tableId}</span></div>}
-              {order.deliveryAddress && <div className="c-track-item-row"><span>Address</span><span style={{fontWeight:700,maxWidth:200,textAlign:'right'}}>{order.deliveryAddress}</span></div>}
+              {order.tableId && (
+                <div className="c-track-item-row">
+                  <span>Table</span>
+                  <span style={{fontWeight:700}}>
+                    {typeof order.tableId === 'object' ? order.tableId.tableNumber : order.tableNumber || order.tableId}
+                  </span>
+                </div>
+              )}
+              {order.deliveryAddress && (
+                <div className="c-track-item-row">
+                  <span>Address</span>
+                  <span style={{fontWeight:700,maxWidth:200,textAlign:'right'}}>
+                    {typeof order.deliveryAddress === 'object' ? order.deliveryAddress.street : order.deliveryAddress}
+                  </span>
+                </div>
+              )}
               <div className="c-track-item-row">
                 <span>Last Updated</span>
                 <span style={{fontWeight:600,color:'var(--c-text-muted)',fontSize:12}}>{lastRefresh.toLocaleTimeString()}</span>

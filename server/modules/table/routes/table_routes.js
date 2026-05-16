@@ -4,6 +4,7 @@ const { protect, authorize } = require('../../../utils/auth.middleware');
 
 const staff = ['SuperAdmin', 'Admin', 'Manager'];
 
+router.get('/public', ctrl.getTables);
 router.get('/tables', protect, ctrl.getTables);
 router.post('/tables', protect, authorize(...staff), ctrl.createTable);
 router.get('/tables/:id', protect, ctrl.getTableById);

@@ -2510,6 +2510,23 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  background: var(--mz-off); /* Light contrast background */
+}
+
+/* Specific high-visibility scrollbar for cart body */
+.mz-cart-body::-webkit-scrollbar {
+  width: 10px;
+}
+.mz-cart-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+.mz-cart-body::-webkit-scrollbar-thumb {
+  background: var(--mz-sage);
+  border-radius: 10px;
+  border: 2px solid var(--mz-off);
+}
+.mz-cart-body::-webkit-scrollbar-thumb:hover {
+  background: var(--mz-mid);
 }
 
 .mz-cart-empty {
@@ -2605,7 +2622,8 @@
 .mz-cart-footer {
   padding: 24px;
   background: #fff;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 2px solid var(--mz-gold); /* Thicker indicator line */
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05); /* Shadow to show it's a separate section */
 }
 
 .mz-cart-summary-row {

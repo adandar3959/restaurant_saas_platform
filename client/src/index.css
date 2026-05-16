@@ -490,10 +490,10 @@ h1, h2, h3, h4, h5, h6 { line-height: 1.2; font-weight: 700; }
 .alert-warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #D97706; }
 .alert-info    { background: #EFF6FF; border: 1px solid #BFDBFE; color: #3B82F6; }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-surface-2); }
+::-webkit-scrollbar-thumb { background: var(--text-subtle); border-radius: 10px; border: 2px solid var(--bg-surface-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 @media (max-width: 1024px) {
   .grid-3 { grid-template-columns: repeat(2, 1fr); }

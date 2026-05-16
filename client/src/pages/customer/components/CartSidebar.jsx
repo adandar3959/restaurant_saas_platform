@@ -11,6 +11,9 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
   const { items, totalItems, totalPrice, updateQty, removeItem, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tables, setTables] = useState([]);
+  const [fetchingTables, setFetchingTables] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('Online');
 
   // Quick checkout logic directly in sidebar to skip the modal
   const [orderType, setOrderType] = useState(tableNo ? 'Dine-In' : 'Takeaway');
@@ -19,6 +22,25 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
   const [phone, setPhone]         = useState('');
   const [notes, setNotes]         = useState('');
   const [error, setError]         = useState('');
+
+  // Fetch tables on mount
+  useState(() => {
+    const fetchTables = async () => {
+      if (!restaurantId) return;
+      setFetchingTables(true);
+      try {
+        const res = await customerApi.getTables(restaurantId);
+        // Only show available tables
+        const all = res.data?.data || [];
+        setTables(all.filter(t => t.isActive));
+      } catch (err) {
+        console.error('Failed to load tables', err);
+      } finally {
+        setFetchingTables(false);
+      }
+    };
+    fetchTables();
+  }, [restaurantId]);
 
   const handlePlace = async () => {
     if (orderType === 'Dine-In' && !tableNum) return setError('Please enter your table number.');
@@ -30,18 +52,25 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
         orderType,
         items: items.map(i => ({ menuItemId: i._id.split('_')[0], quantity: i.qty, unitPrice: i.price, name: i.name })),
         totalAmount: totalPrice,
-        ...(orderType === 'Dine-In'  && { tableId: tableNum }),
+        ...(orderType === 'Dine-In' && tableNum && { tableId: tableNum }),
+        ...(orderType === 'Dine-In' && tableNum && { tableNumber: tables.find(t => t._id === tableNum)?.tableNumber }),
         ...(orderType === 'Delivery' && { deliveryAddress: { street: address } }),
         ...(phone && { customerPhone: phone }),
         ...(notes && { notes }),
       };
 
-      // 1. Place the order in the database (status will be Pending)
+      // 1. Place the order in the database
       const res = await customerApi.placeOrder(restaurantId, payload);
       const orderId = res.data?.data?._id || res.data?._id;
 
-      // 2. If it's a paid order type, redirect to Stripe
-      if (orderType === 'Takeaway' || orderType === 'Delivery') {
+      // 2. Determine redirect based on order type and payment method
+      // Online flow for Takeaway, Delivery, or Dine-In (if Online selected)
+      const needsPayment = 
+        orderType === 'Takeaway' || 
+        orderType === 'Delivery' || 
+        (orderType === 'Dine-In' && paymentMethod === 'Online');
+
+      if (needsPayment) {
         const payRes = await customerApi.createCheckoutSession(restaurantId, { orderId });
         const { url } = payRes.data?.data || payRes.data;
         if (url) {
@@ -112,8 +141,32 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
 
               {orderType === 'Dine-In' && (
                 <div style={{marginBottom:20}}>
-                  <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Table Number *</div>
-                  <input style={{width:'100%',padding:12,borderRadius:8,border:'1.5px solid rgba(0,0,0,0.1)',fontFamily:'Raleway',fontSize:14}} placeholder="e.g. 5" value={tableNum} onChange={e=>setTableNum(e.target.value)} />
+                  <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Select Table *</div>
+                  <select 
+                    style={{width:'100%',padding:12,borderRadius:8,border:'1.5px solid rgba(0,0,0,0.1)',fontFamily:'Raleway',fontSize:14,background:'#fff'}} 
+                    value={tableNum} 
+                    onChange={e=>setTableNum(e.target.value)}
+                  >
+                    <option value="">-- Choose a table --</option>
+                    {tables.map(t => (
+                      <option key={t._id} value={t._id}>Table {t.tableNumber} ({t.capacity} Seats)</option>
+                    ))}
+                  </select>
+                  {fetchingTables && <div style={{fontSize:10,color:'var(--mz-sage)',marginTop:4}}>Loading tables...</div>}
+                </div>
+              )}
+
+              {orderType === 'Dine-In' && (
+                <div style={{marginBottom:20}}>
+                  <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:12}}>Payment Method</div>
+                  <div style={{display:'flex',gap:8}}>
+                    {[{id:'Cash',n:'Cash at Counter',e:'💵'},{id:'Online',n:'Online Card',e:'💳'}].map(pm => (
+                      <button key={pm.id} onClick={() => setPaymentMethod(pm.id)} style={{flex:1,padding:'10px',borderRadius:8,border:`1.5px solid ${paymentMethod===pm.id?'var(--mz-dark)':'rgba(0,0,0,0.1)'}`,background:paymentMethod===pm.id?'var(--mz-dark)':'transparent',color:paymentMethod===pm.id?'#fff':'var(--mz-dark)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                        <span style={{fontSize:16}}>{pm.e}</span>
+                        <span style={{fontFamily:'Raleway',fontSize:11,fontWeight:700}}>{pm.n}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
