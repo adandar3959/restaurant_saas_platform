@@ -8,6 +8,7 @@ const fieldStaff = [...staff, 'Driver'];
 
 router.get('/my',    protect, authorize('Customer'),                                              ctrl.getMyOrders);
 router.get('/stats', protect, authorize('SuperAdmin', 'Admin', 'Manager'),                        ctrl.getOrderStats);
+router.get('/public/find/:id',                                                                    ctrl.publicFindOrder);
 router.post('/',     optionalAuth, validateCreateOrder,                                           ctrl.createOrder);
 router.get('/',      protect, authorize(...fieldStaff),                                           ctrl.getOrders);
 router.get('/:id',   protect, authorize(...fieldStaff),                                           ctrl.getOrderById);

@@ -1,5 +1,6 @@
 const Order = require('../models/order_model');
 const MenuItem = require('../../menu/models/menuItem_model');
+const Deal = require('../../menu/models/deal_model');
 const Tenant = require('../../tenant/models/tenant_model');
 const KitchenTicket = require('../../kitchen/models/kitchenTicket_model');
 
@@ -20,12 +21,31 @@ exports.createOrder = async (data, restaurantId) => {
   let subTotal = 0;
   const enrichedItems = await Promise.all(
     data.items.map(async (item) => {
-      const menuItem = await MenuItem.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
-      if (!menuItem) throw Object.assign(new Error(`Item ${item.menuItemId} not found or unavailable`), { statusCode: 400 });
+      // 1. Try finding in MenuItem first
+      let baseItem = await MenuItem.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
+      let price = baseItem?.price;
+
+      // 2. If not found, try finding in Deal
+      if (!baseItem) {
+        baseItem = await Deal.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
+        price = baseItem?.dealPrice;
+      }
+
+      if (!baseItem) {
+        throw Object.assign(new Error(`Item ${item.menuItemId} not found or unavailable`), { statusCode: 400 });
+      }
+
       const modifierTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + (m.extraPrice || 0), 0);
-      const itemTotal = (menuItem.price + modifierTotal) * item.quantity;
+      const itemTotal = (price + modifierTotal) * item.quantity;
       subTotal += itemTotal;
-      return { ...item, name: menuItem.name, image: menuItem.image, unitPrice: menuItem.price, itemTotal };
+
+      return {
+        ...item,
+        name: baseItem.name,
+        image: baseItem.image,
+        unitPrice: price,
+        itemTotal
+      };
     })
   );
 
@@ -204,4 +224,10 @@ exports.addTip = async (orderId, restaurantId, tipAmount) => {
     },
     { returnDocument: 'after' }
   );
+};
+
+exports.publicFindOrder = async (id) => {
+  const order = await Order.findById(id).select('restaurantId');
+  if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+  return order;
 };

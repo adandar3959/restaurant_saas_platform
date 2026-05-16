@@ -29,6 +29,7 @@ restaurantRouter.use('/tables', require('./modules/table/routes/table_routes'));
 restaurantRouter.use('/inventory', require('./modules/inventory/routes/inventory_routes'));
 restaurantRouter.use('/delivery', require('./modules/delivery/routes/delivery_routes'));
 restaurantRouter.use('/crm', require('./modules/crm/routes/crm_routes'));
+restaurantRouter.use('/payment', require('./modules/payment/routes/payment_routes'));
 
 app.use('/api/v1/restaurants/:restaurantId', restaurantRouter);
 

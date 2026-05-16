@@ -83,3 +83,8 @@ exports.addTip = asyncHandler(async (req, res) => {
   );
   sendSuccess(res, order, 'Tip added');
 });
+
+exports.publicFindOrder = asyncHandler(async (req, res) => {
+  const order = await orderService.publicFindOrder(req.params.id);
+  sendSuccess(res, order);
+});
