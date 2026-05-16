@@ -85,7 +85,7 @@ function ItemModal({ item, onClose, onAdded }) {
 
 // ── 3-Column Mosaic (pure mosaic, no overlay) ────────────────────
 function CategorySlide({ cat, items }) {
-  const word1 = SCRIPT_WORDS[cat._id?.charCodeAt(0) % SCRIPT_WORDS.length ?? 0];
+  const word1 = SCRIPT_WORDS[(cat._id?.charCodeAt(0) ?? 0) % SCRIPT_WORDS.length];
   const word2 = SCRIPT_WORDS[(cat._id?.charCodeAt(1) ?? 3) % SCRIPT_WORDS.length];
   const imgs   = items.filter(i => i.imageUrl).map(i => i.imageUrl);
 
@@ -202,7 +202,7 @@ function MenuContent({ restaurantId, tableNo }) {
   const { totalItems }                  = useCart();
 
   // Clone-based infinite carousel state
-  const [displayIdx,   setDisplayIdx]   = useState(1); // 1..n = real, 0=clone-last, n+1=clone-first
+  const [displayIdx,   setDisplayIdx]   = useState(2); // 2..n+1 = real, 0..1=clones-left, n+2..n+3=clones-right
   const trackRef    = useRef(null);
   const transitioning = useRef(false);
 
@@ -244,8 +244,8 @@ function MenuContent({ restaurantId, tableNo }) {
 
     setDisplayIdx(prev => {
       const next = prev + dir;
-      // Update real active index
-      setActiveCatIdx(((next - 1) % n + n) % n);
+      // Update real active index (real 0 is at displayIdx 2)
+      setActiveCatIdx(((next - 2) % n + n) % n);
       setOpenCatIdx(null);
       return next;
     });
@@ -253,27 +253,23 @@ function MenuContent({ restaurantId, tableNo }) {
     setTimeout(() => {
       // After slide animation completes, snap to real position if at clone
       setDisplayIdx(prev => {
-        if (prev <= 0) {
-          // Animate to clone of last → snap to real last (n)
-          if (trackRef.current) {
-            trackRef.current.style.transition = 'none';
-          }
+        if (prev <= 1) {
+          // Animate to clone on left → snap to real equivalent
+          if (trackRef.current) trackRef.current.style.transition = 'none';
           requestAnimationFrame(() => requestAnimationFrame(() => {
             if (trackRef.current) trackRef.current.style.transition = '';
             transitioning.current = false;
           }));
-          return n;
+          return prev + n;
         }
-        if (prev >= n + 1) {
-          // Animate to clone of first → snap to real first (1)
-          if (trackRef.current) {
-            trackRef.current.style.transition = 'none';
-          }
+        if (prev >= n + 2) {
+          // Animate to clone on right → snap to real equivalent
+          if (trackRef.current) trackRef.current.style.transition = 'none';
           requestAnimationFrame(() => requestAnimationFrame(() => {
             if (trackRef.current) trackRef.current.style.transition = '';
             transitioning.current = false;
           }));
-          return 1;
+          return prev - n;
         }
         transitioning.current = false;
         return prev;
@@ -286,7 +282,7 @@ function MenuContent({ restaurantId, tableNo }) {
     const wrapped = ((realIdx % n) + n) % n;
     setActiveCatIdx(wrapped);
     setOpenCatIdx(null);
-    setDisplayIdx(wrapped + 1); // displayIdx is 1-based
+    setDisplayIdx(wrapped + 2); // real 0 is at displayIdx 2
   }, [n]);
 
   const openCatItems = (idx) => {
@@ -312,10 +308,11 @@ function MenuContent({ restaurantId, tableNo }) {
 
   const catItems = (cat) => items.filter(i => getId(i.categoryId) === cat._id);
 
-  // Extended categories for clone-based infinite loop:
-  // [clone_of_last, cat0, cat1, ..., cat(n-1), clone_of_first]
+  const getCat = (i) => categories[((i % n) + n) % n];
+
+  // Extended categories for clone-based infinite loop (2 clones on each side):
   const extendedCats = n > 0
-    ? [categories[n - 1], ...categories, categories[0]]
+    ? [getCat(n - 2), getCat(n - 1), ...categories, getCat(0), getCat(1)]
     : [];
 
   return (
@@ -388,7 +385,8 @@ function MenuContent({ restaurantId, tableNo }) {
             }}
           >
             {extendedCats.map((cat, extIdx) => {
-              const realIdx = extIdx === 0 ? n - 1 : extIdx === n + 1 ? 0 : extIdx - 1;
+              // Real index maps from extIdx (where extIdx 2 is real 0)
+              const realIdx = ((extIdx - 2) % n + n) % n;
               const isActive = realIdx === activeCatIdx && extIdx === displayIdx;
               return (
                 <div
