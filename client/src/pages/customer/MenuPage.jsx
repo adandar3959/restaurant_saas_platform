@@ -488,8 +488,12 @@ function MenuContent({ restaurantId, tableNo }) {
             <ItemsPanel
               cat={categories[openCatIdx]}
               items={catItems(categories[openCatIdx])}
-              nextCat={categories[openCatIdx + 1] || null}
-              onNextCat={() => goToCat(openCatIdx + 1)}
+              nextCat={categories[(openCatIdx + 1) % n]}
+              onNextCat={() => {
+                const nextIdx = (openCatIdx + 1) % n;
+                goToCat(nextIdx);
+                openCatItems(nextIdx);
+              }}
               onItemSelect={setSelItem}
             />
           </div>
