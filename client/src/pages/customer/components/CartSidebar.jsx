@@ -35,8 +35,22 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
         ...(phone && { customerPhone: phone }),
         ...(notes && { notes }),
       };
+
+      // 1. Place the order in the database (status will be Pending)
       const res = await customerApi.placeOrder(restaurantId, payload);
       const orderId = res.data?.data?._id || res.data?._id;
+
+      // 2. If it's a paid order type, redirect to Stripe
+      if (orderType === 'Takeaway' || orderType === 'Delivery') {
+        const payRes = await customerApi.createCheckoutSession(restaurantId, { orderId });
+        const { url } = payRes.data?.data || payRes.data;
+        if (url) {
+          window.location.href = url; // Redirect to Stripe
+          return;
+        }
+      }
+
+      // 3. For Dine-In (or if no payment URL), go to success page
       clearCart();
       navigate(`/menu/${restaurantId}/order-confirmed/${orderId}`);
     } catch (err) {

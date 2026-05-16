@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Component } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
+import { Component, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 
 import LandingPage        from './pages/public/LandingPage';
 import PricingPage        from './pages/public/PricingPage';
@@ -14,6 +15,7 @@ import MenuPage              from './pages/customer/MenuPage';
 import CartPage              from './pages/customer/CartPage';
 import OrderConfirmedPage   from './pages/customer/OrderConfirmedPage';
 import OrderTrackingPage    from './pages/customer/OrderTrackingPage';
+import OrderSuccess         from './pages/customer/OrderSuccess';
 import CustomerLoginPage    from './pages/customer/CustomerLoginPage';
 import CustomerAccountPage  from './pages/customer/CustomerAccountPage';
 import RestaurantSlugPage   from './pages/customer/RestaurantSlugPage';
@@ -97,6 +99,8 @@ function AppRoutes() {
       <Route path="/menu/:restaurantId/cart"                     element={<CartPage />} />
       <Route path="/menu/:restaurantId/order-confirmed/:orderId" element={<OrderConfirmedPage />} />
       <Route path="/menu/:restaurantId/track/:orderId"           element={<OrderTrackingPage />} />
+      <Route path="/order-success"                                element={<OrderSuccess />} />
+      <Route path="/order-confirmed-redirect"                    element={<OrderConfirmedRedirect />} />
 
 
       {/* Customer auth & account */}
@@ -148,11 +152,41 @@ function PlaceholderDash({ role }) {
   );
 }
 
+function OrderConfirmedRedirect() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const orderId = searchParams.get('order_id');
+
+  useEffect(() => {
+    async function findOrder() {
+      if (orderId) {
+        try {
+          // We need to find the restaurantId to redirect to the correct themed confirmation page
+          const res = await fetch(`http://localhost:5000/api/v1/restaurants/any/orders/public/find/${orderId}`);
+          const data = await res.json();
+          if (data.success && data.data.restaurantId) {
+            navigate(`/menu/${data.data.restaurantId}/order-confirmed/${orderId}`);
+          } else {
+            navigate('/');
+          }
+        } catch (e) {
+          navigate('/');
+        }
+      }
+    }
+    findOrder();
+  }, [orderId, navigate]);
+
+  return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1B4332' }}><div className="spinner"></div></div>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

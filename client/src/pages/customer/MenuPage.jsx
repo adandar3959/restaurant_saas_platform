@@ -602,8 +602,6 @@ export default function MenuPage() {
   const [searchParams] = useSearchParams();
   const tableNo = searchParams.get('table');
   return (
-    <CartProvider restaurantId={restaurantId}>
-      <MenuContent restaurantId={restaurantId} tableNo={tableNo} />
-    </CartProvider>
+    <MenuContent restaurantId={restaurantId} tableNo={tableNo} />
   );
 }
