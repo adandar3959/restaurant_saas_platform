@@ -30,6 +30,9 @@ export const customerApi = {
 
   // Customer account (requires auth)
   getMyOrders: (rid) => api.get(`/restaurants/${rid}/orders/my`),
+
+  // Payment
+  createCheckoutSession: (rid, data) => api.post(`/restaurants/${rid}/payment/create-checkout-session`, data),
 };
 
 export default api;
