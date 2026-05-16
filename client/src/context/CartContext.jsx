@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
 
 const CartContext = createContext(null);
 
@@ -62,19 +62,21 @@ function cartReducer(state, action) {
 
 export function CartProvider({ restaurantId, children }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [loadedId, setLoadedId] = useState(null);
 
   // Load from localStorage on mount / restaurantId change
   useEffect(() => {
     if (!restaurantId) return;
     const saved = loadCart(restaurantId);
     dispatch({ type: 'INIT', payload: saved });
+    setLoadedId(restaurantId);
   }, [restaurantId]);
 
-  // Persist to localStorage whenever items change
+  // Persist to localStorage whenever items change, but only AFTER initial load
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId || loadedId !== restaurantId) return;
     saveCart(restaurantId, state.items);
-  }, [state.items, restaurantId]);
+  }, [state.items, restaurantId, loadedId]);
 
   const addItem = useCallback((item, qty = 1) => {
     dispatch({ type: 'ADD', payload: item, qty });

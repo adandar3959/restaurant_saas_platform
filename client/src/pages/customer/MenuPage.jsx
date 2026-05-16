@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { customerApi } from '../../api/customer.api';
 import { CartProvider, useCart } from '../../context/CartContext';
+import CartSidebar from './components/CartSidebar';
 import '../../styles/customer.css';
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -199,6 +200,7 @@ function MenuContent({ restaurantId, tableNo }) {
   const [openCatIdx,   setOpenCatIdx]   = useState(null);
   const [selItem,      setSelItem]      = useState(null);
   const [toast,        setToast]        = useState('');
+  const [isCartOpen,   setIsCartOpen]   = useState(false);
   const { totalItems }                  = useCart();
 
   // Clone-based infinite carousel state
@@ -335,12 +337,13 @@ function MenuContent({ restaurantId, tableNo }) {
             {restaurant?.restaurantName || 'Restaurant'}
             <span>Oriental Fusion</span>
           </div>
-          <Link
-            to={`/menu/${restaurantId}/cart${tableNo ? `?table=${tableNo}` : ''}`}
+          <div
             className="mz-nav-cart"
+            onClick={() => setIsCartOpen(true)}
+            style={{ cursor: 'pointer' }}
           >
             🛒 {totalItems > 0 ? `Cart (${totalItems})` : 'Cart'}
-          </Link>
+          </div>
         </div>
         {/* Row 2: Category links */}
         <div className="mz-nav-bottom">
@@ -518,6 +521,14 @@ function MenuContent({ restaurantId, tableNo }) {
 
       {/* ── Toast ────────────────────────────────────────── */}
       {toast && <div className="mz-toast">✓ {toast}</div>}
+
+      {/* ── Cart Sidebar ───────────────────────────────────── */}
+      <CartSidebar 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        restaurantId={restaurantId} 
+        tableNo={tableNo} 
+      />
     </div>
   );
 }

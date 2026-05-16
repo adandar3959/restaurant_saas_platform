@@ -25,10 +25,10 @@ function CheckoutModal({ restaurantId, tableNo, items, totalPrice, onClose, onSu
     try {
       const payload = {
         orderType,
-        items: items.map(i => ({ menuItemId: i._id, quantity: i.qty, unitPrice: i.price, name: i.name })),
+        items: items.map(i => ({ menuItemId: i._id.split('_')[0], quantity: i.qty, unitPrice: i.price, name: i.name })),
         totalAmount: totalPrice,
         ...(orderType === 'Dine-In'  && { tableId: tableNum }),
-        ...(orderType === 'Delivery' && { deliveryAddress: address }),
+        ...(orderType === 'Delivery' && { deliveryAddress: { street: address } }),
         ...(phone && { customerPhone: phone }),
         ...(notes && { notes }),
       };
