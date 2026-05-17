@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../context/CartContext';
 import { customerApi } from '../../../api/customer.api';
 
@@ -8,8 +8,9 @@ function getEmoji(name=''){const n=name.toLowerCase();for(const[k,v]of Object.en
 
 export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items, totalItems, totalPrice, updateQty, removeItem, clearCart } = useCart();
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(searchParams.get('checkout') === 'true');
   const [loading, setLoading] = useState(false);
   const [tables, setTables] = useState([]);
   const [fetchingTables, setFetchingTables] = useState(false);

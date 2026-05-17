@@ -230,7 +230,8 @@ function MenuContent({ restaurantId, tableNo }) {
   const [openCatIdx, setOpenCatIdx] = useState(null);
   const [selItem, setSelItem] = useState(null);
   const [toast, setToast] = useState('');
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [isCartOpen, setIsCartOpen] = useState(searchParams.get('cart') === 'open');
   const { totalItems } = useCart();
 
   // Clone-based infinite carousel state

@@ -40,12 +40,17 @@ exports.createCheckoutSession = async (orderId, restaurantId) => {
     });
   }
 
+  let cancelUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/menu/${restaurantId}?cart=open&checkout=true`;
+  if (order.tableNumber) {
+    cancelUrl += `&table=${encodeURIComponent(order.tableNumber)}`;
+  }
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: lineItems,
     mode: 'payment',
     success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
-    cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/menu?cancel=true`,
+    cancel_url: cancelUrl,
     metadata: {
       orderId: order._id.toString(),
       restaurantId: restaurantId.toString(),
