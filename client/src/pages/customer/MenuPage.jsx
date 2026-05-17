@@ -236,6 +236,7 @@ function MenuContent({ restaurantId, tableNo }) {
   // Clone-based infinite carousel state
   const [displayIdx, setDisplayIdx] = useState(2); // 2..n+1 = real, 0..1=clones-left, n+2..n+3=clones-right
   const trackRef = useRef(null);
+  const carouselRef = useRef(null);
   const transitioning = useRef(false);
 
   // ── fetch all data ──────────────────────────────────────────
@@ -334,6 +335,29 @@ function MenuContent({ restaurantId, tableNo }) {
     setDisplayIdx(wrapped + 2); // real 0 is at displayIdx 2
   }, [n]);
 
+  // Handle scroll wheel category switching
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el || n === 0) return;
+
+    const handleWheel = (e) => {
+      // Prevent browser from scrolling up/down when mouse is on the carousel
+      e.preventDefault();
+      if (transitioning.current) return;
+
+      if (e.deltaY > 0) {
+        advance(1); // Scroll down -> next category
+      } else if (e.deltaY < 0) {
+        advance(-1); // Scroll up -> previous category
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, [advance, n]);
+
   const openCatItems = (idx) => {
     setOpenCatIdx(idx);
     setTimeout(() => {
@@ -413,6 +437,7 @@ function MenuContent({ restaurantId, tableNo }) {
         {/* ── Carousel wrapper: clips sides but allows name to overflow bottom ── */}
         <div
           id="mz-carousel"
+          ref={carouselRef}
           style={{
             /* define slide dimensions for perfect math centering */
             '--slide-w': 'min(85vw, 592px)',
