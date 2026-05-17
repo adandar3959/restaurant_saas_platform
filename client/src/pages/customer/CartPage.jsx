@@ -20,6 +20,7 @@ function CheckoutModal({ restaurantId, tableNo, items, totalPrice, onClose, onSu
   const handlePlace = async () => {
     if (orderType === 'Dine-In' && !tableNum) return setError('Please enter your table number.');
     if (orderType === 'Delivery' && !address)  return setError('Please enter a delivery address.');
+    if (!phone.trim()) return setError('Please enter your phone number.');
     setError('');
     setLoading(true);
     try {
@@ -83,7 +84,7 @@ function CheckoutModal({ restaurantId, tableNo, items, totalPrice, onClose, onSu
 
           {/* Phone */}
           <div>
-            <div className="c-field-label">Phone Number (optional)</div>
+            <div className="c-field-label">Phone Number *</div>
             <input className="c-field-input" type="tel" placeholder="03xx-xxxxxxx" value={phone} onChange={e=>setPhone(e.target.value)} />
           </div>
 

@@ -60,6 +60,7 @@ const orderSchema = new mongoose.Schema(
 
     tableId: { type: mongoose.Schema.Types.ObjectId, ref: 'Table', default: null },
     tableNumber: { type: String },
+    customerPhone: { type: String },
 
     deliveryAddress: deliveryAddressSchema,
     estimatedDeliveryTime: { type: Date },

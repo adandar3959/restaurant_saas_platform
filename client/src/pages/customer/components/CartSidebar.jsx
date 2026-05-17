@@ -46,6 +46,7 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
   const handlePlace = async () => {
     if (orderType === 'Dine-In' && !tableNum) return setError('Please enter your table number.');
     if (orderType === 'Delivery' && !address)  return setError('Please enter a delivery address.');
+    if (!phone.trim()) return setError('Please enter your phone number.');
     setError('');
     setLoading(true);
     try {
@@ -182,7 +183,7 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
               )}
 
               <div style={{marginBottom:20}}>
-                <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Phone Number (optional)</div>
+                <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Phone Number *</div>
                 <input style={{width:'100%',padding:12,borderRadius:8,border:'1.5px solid rgba(0,0,0,0.1)',fontFamily:'Raleway',fontSize:14}} type="tel" placeholder="03xx-xxxxxxx" value={phone} onChange={e=>setPhone(e.target.value)} />
               </div>
 
