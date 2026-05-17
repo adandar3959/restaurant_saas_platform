@@ -623,8 +623,9 @@ function MenuContent({ restaurantId, tableNo }) {
 }
 
 // ── Exported page (wraps CartProvider) ───────────────────────────
-export default function MenuPage() {
-  const { restaurantId } = useParams();
+export default function MenuPage({ restaurantId: propRestaurantId }) {
+  const { restaurantId: paramRestaurantId } = useParams();
+  const restaurantId = propRestaurantId || paramRestaurantId;
   const [searchParams] = useSearchParams();
   const tableNo = searchParams.get('table');
   return (

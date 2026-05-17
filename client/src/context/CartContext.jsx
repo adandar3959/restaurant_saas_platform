@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const CartContext = createContext(null);
 
@@ -63,11 +64,44 @@ function cartReducer(state, action) {
 export function CartProvider({ restaurantId, children }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
   const [loadedId, setLoadedId] = useState(null);
+  const location = useLocation();
+
+  // Dynamic state to hold resolved ID for slug-based URLs
+  const [slugId, setSlugId] = useState(() => {
+    const match = window.location.pathname.match(/\/r\/([^/]+)/);
+    return match ? sessionStorage.getItem(`slug_id_${match[1]}`) : null;
+  });
+
+  // Fetch or retrieve resolved slug ID on navigation changes
+  useEffect(() => {
+    const match = location.pathname.match(/\/r\/([^/]+)/);
+    if (!match) {
+      setSlugId(null);
+      return;
+    }
+    const slug = match[1];
+    const cached = sessionStorage.getItem(`slug_id_${slug}`);
+    if (cached) {
+      setSlugId(cached);
+    } else {
+      fetch(`http://localhost:5000/api/v1/tenants/slug/${slug}`)
+        .then(res => res.json())
+        .then(data => {
+          const tenantId = data.data?._id || data._id;
+          if (tenantId) {
+            sessionStorage.setItem(`slug_id_${slug}`, tenantId);
+            setSlugId(tenantId);
+          }
+        })
+        .catch(err => console.error('Failed to resolve slug in CartProvider', err));
+    }
+  }, [location.pathname]);
 
   // Auto-detect restaurantId from URL if not provided via props
   const effectiveRestaurantId = restaurantId || (() => {
-    const match = window.location.pathname.match(/\/menu\/([^/]+)/);
-    return match ? match[1] : null;
+    const match = location.pathname.match(/\/menu\/([^/]+)/);
+    if (match) return match[1];
+    return slugId;
   })();
 
   // Load from localStorage on mount / restaurantId change

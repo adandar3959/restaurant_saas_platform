@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../../lib/constants';
+import MenuPage from './MenuPage';
 
 /**
- * /r/:slug  →  resolves slug to restaurantId  →  redirects to /menu/:restaurantId
+ * /r/:slug  →  resolves slug to restaurantId  →  renders MenuPage inline
  *
- * This lets restaurants share a clean URL like:
+ * This lets restaurants share and keep a clean URL like:
  *   http://localhost:5174/r/cheezious
- * instead of:
+ * instead of exposing:
  *   http://localhost:5174/menu/683abc123...
  */
 export default function RestaurantSlugPage() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [restaurantId, setRestaurantId] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -28,16 +29,13 @@ export default function RestaurantSlugPage() {
       .then(res => {
         const tenant = res.data?.data || res.data;
         if (!tenant?._id) throw new Error('Restaurant not found');
-
-        // Preserve any query params (e.g. ?table=5)
-        const qs = searchParams.toString();
-        navigate(`/menu/${tenant._id}${qs ? `?${qs}` : ''}`, { replace: true });
+        setRestaurantId(tenant._id);
       })
       .catch(err => {
         const msg = err.response?.data?.message || err.message || 'Restaurant not found.';
         setError(msg);
       });
-  }, [slug, navigate, searchParams]);
+  }, [slug]);
 
   if (error) {
     return (
@@ -63,20 +61,24 @@ export default function RestaurantSlugPage() {
     );
   }
 
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Nunito, sans-serif',
-        gap: 12,
-        flexDirection: 'column',
-      }}
-    >
-      <div style={{ fontSize: 40 }}>🍽️</div>
-      <p style={{ color: '#6b7280', fontWeight: 600 }}>Loading restaurant…</p>
-    </div>
-  );
+  if (!restaurantId) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'Nunito, sans-serif',
+          gap: 12,
+          flexDirection: 'column',
+        }}
+      >
+        <div style={{ fontSize: 40 }}>🍽️</div>
+        <p style={{ color: '#6b7280', fontWeight: 600 }}>Loading restaurant…</p>
+      </div>
+    );
+  }
+
+  return <MenuPage restaurantId={restaurantId} />;
 }

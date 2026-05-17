@@ -1,7 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../../order/models/order_model');
 
-exports.createCheckoutSession = async (orderId, restaurantId) => {
+exports.createCheckoutSession = async (orderId, restaurantId, customCancelUrl) => {
   const order = await Order.findOne({ _id: orderId, restaurantId }).populate('restaurantId');
   if (!order) throw new Error('Order not found');
 
@@ -40,8 +40,8 @@ exports.createCheckoutSession = async (orderId, restaurantId) => {
     });
   }
 
-  let cancelUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/menu/${restaurantId}?cart=open&checkout=true`;
-  if (order.tableNumber) {
+  let cancelUrl = customCancelUrl || `${process.env.CLIENT_URL || 'http://localhost:5173'}/menu/${restaurantId}?cart=open&checkout=true`;
+  if (order.tableNumber && !cancelUrl.includes('table=')) {
     cancelUrl += `&table=${encodeURIComponent(order.tableNumber)}`;
   }
 

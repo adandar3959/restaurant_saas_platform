@@ -3,10 +3,10 @@ const asyncHandler = require('../../../utils/asyncHandler');
 const { sendSuccess } = require('../../../utils/apiResponse');
 
 exports.createCheckoutSession = asyncHandler(async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId, cancelUrl } = req.body;
   const { restaurantId } = req.params;
 
-  const session = await paymentService.createCheckoutSession(orderId, restaurantId);
+  const session = await paymentService.createCheckoutSession(orderId, restaurantId, cancelUrl);
   sendSuccess(res, { url: session.url }, 'Checkout session created');
 });
 

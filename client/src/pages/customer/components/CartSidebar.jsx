@@ -72,7 +72,10 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
         (orderType === 'Dine-In' && paymentMethod === 'Online');
 
       if (needsPayment) {
-        const payRes = await customerApi.createCheckoutSession(restaurantId, { orderId });
+        const payRes = await customerApi.createCheckoutSession(restaurantId, { 
+          orderId,
+          cancelUrl: window.location.origin + window.location.pathname + '?cart=open&checkout=true'
+        });
         const { url } = payRes.data?.data || payRes.data;
         if (url) {
           window.location.href = url; // Redirect to Stripe
