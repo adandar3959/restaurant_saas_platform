@@ -110,7 +110,7 @@ function CategorySlide({ cat, items }) {
     return (
       <div style={{
         borderRadius: 10, overflow: 'hidden',
-        background: src ? undefined : 'linear-gradient(135deg,#2d6a4f,#1b4332)',
+        background: src ? undefined : 'linear-gradient(135deg, var(--mz-mid), var(--mz-dark))',
         backgroundImage: src ? `url(${src})` : undefined,
         backgroundSize: 'cover', backgroundPosition: 'center',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -124,7 +124,7 @@ function CategorySlide({ cat, items }) {
   const scriptTile = (word, showArrow = false, style = {}) => (
     <div style={{
       borderRadius: 10, overflow: 'hidden',
-      background: 'linear-gradient(135deg,#1b4332,#0a2118)',
+      background: 'linear-gradient(135deg, var(--mz-dark), rgba(0,0,0,0.4))',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       position: 'relative', ...style,
     }}>
@@ -147,7 +147,7 @@ function CategorySlide({ cat, items }) {
 
   return (
     <div style={{
-      height: '100%', background: '#8aaa78',
+      height: '100%', background: 'var(--mz-sage)',
       display: 'grid',
       gridTemplateColumns: '1fr 1.15fr 1fr',
       gridTemplateRows: '1fr 1fr',
@@ -276,8 +276,64 @@ function MenuContent({ restaurantId, tableNo }) {
   const applyTheme = (b) => {
     if (!b) return;
     const root = document.documentElement;
-    if (b.primaryColor) root.style.setProperty('--mz-mid', b.primaryColor);
-    if (b.secondaryColor) root.style.setProperty('--mz-cream', b.secondaryColor);
+
+    // Default green Mezami theme colors
+    const defaultDark = '#1B4332';
+    const defaultMid = '#2D6A4F';
+    const defaultSage = '#7A9E7E';
+    const defaultLight = '#95BF98';
+    const defaultCream = '#F5F0E6';
+    const defaultGold = '#d4c99a';
+
+    const primary = b.primaryColor || defaultMid;
+    const secondary = b.secondaryColor || defaultDark;
+    const cardColor = b.cardColor || defaultSage;
+
+    // Check if the colors match the default green Mezami theme
+    const isDefaultGreen = 
+      primary.toLowerCase() === '#2d6a4f' && 
+      secondary.toLowerCase() === '#1b4332';
+
+    if (isDefaultGreen) {
+      // Set the exact, premium original green Mezami theme variables!
+      root.style.setProperty('--mz-dark', defaultDark);
+      root.style.setProperty('--mz-mid', defaultMid);
+      root.style.setProperty('--mz-sage', defaultSage);
+      root.style.setProperty('--mz-light', defaultLight);
+      root.style.setProperty('--mz-cream', defaultCream);
+      root.style.setProperty('--mz-gold', defaultGold);
+    } else {
+      // 1. Set Primary & Accent Highlight colors to primaryColor
+      root.style.setProperty('--mz-mid', primary);
+      root.style.setProperty('--mz-gold', primary);
+
+      // 2. Set Background Color directly to the user-selected secondaryColor
+      root.style.setProperty('--mz-dark', secondary);
+
+      // 3. Set Category Slide Box Background to cardColor
+      root.style.setProperty('--mz-sage', cardColor);
+
+      // 4. Compute dynamic highlights
+      try {
+        const hex = primary.replace('#', '');
+        if (hex.length === 6) {
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const bColor = parseInt(hex.substring(4, 6), 16);
+
+          // Calculate a lighter tone for highlights (65% brightness)
+          const lr = Math.floor(r * 0.65);
+          const lg = Math.floor(g * 0.65);
+          const lb = Math.floor(bColor * 0.65);
+          const lightHex = '#' + [lr, lg, lb].map(x => x.toString(16).padStart(2, '0')).join('');
+          root.style.setProperty('--mz-light', lightHex);
+        }
+      } catch (e) {
+        console.error('Failed to parse dynamic brand colors', e);
+      }
+
+      root.style.setProperty('--mz-cream', defaultCream);
+    }
   };
 
   const n = categories.length;

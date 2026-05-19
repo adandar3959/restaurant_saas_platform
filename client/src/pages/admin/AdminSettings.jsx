@@ -30,7 +30,9 @@ export default function AdminSettings() {
         country:        restaurant.address?.country || '',
         currency:       restaurant.settings?.currency || 'USD',
         taxRate:        restaurant.settings?.taxRate || 0,
-        primaryColor:   restaurant.branding?.primaryColor || '#FF6B35',
+        primaryColor:   restaurant.branding?.primaryColor || '#2D6A4F',
+        secondaryColor: restaurant.branding?.secondaryColor || '#1B4332',
+        cardColor:      restaurant.branding?.cardColor || '#8AAA78',
         hours:          restaurant.settings?.openingHours || DEFAULT_HOURS,
       });
     }
@@ -54,7 +56,11 @@ export default function AdminSettings() {
           taxRate:       parseFloat(form.taxRate) || 0,
           openingHours:  form.hours,
         },
-        branding: { primaryColor: form.primaryColor },
+        branding: { 
+          primaryColor: form.primaryColor,
+          secondaryColor: form.secondaryColor,
+          cardColor: form.cardColor,
+        },
       };
       // Only include address fields if they have values
       if (form.city || form.country) {
@@ -198,12 +204,31 @@ export default function AdminSettings() {
 
       {tab === 'branding' && (
         <div className="settings-card card">
-          <div className="settings-section-title"><Palette size={18} /> Branding</div>
-          <div className="form-group" style={{ maxWidth: 320 }}>
-            <label className="form-label">Primary Color</label>
-            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-              <input type="color" value={form.primaryColor || '#FF6B35'} onChange={e => set('primaryColor', e.target.value)} style={{ width: 48, height: 48, border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', background: 'none', padding: 2 }} />
-              <input className="form-input" value={form.primaryColor || '#FF6B35'} onChange={e => set('primaryColor', e.target.value)} style={{ fontFamily: 'monospace', flex: 1 }} />
+          <div className="settings-section-title"><Palette size={18} /> Branding Settings</div>
+          
+          <div className="settings-grid" style={{ marginTop: 'var(--space-4)', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>PRIMARY COLOR (HIGHLIGHTS)</label>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <input type="color" value={form.primaryColor || '#2D6A4F'} onChange={e => set('primaryColor', e.target.value)} style={{ width: 48, height: 48, border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', background: 'none', padding: 2 }} />
+                <input className="form-input" value={form.primaryColor || '#2D6A4F'} onChange={e => set('primaryColor', e.target.value)} style={{ fontFamily: 'monospace', flex: 1 }} />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>BACKGROUND COLOR</label>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <input type="color" value={form.secondaryColor || '#1B4332'} onChange={e => set('secondaryColor', e.target.value)} style={{ width: 48, height: 48, border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', background: 'none', padding: 2 }} />
+                <input className="form-input" value={form.secondaryColor || '#1B4332'} onChange={e => set('secondaryColor', e.target.value)} style={{ fontFamily: 'monospace', flex: 1 }} />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.05em' }}>CATEGORY CARD COLOR</label>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <input type="color" value={form.cardColor || '#8AAA78'} onChange={e => set('cardColor', e.target.value)} style={{ width: 48, height: 48, border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', background: 'none', padding: 2 }} />
+                <input className="form-input" value={form.cardColor || '#8AAA78'} onChange={e => set('cardColor', e.target.value)} style={{ fontFamily: 'monospace', flex: 1 }} />
+              </div>
             </div>
           </div>
         </div>
