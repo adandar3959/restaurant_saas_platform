@@ -62,8 +62,6 @@ function cartReducer(state, action) {
 }
 
 export function CartProvider({ restaurantId, children }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
-  const [loadedId, setLoadedId] = useState(null);
   const location = useLocation();
 
   // Dynamic state to hold resolved ID for slug-based URLs
@@ -97,20 +95,47 @@ export function CartProvider({ restaurantId, children }) {
     }
   }, [location.pathname]);
 
-  // Auto-detect restaurantId from URL if not provided via props
+  // Synchronous auto-detection during initial render to prevent race conditions
+  const initialRestaurantId = restaurantId || (() => {
+    const match = window.location.pathname.match(/\/menu\/([^/]+)/);
+    if (match) return match[1];
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryRid = searchParams.get('restaurant_id');
+    if (queryRid) return queryRid;
+
+    const slugMatch = window.location.pathname.match(/\/r\/([^/]+)/);
+    if (slugMatch) {
+      return sessionStorage.getItem(`slug_id_${slugMatch[1]}`);
+    }
+    return null;
+  })();
+
+  const [state, dispatch] = useReducer(cartReducer, {
+    items: initialRestaurantId ? loadCart(initialRestaurantId) : []
+  });
+  const [loadedId, setLoadedId] = useState(initialRestaurantId);
+
+  // Auto-detect restaurantId from URL on route changes
   const effectiveRestaurantId = restaurantId || (() => {
     const match = location.pathname.match(/\/menu\/([^/]+)/);
     if (match) return match[1];
+
+    // Check for query parameter (e.g. on order-success page)
+    const searchParams = new URLSearchParams(location.search);
+    const queryRid = searchParams.get('restaurant_id');
+    if (queryRid) return queryRid;
+
     return slugId;
   })();
 
-  // Load from localStorage on mount / restaurantId change
+  // Load from localStorage on mount / restaurantId change (only if not already loaded)
   useEffect(() => {
-    if (!effectiveRestaurantId) return;
+    if (!effectiveRestaurantId || loadedId === effectiveRestaurantId) return;
     const saved = loadCart(effectiveRestaurantId);
     dispatch({ type: 'INIT', payload: saved });
     setLoadedId(effectiveRestaurantId);
-  }, [effectiveRestaurantId]);
+  }, [effectiveRestaurantId, loadedId]);
 
   // Persist to localStorage whenever items change, but only AFTER initial load
   useEffect(() => {

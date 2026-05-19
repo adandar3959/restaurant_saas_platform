@@ -66,10 +66,10 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
       const orderId = res.data?.data?._id || res.data?._id;
 
       // 2. Determine redirect based on order type and payment method
-      // Online flow for Takeaway, Delivery, or Dine-In (if Online selected)
+      // Online flow for Takeaway, Delivery (if Online selected), or Dine-In (if Online selected)
       const needsPayment = 
         orderType === 'Takeaway' || 
-        orderType === 'Delivery' || 
+        (orderType === 'Delivery' && paymentMethod === 'Online') || 
         (orderType === 'Dine-In' && paymentMethod === 'Online');
 
       if (needsPayment) {
@@ -161,24 +161,35 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
                 </div>
               )}
 
-              {orderType === 'Dine-In' && (
+              {orderType === 'Delivery' && (
+                <div style={{marginBottom:20}}>
+                  <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Delivery Address *</div>
+                  <input style={{width:'100%',padding:12,borderRadius:8,border:'1.5px solid rgba(0,0,0,0.1)',fontFamily:'Raleway',fontSize:14}} placeholder="House/Flat, Street, City" value={address} onChange={e=>setAddress(e.target.value)} />
+                </div>
+              )}
+
+              {(orderType === 'Dine-In' || orderType === 'Delivery') && (
                 <div style={{marginBottom:20}}>
                   <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:12}}>Payment Method</div>
                   <div style={{display:'flex',gap:8}}>
-                    {[{id:'Cash',n:'Cash at Counter',e:'💵'},{id:'Online',n:'Online Card',e:'💳'}].map(pm => (
+                    {[
+                      {
+                        id: 'Cash',
+                        n: orderType === 'Delivery' ? 'Cash on Delivery' : 'Cash at Counter',
+                        e: '💵'
+                      },
+                      {
+                        id: 'Online',
+                        n: 'Online Card',
+                        e: '💳'
+                      }
+                    ].map(pm => (
                       <button key={pm.id} onClick={() => setPaymentMethod(pm.id)} style={{flex:1,padding:'10px',borderRadius:8,border:`1.5px solid ${paymentMethod===pm.id?'var(--mz-dark)':'rgba(0,0,0,0.1)'}`,background:paymentMethod===pm.id?'var(--mz-dark)':'transparent',color:paymentMethod===pm.id?'#fff':'var(--mz-dark)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
                         <span style={{fontSize:16}}>{pm.e}</span>
                         <span style={{fontFamily:'Raleway',fontSize:11,fontWeight:700}}>{pm.n}</span>
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {orderType === 'Delivery' && (
-                <div style={{marginBottom:20}}>
-                  <div style={{fontFamily:'Raleway',fontSize:10,fontWeight:800,letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mz-sage)',marginBottom:8}}>Delivery Address *</div>
-                  <input style={{width:'100%',padding:12,borderRadius:8,border:'1.5px solid rgba(0,0,0,0.1)',fontFamily:'Raleway',fontSize:14}} placeholder="House/Flat, Street, City" value={address} onChange={e=>setAddress(e.target.value)} />
                 </div>
               )}
 

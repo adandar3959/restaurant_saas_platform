@@ -49,7 +49,7 @@ exports.createCheckoutSession = async (orderId, restaurantId, customCancelUrl) =
     payment_method_types: ['card'],
     line_items: lineItems,
     mode: 'payment',
-    success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
+    success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}&restaurant_id=${restaurantId}`,
     cancel_url: cancelUrl,
     metadata: {
       orderId: order._id.toString(),
