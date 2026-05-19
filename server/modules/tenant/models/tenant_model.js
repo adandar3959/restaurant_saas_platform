@@ -46,8 +46,9 @@ const brandingSchema = new mongoose.Schema(
   {
     logoUrl: { type: String },
     bannerUrl: { type: String },
-    primaryColor: { type: String, default: '#FF6B35' },
-    secondaryColor: { type: String, default: '#FFFFFF' },
+    primaryColor: { type: String, default: '#2D6A4F' },
+    secondaryColor: { type: String, default: '#1B4332' },
+    cardColor: { type: String, default: '#8AAA78' },
     fontFamily: { type: String, default: 'Inter' },
   },
   { _id: false }

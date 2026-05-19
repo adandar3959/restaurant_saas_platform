@@ -22,7 +22,16 @@ exports.getAllTenants = async (filters, pagination) => {
 };
 
 exports.getTenantById = async (id) => {
-  const tenant = await Tenant.findOne({ _id: id, deletedAt: null }).populate('ownerId', 'name email');
+  const mongoose = require('mongoose');
+  let query = { deletedAt: null };
+  
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    query._id = id;
+  } else {
+    query.slug = id.toLowerCase();
+  }
+
+  const tenant = await Tenant.findOne(query).populate('ownerId', 'name email');
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
   return tenant;
 };
@@ -54,6 +63,8 @@ exports.updateTenant = async (id, data) => {
   if (data.settings?.currency)    $set['settings.currency']    = data.settings.currency;
   if (data.settings?.taxRate !== undefined) $set['settings.taxRate'] = data.settings.taxRate;
   if (data.branding?.primaryColor) $set['branding.primaryColor'] = data.branding.primaryColor;
+  if (data.branding?.secondaryColor) $set['branding.secondaryColor'] = data.branding.secondaryColor;
+  if (data.branding?.cardColor) $set['branding.cardColor'] = data.branding.cardColor;
 
   const tenant = await Tenant.findByIdAndUpdate(
     id,
