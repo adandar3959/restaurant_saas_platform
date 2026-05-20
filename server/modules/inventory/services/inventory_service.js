@@ -3,7 +3,29 @@ const Recipe = require('../models/recipe_model');
 const Supplier = require('../models/supplier_model');
 const PurchaseOrder = require('../models/purchaseOrder_model');
 
-exports.createIngredient = async (data) => Ingredient.create(data);
+const mapToBackend = (data) => {
+  if (!data) return {};
+  const mapped = { ...data };
+  if (data.name !== undefined) mapped.ingredientName = data.name;
+  if (data.unit !== undefined) mapped.unitOfMeasurement = data.unit;
+  if (data.reorderLevel !== undefined) mapped.lowStockThreshold = data.reorderLevel;
+  return mapped;
+};
+
+const mapToFrontend = (doc) => {
+  if (!doc) return null;
+  const obj = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
+  obj.name = obj.ingredientName;
+  obj.unit = obj.unitOfMeasurement;
+  obj.reorderLevel = obj.lowStockThreshold;
+  return obj;
+};
+
+exports.createIngredient = async (data) => {
+  const mapped = mapToBackend(data);
+  const item = await Ingredient.create(mapped);
+  return mapToFrontend(item);
+};
 
 exports.getIngredients = async (restaurantId, pagination) => {
   const query = { restaurantId, isActive: true };
@@ -11,29 +33,33 @@ exports.getIngredients = async (restaurantId, pagination) => {
     Ingredient.find(query).populate('supplierId', 'name').skip(pagination.skip).limit(pagination.limit).sort({ ingredientName: 1 }),
     Ingredient.countDocuments(query),
   ]);
-  return { ingredients, total };
+  return { ingredients: ingredients.map(mapToFrontend), total };
 };
 
-exports.getLowStock = async (restaurantId) =>
-  Ingredient.find({ restaurantId, isActive: true, $expr: { $lte: ['$currentStock', '$lowStockThreshold'] } });
+exports.getLowStock = async (restaurantId) => {
+  const ingredients = await Ingredient.find({ restaurantId, isActive: true, $expr: { $lte: ['$currentStock', '$lowStockThreshold'] } });
+  return ingredients.map(mapToFrontend);
+};
 
 exports.getIngredientById = async (id, restaurantId) => {
   const item = await Ingredient.findOne({ _id: id, restaurantId });
   if (!item) throw Object.assign(new Error('Ingredient not found'), { statusCode: 404 });
-  return item;
+  return mapToFrontend(item);
 };
 
 exports.updateIngredient = async (id, restaurantId, data) => {
-  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, data, { returnDocument: 'after' });
+  const mapped = mapToBackend(data);
+  const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, mapped, { returnDocument: 'after' });
   if (!item) throw Object.assign(new Error('Ingredient not found'), { statusCode: 404 });
-  return item;
+  return mapToFrontend(item);
 };
 
 exports.deleteIngredient = async (id, restaurantId) => {
   const item = await Ingredient.findOneAndUpdate({ _id: id, restaurantId }, { isActive: false }, { returnDocument: 'after' });
   if (!item) throw Object.assign(new Error('Ingredient not found'), { statusCode: 404 });
-  return item;
+  return mapToFrontend(item);
 };
+
 
 exports.createRecipe = async (data) => Recipe.create(data);
 
