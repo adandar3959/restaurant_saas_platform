@@ -119,9 +119,11 @@ const orderSchema = new mongoose.Schema(
     // loyaltyPointsRedeemed: { type: Number, default: 0 },
 
     source: { type: String, enum: ['Web', 'App', 'POS', 'QR'], default: 'Web' },
+    inventoryDeducted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
 
 orderSchema.index({ restaurantId: 1, status: 1 });
 orderSchema.index({ restaurantId: 1, createdAt: -1 });

@@ -3,6 +3,8 @@ const MenuItem = require('../../menu/models/menuItem_model');
 const Deal = require('../../menu/models/deal_model');
 const Tenant = require('../../tenant/models/tenant_model');
 const KitchenTicket = require('../../kitchen/models/kitchenTicket_model');
+const Recipe = require('../../inventory/models/recipe_model');
+const Ingredient = require('../../inventory/models/ingredient_model');
 
 const generateOrderNumber = async (restaurantId) => {
   const tenant = await Tenant.findById(restaurantId).select('settings.orderPrefix');
@@ -118,12 +120,59 @@ exports.getOrderById = async (id, restaurantId) => {
   return order;
 };
 
+const deductOrderInventory = async (order) => {
+  try {
+    for (const item of order.items) {
+      // 1. Try to find a recipe for this item directly (if it's a MenuItem)
+      const recipe = await Recipe.findOne({ menuItemId: item.menuItemId, isActive: true });
+      if (recipe) {
+        for (const ing of recipe.ingredients) {
+          const totalDeducted = ing.quantity * item.quantity;
+          await Ingredient.findByIdAndUpdate(ing.ingredientId, {
+            $inc: { currentStock: -totalDeducted }
+          });
+        }
+      } else {
+        // 2. If not found, check if it is a Deal
+        const deal = await Deal.findOne({ _id: item.menuItemId });
+        if (deal && deal.items) {
+          for (const subItem of deal.items) {
+            if (subItem.menuItemId) {
+              const subRecipe = await Recipe.findOne({ menuItemId: subItem.menuItemId, isActive: true });
+              if (subRecipe) {
+                for (const ing of subRecipe.ingredients) {
+                  // Multiply the recipe ingredient quantity by the sub-item quantity inside the deal,
+                  // and then by the overall ordered quantity of the deal!
+                  const totalDeducted = ing.quantity * subItem.quantity * item.quantity;
+                  await Ingredient.findByIdAndUpdate(ing.ingredientId, {
+                    $inc: { currentStock: -totalDeducted }
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error executing inventory deduction for order:', order._id, err);
+  }
+};
+
 exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
   const update = { status, [`statusTimestamps.${status.charAt(0).toLowerCase() + status.slice(1)}At`]: new Date() };
   if (status === 'Cancelled') update.cancelledBy = userId;
-  const order = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
+
+  const order = await Order.findOne({ _id: id, restaurantId });
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
-  return order;
+
+  if (status === 'Completed' && !order.inventoryDeducted) {
+    await deductOrderInventory(order);
+    update.inventoryDeducted = true;
+  }
+
+  const updatedOrder = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
+  return updatedOrder;
 };
 
 exports.updatePayment = async (id, restaurantId, paymentData) => {
