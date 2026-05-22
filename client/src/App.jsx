@@ -36,6 +36,8 @@ import KDS             from './pages/kitchen/KDS';
 import WaiterLayout    from './pages/waiter/WaiterLayout';
 
 import DriverDashboard from './pages/driver/DriverDashboard';
+import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+
 
 class AdminErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -132,7 +134,7 @@ function AppRoutes() {
       <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
 
       {}
-      <Route path="/superadmin"           element={<RequireAuth allowedRoles={['SuperAdmin']}><PlaceholderDash role="SuperAdmin" /></RequireAuth>} />
+      <Route path="/superadmin"           element={<RequireAuth allowedRoles={['SuperAdmin']}><AdminErrorBoundary><SuperAdminDashboard /></AdminErrorBoundary></RequireAuth>} />
       <Route path="/waiter/:restaurantId" element={<RequireAuth allowedRoles={['Waiter']}><WaiterLayout /></RequireAuth>} />
       <Route path="/driver/:restaurantId" element={<RequireAuth allowedRoles={['Driver']}><DriverDashboard /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
