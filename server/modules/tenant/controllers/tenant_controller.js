@@ -16,6 +16,9 @@ exports.getAllTenants = asyncHandler(async (req, res) => {
 
 exports.getTenantById = asyncHandler(async (req, res) => {
   const tenant = await tenantService.getTenantById(req.params.id);
+  if (tenant.isActive === false && req.user?.role !== 'SuperAdmin') {
+    return res.status(403).json({ success: false, message: 'RESTAURANT_SUSPENDED', error: 'Restaurant operations suspended' });
+  }
   sendSuccess(res, tenant);
 });
 

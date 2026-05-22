@@ -13,6 +13,20 @@ exports.protect = asyncHandler(async (req, res, next) => {
   req.user = await User.findById(decoded.id).select('-passwordHash');
   if (!req.user) return res.status(401).json({ success: false, message: 'User no longer exists' });
   if (req.user.status === 'Banned') return res.status(403).json({ success: false, message: 'Account banned' });
+
+  // If this user belongs to a tenant, ensure the tenant is strictly active
+  if (req.user.restaurantId && req.user.role !== 'SuperAdmin') {
+    const Tenant = require('../modules/tenant/models/tenant_model');
+    const tenant = await Tenant.findById(req.user.restaurantId).select('isActive');
+    if (tenant && tenant.isActive === false) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'RESTAURANT_SUSPENDED',
+        error: 'Your restaurant operations have been suspended. Please contact platform administration.'
+      });
+    }
+  }
+
   next();
 });
 

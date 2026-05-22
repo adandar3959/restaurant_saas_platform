@@ -24,7 +24,7 @@ exports.getAllTenants = async (filters, pagination) => {
 exports.getTenantById = async (id) => {
   const mongoose = require('mongoose');
   let query = { deletedAt: null };
-  
+
   if (mongoose.Types.ObjectId.isValid(id)) {
     query._id = id;
   } else {
@@ -44,7 +44,7 @@ exports.getTenantBySlug = async (slug) => {
 
 exports.updateTenant = async (id, data) => {
   if (data.restaurantName && !data.slug) data.slug = slugify(data.restaurantName);
-  
+
   // If slug is being changed, check for uniqueness
   if (data.slug) {
     const existing = await Tenant.findOne({ slug: data.slug, _id: { $ne: id } });
@@ -53,18 +53,23 @@ exports.updateTenant = async (id, data) => {
 
   // Build a flat $set object to avoid touching geo coordinates entirely
   const $set = {};
-  if (data.restaurantName)        $set.restaurantName          = data.restaurantName;
-  if (data.slug)                  $set.slug                    = data.slug;
-  if (data.description !== undefined) $set.description         = data.description;
-  if (data.contactInfo?.phone)    $set['contactInfo.phone']    = data.contactInfo.phone;
-  if (data.contactInfo?.email)    $set['contactInfo.email']    = data.contactInfo.email;
-  if (data.address?.city)         $set['address.city']         = data.address.city;
-  if (data.address?.country)      $set['address.country']      = data.address.country;
-  if (data.settings?.currency)    $set['settings.currency']    = data.settings.currency;
+  if (data.restaurantName) $set.restaurantName = data.restaurantName;
+  if (data.slug) $set.slug = data.slug;
+  if (data.description !== undefined) $set.description = data.description;
+  if (data.contactInfo?.phone) $set['contactInfo.phone'] = data.contactInfo.phone;
+  if (data.contactInfo?.email) $set['contactInfo.email'] = data.contactInfo.email;
+  if (data.address?.city) $set['address.city'] = data.address.city;
+  if (data.address?.country) $set['address.country'] = data.address.country;
+  if (data.settings?.currency) $set['settings.currency'] = data.settings.currency;
   if (data.settings?.taxRate !== undefined) $set['settings.taxRate'] = data.settings.taxRate;
   if (data.branding?.primaryColor) $set['branding.primaryColor'] = data.branding.primaryColor;
   if (data.branding?.secondaryColor) $set['branding.secondaryColor'] = data.branding.secondaryColor;
   if (data.branding?.cardColor) $set['branding.cardColor'] = data.branding.cardColor;
+
+  if (data.isActive !== undefined) {
+    $set.isActive = data.isActive;
+    $set['subscription.status'] = data.isActive ? 'Active' : 'Suspended';
+  }
 
   const tenant = await Tenant.findByIdAndUpdate(
     id,
@@ -82,9 +87,18 @@ exports.deleteTenant = async (id) => {
 };
 
 exports.updateSubscription = async (id, subscriptionData) => {
+  const updateQuery = { subscription: subscriptionData };
+
+  // Automatically sync operational status with billing changes
+  if (subscriptionData.status === 'Suspended' || subscriptionData.status === 'Expired') {
+    updateQuery.isActive = false;
+  } else if (subscriptionData.status === 'Active' || subscriptionData.status === 'Trial') {
+    updateQuery.isActive = true;
+  }
+
   const tenant = await Tenant.findByIdAndUpdate(
     id,
-    { subscription: subscriptionData },
+    { $set: updateQuery },
     { returnDocument: 'after', runValidators: true }
   );
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
