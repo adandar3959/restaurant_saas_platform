@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { tenantApi } from '../../api/tenant.api';
+import './SuperAdminDashboard.css';
 import {
   LayoutDashboard,
   DollarSign,
@@ -181,6 +182,13 @@ export default function SuperAdminDashboard() {
       }, 0);
   };
 
+  // Real-time statistical ratios
+  const activeRatio = totalRestaurants > 0 ? Math.round((activeRestaurants / totalRestaurants) * 100) : 0;
+  const paidCount = tenants.filter(t => t.isActive && t.subscription?.status === 'Active' && t.subscription?.planType !== 'Free').length;
+  const paidRatio = activeRestaurants > 0 ? Math.round((paidCount / activeRestaurants) * 100) : 0;
+  const trialRatio = activeRestaurants > 0 ? Math.round((trialRestaurants / activeRestaurants) * 100) : 0;
+  const suspendedRatio = totalRestaurants > 0 ? Math.round((suspendedRestaurants / totalRestaurants) * 100) : 0;
+
   const filteredTenants = tenants.filter(t => {
     const matchesSearch =
       t.restaurantName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -195,131 +203,25 @@ export default function SuperAdminDashboard() {
   });
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: '#F8F9FA',
-      fontFamily: 'Outfit, Inter, sans-serif',
-      color: '#1A1D20',
-      overflowX: 'hidden'
-    }}>
+    <div className="superadmin-container">
       <Toast toast={toast} />
 
-      {/* Global CSS Overrides for Google Fonts & Inputs */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        .sidebar-item {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          width: 100%;
-          padding: 14px 20px;
-          border-radius: 12px;
-          border: none;
-          background: transparent;
-          color: #A3A3A3;
-          font-weight: 500;
-          font-size: 15px;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          font-family: 'Outfit', sans-serif;
-          text-align: left;
-        }
-        .sidebar-item:hover {
-          color: #FFFFFF;
-          background: rgba(255, 255, 255, 0.05);
-        }
-        .sidebar-item.active {
-          color: #FFFFFF;
-          background: rgba(255, 255, 255, 0.08);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-        .kpi-card {
-          border-radius: 20px;
-          padding: 24px;
-          border: none;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .kpi-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
-        }
-        .clean-table th {
-          font-family: 'Outfit', sans-serif;
-          font-weight: 600;
-          font-size: 13px;
-          color: #8E959F;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          padding: 16px 24px;
-          border-bottom: 1px solid #EEF0F2;
-        }
-        .clean-table td {
-          font-size: 14px;
-          padding: 18px 24px;
-          border-bottom: 1px solid #EEF0F2;
-          vertical-align: middle;
-        }
-        .sub-tab-btn {
-          padding: 8px 16px;
-          border-radius: 10px;
-          border: none;
-          background: transparent;
-          color: #8E959F;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.25s ease;
-        }
-        .sub-tab-btn.active {
-          background: #FFFFFF;
-          color: #1A1D20;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-        .setting-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px;
-          background: #FFFFFF;
-          border-radius: 16px;
-          border: 1px solid #EEF0F2;
-          margin-bottom: 16px;
-        }
-      `}</style>
-
       {/* 1. LEFT SIDEBAR (Dark Ultra-Modern Theme) */}
-      <div style={{
-        width: 280,
-        background: '#131417',
-        padding: '32px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-        borderRight: '1px solid rgba(255, 255, 255, 0.03)'
-      }}>
+      <div className="superadmin-sidebar">
         <div>
           {/* Platform Branding Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', marginBottom: 44 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)'
-            }}>
+          <div className="sidebar-logo-container">
+            <div className="sidebar-logo-icon">
               <Sparkles size={18} style={{ color: '#fff' }} />
             </div>
             <div>
-              <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 18, tracking: '-0.5px' }}>MEZAMI</span>
-              <span style={{ color: '#6366F1', fontWeight: 800, fontSize: 11, display: 'block', letterSpacing: '1px', marginTop: -2 }}>SAAS PORTAL</span>
+              <span className="sidebar-logo-text-primary">MEZAMI</span>
+              <span className="sidebar-logo-text-secondary">SAAS PORTAL</span>
             </div>
           </div>
 
           {/* Navigation Links — Only highly useful, active sections */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="sidebar-menu-list">
             <button className={`sidebar-item ${activeMenu === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveMenu('dashboard')}>
               <LayoutDashboard size={20} />
               Dashboard
@@ -340,40 +242,30 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* Sidebar Footer Info */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          borderRadius: 20,
-          padding: 20,
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: 13, color: '#A3A3A3', fontWeight: 700 }}>System Status</div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 10px #10B981' }} />
-            <span style={{ color: '#10B981', fontWeight: 700, fontSize: 12 }}>100% Online</span>
+        <div className="sidebar-footer-box">
+          <div className="sidebar-footer-status-title">System Status</div>
+          <div className="sidebar-footer-status-indicator">
+            <span className="status-indicator-dot-green" />
+            <span className="status-indicator-text-green">100% Online</span>
           </div>
         </div>
       </div>
 
       {/* 2. MAIN WORKSPACE (Light Premium Theme) */}
-      <div style={{ flex: 1, padding: 40, display: 'flex', flexDirection: 'column', gap: 32, overflowY: 'auto' }}>
+      <div className="superadmin-workspace">
 
         {/* Top Header Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontWeight: 800, fontSize: 28, tracking: '-1px', textTransform: 'capitalize' }}>
+        <div className="workspace-header-row">
+          <h1 className="workspace-header-title">
             {activeMenu === 'dashboard' ? 'Overview' : activeMenu === 'revenue' ? 'Revenue & Billing' : activeMenu}
           </h1>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="workspace-header-actions">
             {/* Search Input Box */}
-            <div style={{ position: 'relative', width: 280 }}>
-              <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#8E959F' }} />
+            <div className="header-search-container">
+              <Search size={16} className="header-search-icon" />
               <input
-                style={{
-                  width: '100%', padding: '12px 14px 12px 42px', borderRadius: 14,
-                  border: '1px solid #EEF0F2', background: '#FFFFFF',
-                  outline: 'none', fontSize: 13, fontWeight: 500
-                }}
+                className="header-search-input"
                 placeholder="Search something..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -381,20 +273,12 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Notification Bell */}
-            <button style={{
-              width: 44, height: 44, borderRadius: 14, background: '#FFFFFF',
-              border: '1px solid #EEF0F2', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#1A1D20'
-            }} onClick={() => showToast('success', 'All system alerts cleared')}>
+            <button className="header-action-button" onClick={() => showToast('success', 'All system alerts cleared')}>
               <Bell size={18} />
             </button>
 
             {/* Logout/Exit */}
-            <button style={{
-              width: 44, height: 44, borderRadius: 14, background: '#FFFFFF',
-              border: '1px solid #EEF0F2', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#1A1D20'
-            }} onClick={logout}>
+            <button className="header-action-button" onClick={logout}>
               <LogOut size={18} />
             </button>
           </div>
@@ -406,71 +290,71 @@ export default function SuperAdminDashboard() {
         {activeMenu === 'dashboard' && (
           <>
             {/* Metrics Row (Soft Pastel Colors) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+            <div className="kpi-cards-grid">
               <div className="kpi-card" style={{ background: '#FEF9EC' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#FDF0CD', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="kpi-card-header">
+                  <div className="kpi-card-icon-wrapper" style={{ background: '#FDF0CD', color: '#D97706' }}>
                     <DollarSign size={18} />
                   </div>
-                  <span style={{ color: '#D97706', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    +24% <ArrowUpRight size={14} />
+                  <span className="kpi-card-trend-badge" style={{ color: '#D97706' }}>
+                    {paidRatio}% <ArrowUpRight size={14} />
                   </span>
                 </div>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Projected MRR</span>
-                <h2 style={{ fontSize: 26, fontWeight: 800, margin: '6px 0 10px 0', tracking: '-0.5px' }}>${calculateMRR().toLocaleString()}.00</h2>
-                <span style={{ color: '#D97706', fontSize: 12, fontWeight: 700 }}>Active MRR 30%</span>
+                <span className="kpi-card-label">Projected MRR</span>
+                <h2 className="kpi-card-value">${calculateMRR().toLocaleString()}.00</h2>
+                <span className="kpi-card-footer-text" style={{ color: '#D97706' }}>Paid Ratio: {paidRatio}%</span>
               </div>
 
               <div className="kpi-card" style={{ background: '#F5F3FF' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#EDE9FE', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="kpi-card-header">
+                  <div className="kpi-card-icon-wrapper" style={{ background: '#EDE9FE', color: '#7C3AED' }}>
                     <Building size={18} />
                   </div>
-                  <span style={{ color: '#7C3AED', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    -32% <ArrowDownRight size={14} />
+                  <span className="kpi-card-trend-badge" style={{ color: '#7C3AED' }}>
+                    {activeRatio}% <ArrowUpRight size={14} />
                   </span>
                 </div>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Restaurants</span>
-                <h2 style={{ fontSize: 26, fontWeight: 800, margin: '6px 0 10px 0', tracking: '-0.5px' }}>{activeRestaurants}</h2>
-                <span style={{ color: '#7C3AED', fontSize: 12, fontWeight: 700 }}>Stable 20%</span>
+                <span className="kpi-card-label">Active Restaurants</span>
+                <h2 className="kpi-card-value">{activeRestaurants}</h2>
+                <span className="kpi-card-footer-text" style={{ color: '#7C3AED' }}>Online: {activeRestaurants}/{totalRestaurants}</span>
               </div>
 
               <div className="kpi-card" style={{ background: '#ECFDF5' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#D1FAE5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="kpi-card-header">
+                  <div className="kpi-card-icon-wrapper" style={{ background: '#D1FAE5', color: '#059669' }}>
                     <User size={18} />
                   </div>
-                  <span style={{ color: '#059669', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    +44% <ArrowUpRight size={14} />
+                  <span className="kpi-card-trend-badge" style={{ color: '#059669' }}>
+                    {trialRatio}% <ArrowUpRight size={14} />
                   </span>
                 </div>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Trial Accounts</span>
-                <h2 style={{ fontSize: 26, fontWeight: 800, margin: '6px 0 10px 0', tracking: '-0.5px' }}>{trialRestaurants}</h2>
-                <span style={{ color: '#059669', fontSize: 12, fontWeight: 700 }}>Conversion 60%</span>
+                <span className="kpi-card-label">Trial Accounts</span>
+                <h2 className="kpi-card-value">{trialRestaurants}</h2>
+                <span className="kpi-card-footer-text" style={{ color: '#059669' }}>Trial Ratio: {trialRatio}%</span>
               </div>
 
               <div className="kpi-card" style={{ background: '#FEF2F2' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#FEE2E2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="kpi-card-header">
+                  <div className="kpi-card-icon-wrapper" style={{ background: '#FEE2E2', color: '#DC2626' }}>
                     <ShieldAlert size={18} />
                   </div>
-                  <span style={{ color: '#DC2626', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    -15% <ArrowDownRight size={14} />
+                  <span className="kpi-card-trend-badge" style={{ color: '#DC2626' }}>
+                    {suspendedRatio}% <ArrowDownRight size={14} />
                   </span>
                 </div>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Suspended Alerts</span>
-                <h2 style={{ fontSize: 26, fontWeight: 800, margin: '6px 0 10px 0', tracking: '-0.5px' }}>{suspendedRestaurants}</h2>
-                <span style={{ color: '#DC2626', fontSize: 12, fontWeight: 700 }}>Critical 20%</span>
+                <span className="kpi-card-label">Suspended Alerts</span>
+                <h2 className="kpi-card-value">{suspendedRestaurants}</h2>
+                <span className="kpi-card-footer-text" style={{ color: '#DC2626' }}>Suspended: {suspendedRatio}%</span>
               </div>
             </div>
 
             {/* Middle Section: Chart & Event Logger */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+            <div className="dashboard-layout-grid">
               {/* Spline registration chart */}
-              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 800 }}>Platform Registration Activity</h3>
-                  <span style={{ fontSize: 12, color: '#8E959F', fontWeight: 600 }}>Active Analytics</span>
+              <div className="chart-card-container">
+                <div className="panel-card-header">
+                  <h3 className="panel-card-title">Platform Registration Activity</h3>
+                  <span className="panel-card-subtitle">Active Analytics</span>
                 </div>
                 <div style={{ position: 'relative', width: '100%', height: 180 }}>
                   <svg viewBox="0 0 500 150" width="100%" height="100%">
@@ -483,36 +367,45 @@ export default function SuperAdminDashboard() {
                     <line x1="0" y1="30" x2="500" y2="30" stroke="#EEF0F2" strokeWidth="1" strokeDasharray="5,5" />
                     <line x1="0" y1="70" x2="500" y2="70" stroke="#EEF0F2" strokeWidth="1" strokeDasharray="5,5" />
                     <line x1="0" y1="110" x2="500" y2="110" stroke="#EEF0F2" strokeWidth="1" strokeDasharray="5,5" />
-                    <path d="M 0,110 Q 70,30 140,80 T 280,40 T 420,90 T 500,30 L 500,150 L 0,150 Z" fill="url(#chartGrad)" />
-                    <path d="M 0,110 Q 70,30 140,80 T 280,40 T 420,90 T 500,30" fill="none" stroke="#6366F1" strokeWidth="3.5" strokeLinecap="round" />
-                    <circle cx="280" cy="40" r="6" fill="#6366F1" stroke="#FFFFFF" strokeWidth="2.5" />
+                    <path d="M 0,120 C 100,120 120,40 250,80 C 350,110 400,30 500,30 L 500,150 L 0,150 Z" fill="url(#chartGrad)" />
+                    <path d="M 0,120 C 100,120 120,40 250,80 C 350,110 400,30 500,30" fill="none" stroke="#6366F1" strokeWidth="3.5" strokeLinecap="round" />
+                    <circle cx="250" cy="80" r="6" fill="#6366F1" stroke="#FFFFFF" strokeWidth="2.5" />
                   </svg>
-                  <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', background: '#131417', color: '#fff', padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700 }}>
+                  <div style={{ 
+                    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', 
+                    background: 'rgba(19, 20, 23, 0.95)', color: '#fff', 
+                    padding: '6px 14px', borderRadius: 10, fontSize: 11, fontWeight: 800,
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)' 
+                  }}>
                     {totalRestaurants} Registered Teams Peak
                   </div>
                 </div>
               </div>
 
               {/* Event Logs panel */}
-              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Recent System Events</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="recent-events-container">
+                <div className="panel-card-header">
+                  <h3 className="panel-card-title">Recent System Events</h3>
+                  <span className="panel-card-subtitle">Real-time logs</span>
+                </div>
+                <div className="recent-events-list">
+                  <div className="event-log-item">
+                    <div className="event-log-icon-container" style={{ background: '#ECFDF5', color: '#059669' }}>
                       <CheckCircle size={14} />
                     </div>
                     <div>
-                      <span style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>SSL Verification Safe</span>
-                      <span style={{ fontSize: 11, color: '#8E959F' }}>System is secure</span>
+                      <span className="event-log-text-primary">SSL Verification Safe</span>
+                      <span className="event-log-text-secondary">System is secure</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F3FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="event-log-item">
+                    <div className="event-log-icon-container" style={{ background: '#F5F3FF', color: '#7C3AED' }}>
                       <Sparkles size={14} />
                     </div>
                     <div>
-                      <span style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>Database Connected</span>
-                      <span style={{ fontSize: 11, color: '#8E959F' }}>Shards operating normally</span>
+                      <span className="event-log-text-primary">Database Connected</span>
+                      <span className="event-log-text-secondary">Shards operating normally</span>
                     </div>
                   </div>
                 </div>
@@ -520,14 +413,14 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Quick tenant preview grid */}
-            <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Active Platforms Overview</h3>
+            <div className="panel-card-container">
+              <div className="panel-card-header">
+                <h3 className="panel-card-title">Active Platforms Overview</h3>
                 <button className="btn btn-ghost btn-xs" style={{ color: '#6366F1', fontWeight: 700 }} onClick={() => setActiveMenu('restaurants')}>View all restaurants →</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <div className="platform-preview-row-grid">
                 {tenants.slice(0, 3).map(tenant => (
-                  <div key={tenant._id} style={{ border: '1px solid #EEF0F2', padding: 20, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div key={tenant._id} className="platform-preview-card">
                     <div style={{ width: 36, height: 36, borderRadius: 8, background: tenant.branding?.primaryColor || '#6366F1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
                       {tenant.restaurantName?.charAt(0).toUpperCase()}
                     </div>
@@ -544,11 +437,11 @@ export default function SuperAdminDashboard() {
 
         {/* ================= VIEW 2: DETAILED RESTAURANTS DIRECTORY ================= */}
         {activeMenu === 'restaurants' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 20, padding: '24px 0', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px 20px 24px', borderBottom: '1px solid #EEF0F2' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Manage Partner Restaurants</h3>
+          <div className="data-table-main-panel">
+            <div className="data-table-title-row">
+              <h3 className="panel-card-title">Manage Partner Restaurants</h3>
 
-              <div style={{ display: 'flex', background: '#F8F9FA', borderRadius: 12, padding: 4, gap: 2 }}>
+              <div className="tab-filter-container">
                 {['All', 'Pro', 'Enterprise', 'Free'].map(tab => (
                   <button
                     key={tab}
@@ -562,7 +455,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             <div style={{ overflowX: 'auto' }}>
-              <table className="clean-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="clean-table">
                 <thead>
                   <tr>
                     <th>Restaurant</th>
@@ -701,29 +594,31 @@ export default function SuperAdminDashboard() {
         {activeMenu === 'revenue' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {/* Subscription Billing overview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600 }}>Active MRR</span>
-                <h2 style={{ fontSize: 28, fontWeight: 800, margin: '8px 0 0 0' }}>${calculateMRR()}.00</h2>
+            <div className="kpi-cards-grid">
+              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
+                <span className="kpi-card-label">Active MRR</span>
+                <h2 className="kpi-card-value">${calculateMRR()}.00</h2>
               </div>
-              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600 }}>Paid Contracts</span>
-                <h2 style={{ fontSize: 28, fontWeight: 800, margin: '8px 0 0 0' }}>
+              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
+                <span className="kpi-card-label">Paid Contracts</span>
+                <h2 className="kpi-card-value">
                   {tenants.filter(t => t.isActive && t.subscription?.planType !== 'Free').length} Active
                 </h2>
               </div>
-              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                <span style={{ color: '#8E959F', fontSize: 12, fontWeight: 600 }}>Free Accounts</span>
-                <h2 style={{ fontSize: 28, fontWeight: 800, margin: '8px 0 0 0' }}>
+              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
+                <span className="kpi-card-label">Free Accounts</span>
+                <h2 className="kpi-card-value">
                   {tenants.filter(t => t.isActive && t.subscription?.planType === 'Free').length} Accounts
                 </h2>
               </div>
             </div>
 
             {/* Plan details table */}
-            <div style={{ background: '#FFFFFF', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Billing Grid</h3>
-              <table className="clean-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="panel-card-container" style={{ padding: '24px 0' }}>
+              <div style={{ padding: '0 24px 20px 24px', borderBottom: '1px solid #EEF0F2' }}>
+                <h3 className="panel-card-title">Billing Grid</h3>
+              </div>
+              <table className="clean-table">
                 <thead>
                   <tr>
                     <th>Restaurant</th>
@@ -740,7 +635,7 @@ export default function SuperAdminDashboard() {
                       <tr key={t._id}>
                         <td style={{ fontWeight: 700 }}>{t.restaurantName}</td>
                         <td>
-                          <span style={{
+                          <span className="kpi-card-footer-text" style={{
                             padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 800,
                             background: plan === 'Enterprise' ? 'rgba(168,85,247,0.1)' : plan === 'Pro' ? 'rgba(99,102,241,0.1)' : '#F1F5F9',
                             color: plan === 'Enterprise' ? '#A855F7' : plan === 'Pro' ? '#6366F1' : '#64748B'
@@ -761,23 +656,19 @@ export default function SuperAdminDashboard() {
 
         {/* ================= VIEW 4: SYSTEM SETTINGS ================= */}
         {activeMenu === 'settings' && (
-          <div style={{ maxWidth: 680, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Live Settings Panel */}
-            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10 }}>Global Platform Settings</h3>
+          <div className="settings-rows-list">
+            <h3 className="panel-card-title" style={{ marginBottom: 10 }}>Global Platform Settings</h3>
 
             {/* Commision Rate */}
-            <div className="setting-row">
+            <div className="setting-item-row">
               <div>
-                <span style={{ fontWeight: 700, fontSize: 15, display: 'block' }}>SaaS Transaction Commission (%)</span>
-                <span style={{ fontSize: 12, color: '#8E959F' }}>The platform commission deducted per online store transaction.</span>
+                <span className="setting-title-main">SaaS Transaction Commission (%)</span>
+                <span className="setting-title-desc">The platform commission deducted per online store transaction.</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <input
                   type="number"
-                  style={{
-                    width: 80, padding: '10px 14px', borderRadius: 10,
-                    border: '1px solid #EEF0F2', textAlign: 'center', fontWeight: 700
-                  }}
+                  className="setting-commission-input"
                   value={systemSettings.commissionRate}
                   onChange={e => saveGlobalSettings({ ...systemSettings, commissionRate: parseFloat(e.target.value) || 0 })}
                 />
@@ -786,17 +677,14 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Base Currency */}
-            <div className="setting-row">
+            <div className="setting-item-row">
               <div>
-                <span style={{ fontWeight: 700, fontSize: 15, display: 'block' }}>Global Platform Currency</span>
-                <span style={{ fontSize: 12, color: '#8E959F' }}>Default regional currency to display values in analytics.</span>
+                <span className="setting-title-main">Global Platform Currency</span>
+                <span className="setting-title-desc">Default regional currency to display values in analytics.</span>
               </div>
               <div>
                 <select
-                  style={{
-                    padding: '10px 14px', borderRadius: 10, border: '1px solid #EEF0F2',
-                    fontWeight: 700, outline: 'none'
-                  }}
+                  className="setting-select-box"
                   value={systemSettings.platformCurrency}
                   onChange={e => saveGlobalSettings({ ...systemSettings, platformCurrency: e.target.value })}
                 >
@@ -808,13 +696,14 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Maintenance Mode */}
-            <div className="setting-row">
+            <div className="setting-item-row">
               <div>
-                <span style={{ fontWeight: 700, fontSize: 15, display: 'block' }}>Global Maintenance Mode</span>
-                <span style={{ fontSize: 12, color: '#8E959F' }}>Temporarily pause client checkouts and tenant portals for system upgrades.</span>
+                <span className="setting-title-main">Global Maintenance Mode</span>
+                <span className="setting-title-desc">Temporarily pause client checkouts and tenant portals for system upgrades.</span>
               </div>
               <button
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: systemSettings.maintenanceMode ? '#EF4444' : '#8E959F' }}
+                className="setting-toggle-btn"
+                style={{ color: systemSettings.maintenanceMode ? '#EF4444' : '#8E959F' }}
                 onClick={() => saveGlobalSettings({ ...systemSettings, maintenanceMode: !systemSettings.maintenanceMode })}
               >
                 {systemSettings.maintenanceMode ? <ToggleRight size={38} style={{ color: '#EF4444' }} /> : <ToggleLeft size={38} />}
@@ -822,13 +711,14 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Auto approve tenants */}
-            <div className="setting-row">
+            <div className="setting-item-row">
               <div>
-                <span style={{ fontWeight: 700, fontSize: 15, display: 'block' }}>Auto-Approve Registrations</span>
-                <span style={{ fontSize: 12, color: '#8E959F' }}>Instantly launch new restaurants upon onboarding without manual review.</span>
+                <span className="setting-title-main">Auto-Approve Registrations</span>
+                <span className="setting-title-desc">Instantly launch new restaurants upon onboarding without manual review.</span>
               </div>
               <button
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: systemSettings.autoApproveTenants ? '#10B981' : '#8E959F' }}
+                className="setting-toggle-btn"
+                style={{ color: systemSettings.autoApproveTenants ? '#10B981' : '#8E959F' }}
                 onClick={() => saveGlobalSettings({ ...systemSettings, autoApproveTenants: !systemSettings.autoApproveTenants })}
               >
                 {systemSettings.autoApproveTenants ? <ToggleRight size={38} style={{ color: '#10B981' }} /> : <ToggleLeft size={38} />}
