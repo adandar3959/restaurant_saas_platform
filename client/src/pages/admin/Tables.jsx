@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, X, CalendarCheck, CalendarX, CheckCircle } from '
 import { tablesApi } from '../../api/tables.api';
 import { formatDateTime } from '../../lib/utils';
 import { TABLE_STATUS_COLORS } from '../../lib/constants';
+import UpgradeGate from '../../components/common/UpgradeGate';
 
 const STATUS_OPTIONS = Object.keys(TABLE_STATUS_COLORS);
 const RES_STATUS_COLORS = {
@@ -125,8 +126,9 @@ export default function Tables() {
   const confirmedRes = reservations.filter(r => r.status === 'Confirmed');
 
   return (
-    <div>
-      <Toast toast={toast} />
+    <UpgradeGate featureKey="tableManagement" requiredPlanName="Pro">
+      <div>
+        <Toast toast={toast} />
 
       <div className="page-header">
         <div>
@@ -404,5 +406,6 @@ export default function Tables() {
         .table-status-dot { width: 12px; height: 12px; border-radius: 50%; margin: 8px auto; }
       `}</style>
     </div>
+    </UpgradeGate>
   );
 }

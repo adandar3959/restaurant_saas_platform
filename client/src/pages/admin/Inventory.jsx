@@ -4,6 +4,7 @@ import { Plus, X, AlertTriangle, Pencil, Trash2, PackageCheck, PackageX, CheckCi
 import { inventoryApi } from '../../api/inventory.api';
 import { menuApi } from '../../api/menu.api';
 import { UNITS } from '../../lib/constants';
+import UpgradeGate from '../../components/common/UpgradeGate';
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -161,8 +162,9 @@ export default function Inventory() {
   };
 
   return (
-    <div>
-      <Toast toast={toast} />
+    <UpgradeGate featureKey="inventory" requiredPlanName="Pro">
+      <div>
+        <Toast toast={toast} />
 
       <div className="page-header">
         <div>
@@ -590,5 +592,6 @@ export default function Inventory() {
         </div>
       )}
     </div>
+    </UpgradeGate>
   );
 }

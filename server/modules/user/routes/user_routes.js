@@ -8,10 +8,21 @@ router.post('/login', validateLogin, ctrl.login);
 router.post('/onboard', validateOnboard, ctrl.onboard);
 
 // Customer self-registration (no auth, no invite needed)
+const { checkLimit } = require('../../../utils/plan.middleware');
+const User = require('../models/user_model');
+
 router.post('/customer/register', ctrl.customerRegister);
 router.post('/customer/login', validateLogin, ctrl.login);
 
-router.post('/staff', protect, authorize('Admin', 'Manager'), validateStaff, ctrl.createStaff);
+router.post('/staff', 
+  protect, 
+  authorize('Admin', 'Manager'), 
+  checkLimit('maxStaff', async (restaurantId) => {
+    return await User.countDocuments({ restaurantId, role: { $in: ['Admin', 'Manager', 'Chef', 'Waiter', 'Driver'] } });
+  }),
+  validateStaff, 
+  ctrl.createStaff
+);
 
 router.post('/invites', protect, authorize('SuperAdmin'), ctrl.createInvite);
 router.get('/invites', protect, authorize('SuperAdmin'), ctrl.getInvites);

@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Plus, Star, X, MessageSquare, Tag, CheckCircle, AlertCircle, Trash2, Pencil } from 'lucide-react';
 import { crmApi } from '../../api/crm.api';
 import { formatDate } from '../../lib/utils';
+import UpgradeGate from '../../components/common/UpgradeGate';
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -116,8 +117,9 @@ export default function CRM() {
   const activeCoupons = coupons.filter(c => c.isActive).length;
 
   return (
-    <div>
-      <Toast toast={toast} />
+    <UpgradeGate featureKey="crm" requiredPlanName="Enterprise">
+      <div>
+        <Toast toast={toast} />
 
       <div className="page-header">
         <div>
@@ -395,5 +397,6 @@ export default function CRM() {
         </div>
       )}
     </div>
+    </UpgradeGate>
   );
 }

@@ -4,6 +4,7 @@ import { Plus, MapPin, X, Truck, RefreshCw, Pencil, Trash2, CheckCircle, AlertCi
 import { deliveryApi } from '../../api/delivery.api';
 import { DISPATCH_STATUS } from '../../lib/constants';
 import { formatDateTime, getInitials } from '../../lib/utils';
+import UpgradeGate from '../../components/common/UpgradeGate';
 
 const DISPATCH_COLORS = {
   Assigned:    { bg: 'rgba(99,102,241,0.15)',  color: '#818CF8' },
@@ -129,8 +130,9 @@ export default function Delivery() {
   const availableDrivers   = drivers.filter(d => d.status === 'Available').length;
 
   return (
-    <div>
-      <Toast toast={toast} />
+    <UpgradeGate featureKey="delivery" requiredPlanName="Enterprise">
+      <div>
+        <Toast toast={toast} />
 
       <div className="page-header">
         <div>
@@ -431,5 +433,6 @@ export default function Delivery() {
         </div>
       )}
     </div>
+    </UpgradeGate>
   );
 }
