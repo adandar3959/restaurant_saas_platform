@@ -8,14 +8,13 @@ const ingredientSchema = new mongoose.Schema(
 
     unitOfMeasurement: {
       type: String,
-      enum: ['kg', 'g', 'L', 'ml', 'pcs', 'oz', 'lb', 'cup', 'tbsp', 'tsp'],
+      enum: ['kg', 'g', 'L', 'ml', 'pieces'],
       required: true,
     },
 
     currentStock: { type: Number, required: true, default: 0, min: 0 },
     lowStockThreshold: { type: Number, required: true, default: 0 },
     reorderQuantity: { type: Number, default: 0 },
-
     costPerUnit: { type: Number, default: 0 },
     supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', default: null },
 
