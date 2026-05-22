@@ -37,7 +37,11 @@ export default function AdminLayout() {
     if (!restaurantId) return;
     tenantApi.getRestaurant(restaurantId)
       .then(r => setRestaurant(r.data?.data))
-      .catch(() => { });
+      .catch((err) => { 
+        if (err.response?.status === 403 && err.response?.data?.message === 'RESTAURANT_SUSPENDED') {
+          handleLogout();
+        }
+      });
   }, [restaurantId]);
 
   const handleLogout = () => {

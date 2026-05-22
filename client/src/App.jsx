@@ -9,6 +9,7 @@ import OnboardingPage     from './pages/public/OnboardingPage';
 import LoginPage          from './pages/public/LoginPage';
 import SignupPage         from './pages/public/SignupPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
+import SuspendedPage      from './pages/public/SuspendedPage';
 
 // Customer
 import MenuPage              from './pages/customer/MenuPage';
@@ -113,8 +114,9 @@ function AppRoutes() {
       <Route path="/login"           element={<GuestOnly><LoginPage /></GuestOnly>} />
       <Route path="/signup"          element={<GuestOnly><SignupPage /></GuestOnly>} />
       <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />
+      <Route path="/suspended"       element={<SuspendedPage />} />
 
-      {}
+      {/* Admin Protected */}
       <Route
         path="/admin/:restaurantId"
         element={<RequireAuth allowedRoles={['Admin','Manager']}><AdminLayout /></RequireAuth>}
@@ -130,10 +132,10 @@ function AppRoutes() {
         <Route path="settings"  element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
       </Route>
 
-      {}
+      {/* Kitchen Protected */}
       <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
 
-      {}
+      {/* Other Roles */}
       <Route path="/superadmin"           element={<RequireAuth allowedRoles={['SuperAdmin']}><AdminErrorBoundary><SuperAdminDashboard /></AdminErrorBoundary></RequireAuth>} />
       <Route path="/waiter/:restaurantId" element={<RequireAuth allowedRoles={['Waiter']}><WaiterLayout /></RequireAuth>} />
       <Route path="/driver/:restaurantId" element={<RequireAuth allowedRoles={['Driver']}><DriverDashboard /></RequireAuth>} />

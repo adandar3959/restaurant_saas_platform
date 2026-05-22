@@ -62,7 +62,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {}
+          {/* ... existing code ... */}
           <div className="form-group">
             <label htmlFor="login-email" className="form-label">Email Address</label>
             <div className="form-input-icon">

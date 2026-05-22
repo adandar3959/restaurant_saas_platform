@@ -49,6 +49,22 @@ export function AuthProvider({ children }) {
     } finally {
       dispatch({ type: 'SET_HYDRATED' });
     }
+
+    // Global interceptor to catch suspended accounts securely at the API level
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 403 && error.response?.data?.message === 'RESTAURANT_SUSPENDED') {
+          localStorage.removeItem('rms_token');
+          localStorage.removeItem('rms_user');
+          delete axios.defaults.headers.common['Authorization'];
+          window.location.href = '/suspended';
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
   const login = async (email, password) => {
