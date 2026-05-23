@@ -14,25 +14,22 @@ const PLANS = [
     name: 'Free',
     price: 0,
     tagline: 'Get started for free',
-    icon: '🌱',
-    highlights: ['50 menu items', '5 staff accounts', '500 orders/mo'],
+    highlights: ['50 menu items', '1 staff accounts', '100 orders/mo'],
   },
   {
     id: 'Pro',
     name: 'Pro',
     price: 49,
     tagline: 'Most popular for growing restaurants',
-    icon: '⚡',
     popular: true,
-    highlights: ['Unlimited items', 'KDS + Inventory', 'Loyalty program'],
+    highlights: ['Unlimited items', '5 staff accounts', 'KDS + Inventory'],
   },
   {
     id: 'Enterprise',
     name: 'Enterprise',
     price: 149,
     tagline: 'For restaurant chains',
-    icon: '🏢',
-    highlights: ['Multi-location', 'Advanced analytics', 'API access'],
+    highlights: ['Delivery Management', 'Advanced analytics', 'Loyalty Program'],
   },
 ];
 
@@ -41,7 +38,7 @@ const CUISINES = [
   'Indian', 'American', 'Mexican', 'Middle Eastern', 'Seafood', 'Other',
 ];
 
-const STEP_LABELS = ['Choose Plan', 'Your Account', 'Restaurant Info', 'All Done!'];
+const STEP_LABELS = ['Choose Plan', 'Your Account', 'Payment Info', 'Restaurant Info', 'All Done!'];
 
 export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
@@ -73,10 +70,10 @@ export default function OnboardingPage() {
   const validate = () => {
     const errs = {};
     if (step === 2) {
-      if (!form.name.trim())           errs.name = 'Full name is required';
-      if (!form.email.trim())          errs.email = 'Email is required';
+      if (!form.name.trim()) errs.name = 'Full name is required';
+      if (!form.email.trim()) errs.email = 'Email is required';
       else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email';
-      if (!form.password)              errs.password = 'Password is required';
+      if (!form.password) errs.password = 'Password is required';
       else if (form.password.length < 6) errs.password = 'Minimum 6 characters';
       if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     }
@@ -118,13 +115,13 @@ export default function OnboardingPage() {
     <div className="onboarding-page">
       <Navbar />
       <div className="onboarding-container">
-        {}
+        { }
         <div className="onboarding-header text-center">
           <h1 className="text-3xl font-black gradient-text">Set Up Your Restaurant</h1>
           <p className="text-muted mt-2">Takes less than 3 minutes. No credit card required.</p>
         </div>
 
-        {}
+        { }
         <div className="steps">
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
@@ -146,10 +143,10 @@ export default function OnboardingPage() {
           })}
         </div>
 
-        {}
+        { }
         <div className="onboarding-card glass">
 
-          {}
+          { }
           {step === 1 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -191,7 +188,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {}
+          { }
           {step === 2 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -277,7 +274,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {}
+          { }
           {step === 3 && (
             <div className="step-content animate-fade-up">
               <div className="step-heading">
@@ -359,7 +356,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {}
+          { }
           {step === 4 && (
             <div className="step-content text-center animate-fade-up">
               <div className="success-icon">🎉</div>
@@ -390,9 +387,9 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        {}
+        { }
         <div className="onboarding-trust">
-          {['🔒 256-bit SSL', '✅ GDPR Compliant', '⚡ 99.9% Uptime', '💬 24/7 Support'].map(t => (
+          {['🔒 256-bit SSL', '⚡ 99.9% Uptime', '💬 24/7 Support'].map(t => (
             <span key={t} className="trust-chip">{t}</span>
           ))}
         </div>
