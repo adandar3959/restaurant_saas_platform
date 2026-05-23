@@ -3,8 +3,9 @@ import { NavLink, Outlet, useParams, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, UtensilsCrossed, Armchair, Users,
   Package, Truck, Heart, Settings, ChevronLeft, ChevronRight,
-  Bell, LogOut, User, Menu, X, ChevronDown, Store
+  Bell, LogOut, User, Menu, X, ChevronDown, Store, Lock
 } from 'lucide-react';
+import { hasFeatureAccess } from '../../lib/planLimits';
 import { useAuth } from '../../context/AuthContext';
 import { tenantApi } from '../../api/tenant.api';
 import { getInitials } from '../../lib/utils';
@@ -14,11 +15,11 @@ const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '', roles: null },
   { label: 'Orders', icon: ShoppingBag, path: 'orders', roles: null },
   { label: 'Menu', icon: UtensilsCrossed, path: 'menu', roles: null },
-  { label: 'Tables', icon: Armchair, path: 'tables', roles: null },
+  { label: 'Tables', icon: Armchair, path: 'tables', roles: null, featureKey: 'tableManagement' },
   { label: 'Staff', icon: Users, path: 'staff', roles: null },
-  { label: 'Inventory', icon: Package, path: 'inventory', roles: null },
-  { label: 'Delivery', icon: Truck, path: 'delivery', roles: null },
-  { label: 'CRM', icon: Heart, path: 'crm', roles: null },
+  { label: 'Inventory', icon: Package, path: 'inventory', roles: null, featureKey: 'inventory' },
+  { label: 'Delivery', icon: Truck, path: 'delivery', roles: null, featureKey: 'delivery' },
+  { label: 'CRM', icon: Heart, path: 'crm', roles: null, featureKey: 'crm' },
 
   { label: 'Settings', icon: Settings, path: 'settings', roles: ['admin'] },
 ];
@@ -94,6 +95,8 @@ export default function AdminLayout() {
         {visibleNav.map(item => {
           const Icon = item.icon;
           const to = item.path ? `${basePath}/${item.path}` : basePath;
+          const isLocked = item.featureKey && !hasFeatureAccess(restaurant?.subscription?.planType || 'Free', item.featureKey);
+          
           return (
             <NavLink
               key={item.label}
@@ -104,9 +107,15 @@ export default function AdminLayout() {
               }
               title={collapsed ? item.label : undefined}
               onClick={() => setMobileOpen(false)}
+              style={{ opacity: isLocked ? 0.5 : 1, transition: 'opacity 0.2s' }}
             >
               <Icon size={20} className="sidebar-link-icon" />
-              {!collapsed && <span className="sidebar-link-label">{item.label}</span>}
+              {!collapsed && (
+                <span className="sidebar-link-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  {item.label}
+                  {isLocked && <Lock size={14} style={{ color: 'var(--text-subtle)' }} />}
+                </span>
+              )}
             </NavLink>
           );
         })}

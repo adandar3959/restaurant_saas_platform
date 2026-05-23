@@ -1,9 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Search, ChefHat } from 'lucide-react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Search, ChefHat, AlertCircle, CheckCircle } from 'lucide-react';
 import { menuApi } from '../../api/menu.api';
 import { truncate } from '../../lib/utils';
 import './MenuManagement.css';
+
+function Toast({ toast }) {
+  if (!toast) return null;
+  const isErr = toast.type === 'error';
+  return (
+    <div style={{
+      position: 'fixed', top: 24, right: 24, zIndex: 9999,
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '12px 18px', borderRadius: 10, fontWeight: 700, fontSize: 13,
+      background: isErr ? '#7f1d1d' : 'var(--bg-surface-2)',
+      border: `1px solid ${isErr ? '#ef4444' : 'var(--primary)'}`,
+      color: '#fff',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+    }}>
+      {isErr ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+      {toast.msg}
+    </div>
+  );
+}
 
 const getId = (ref) => (ref && typeof ref === 'object') ? String(ref._id) : String(ref ?? '');
 
@@ -23,6 +42,12 @@ export default function MenuManagement() {
   const [dealItems,  setDealItems]  = useState([{ name: '', quantity: 1 }]);
   // sizes builder for menu items
   const [sizeRows,   setSizeRows]   = useState([]);
+  const [toast,      setToast]      = useState(null);
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -78,7 +103,10 @@ export default function MenuManagement() {
       }
       setModal(null);
       load();
-    } catch {}
+      showToast('success', 'Saved successfully');
+    } catch (e) {
+      showToast('error', e?.response?.data?.error || e?.response?.data?.message || 'Failed to save');
+    }
     finally { setSaving(false); }
   };
 
@@ -116,6 +144,7 @@ export default function MenuManagement() {
 
   return (
     <div>
+      <Toast toast={toast} />
       <div className="page-header">
         <div>
           <h1 className="page-title">Menu Management</h1>
