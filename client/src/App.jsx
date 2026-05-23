@@ -10,6 +10,7 @@ import LoginPage from './pages/public/LoginPage';
 import SignupPage from './pages/public/SignupPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 import SuspendedPage from './pages/public/SuspendedPage';
+import UpgradeSuccess from './pages/public/UpgradeSuccess';
 
 // Customer
 import MenuPage from './pages/customer/MenuPage';
@@ -104,6 +105,7 @@ function AppRoutes() {
       <Route path="/menu/:restaurantId/track/:orderId" element={<OrderTrackingPage />} />
       <Route path="/order-success" element={<OrderSuccess />} />
       <Route path="/order-confirmed-redirect" element={<OrderConfirmedRedirect />} />
+      <Route path="/upgrade-success" element={<UpgradeSuccess />} />
 
 
       {/* Customer auth & account */}

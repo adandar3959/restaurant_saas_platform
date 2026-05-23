@@ -1,9 +1,12 @@
-import { Lock, Crown } from 'lucide-react';
+import { useState } from 'react';
+import { Lock, Crown, Loader } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { hasFeatureAccess } from '../../lib/planLimits';
+import { tenantApi } from '../../api/tenant.api';
 
 export default function UpgradeGate({ featureKey, requiredPlanName = 'Pro', children }) {
   const { restaurant } = useOutletContext() || {};
+  const [loading, setLoading] = useState(false);
   const planType = restaurant?.subscription?.planType || 'Free';
 
   // If the restaurant hasn't loaded yet, return null to avoid flashing the lock screen
@@ -51,9 +54,27 @@ export default function UpgradeGate({ featureKey, requiredPlanName = 'Pro', chil
         This feature is only available on the <strong>{requiredPlanName} Plan</strong>. Upgrade your restaurant's subscription to unlock powerful new tools and grow your business.
       </p>
 
-      <button className="btn btn-primary btn-lg" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Crown size={18} />
-        Upgrade to {requiredPlanName}
+      <button 
+        className="btn btn-primary btn-lg" 
+        style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+        disabled={loading}
+        onClick={async () => {
+          try {
+            setLoading(true);
+            const res = await tenantApi.createSubscriptionSession(restaurant._id, { planType: requiredPlanName });
+            if (res.data?.data?.url) {
+              window.location.href = res.data.data.url;
+            }
+          } catch (error) {
+            console.error('Failed to create checkout session', error);
+            alert('Failed to start checkout process. Please try again.');
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        {loading ? <Loader size={18} className="animate-spin" /> : <Crown size={18} />}
+        {loading ? 'Redirecting...' : `Upgrade to ${requiredPlanName}`}
       </button>
     </div>
   );

@@ -12,6 +12,10 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
   credentials: true,
 }));
+
+// Stripe webhook MUST be before express.json() because it needs the raw request body
+const paymentController = require('./modules/payment/controllers/payment_controller');
+app.post('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }), paymentController.stripeWebhook);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

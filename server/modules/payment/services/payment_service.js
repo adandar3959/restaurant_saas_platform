@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../../order/models/order_model');
+const Tenant = require('../../tenant/models/tenant_model');
 
 exports.createCheckoutSession = async (orderId, restaurantId, customCancelUrl) => {
   const order = await Order.findOne({ _id: orderId, restaurantId }).populate('restaurantId');
@@ -70,14 +71,88 @@ exports.handleWebhook = async (sig, payload) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const orderId = session.metadata.orderId;
+    
+    // Check if this was a SaaS Subscription Upgrade
+    if (session.metadata.type === 'subscription_upgrade') {
+      const restaurantId = session.metadata.restaurantId;
+      const planType = session.metadata.planType;
+      
+      await Tenant.findByIdAndUpdate(restaurantId, {
+        'subscription.planType': planType,
+        'subscription.status': 'Active',
+      });
+      return;
+    }
 
-    await Order.findByIdAndUpdate(orderId, {
-      'payment.status': 'Paid',
-      'payment.method': 'Stripe',
-      'payment.transactionId': session.payment_intent,
-      'payment.paidAt': new Date(),
-      status: 'Accepted' // Automatically accept once paid
-    });
+    // Otherwise, handle regular Customer Order payment
+    const orderId = session.metadata.orderId;
+    if (orderId) {
+      await Order.findByIdAndUpdate(orderId, {
+        'payment.status': 'Paid',
+        'payment.method': 'Stripe',
+        'payment.transactionId': session.payment_intent,
+        'payment.paidAt': new Date(),
+        status: 'Accepted'
+      });
+    }
   }
+};
+
+exports.createSubscriptionSession = async (restaurantId, planType, successUrl, cancelUrl) => {
+  const tenant = await Tenant.findById(restaurantId);
+  if (!tenant) throw new Error('Restaurant not found');
+
+  const plans = {
+    'Pro': { price: 4900, name: 'DineFlow Pro (Monthly)' }, // 4900 cents = $49.00
+    'Enterprise': { price: 14900, name: 'DineFlow Enterprise (Monthly)' }
+  };
+
+  const plan = plans[planType];
+  if (!plan) throw new Error('Invalid plan type');
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: { name: plan.name },
+        unit_amount: plan.price,
+      },
+      quantity: 1,
+    }],
+    mode: 'payment',
+    success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: cancelUrl || `${process.env.CLIENT_URL || 'http://localhost:5173'}/pricing`,
+    metadata: {
+      type: 'subscription_upgrade',
+      restaurantId: restaurantId.toString(),
+      planType: planType
+    },
+  });
+
+  return session;
+};
+
+exports.verifySubscriptionSession = async (sessionId) => {
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+  if (!session) throw new Error('Session not found');
+  if (session.payment_status !== 'paid') {
+    throw Object.assign(new Error('Payment not completed'), { statusCode: 402 });
+  }
+  if (session.metadata?.type !== 'subscription_upgrade') {
+    throw Object.assign(new Error('Invalid session type'), { statusCode: 400 });
+  }
+
+  const { restaurantId, planType } = session.metadata;
+
+  const tenant = await Tenant.findByIdAndUpdate(
+    restaurantId,
+    { 'subscription.planType': planType, 'subscription.status': 'Active' },
+    { new: true }
+  );
+
+  if (!tenant) throw new Error('Restaurant not found');
+
+  return { tenant, planType };
 };

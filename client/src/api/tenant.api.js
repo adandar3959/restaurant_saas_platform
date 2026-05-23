@@ -8,6 +8,7 @@ export const tenantApi = {
   getBySlug:           (slug)    => api.get(`/tenants/slug/${slug}`),
   updateRestaurant:    (id, data)=> api.patch(`/tenants/${id}`, data),
   updateSubscription:  (id, data)=> api.patch(`/tenants/${id}/subscription`, data),
+  createSubscriptionSession: (restaurantId, data) => api.post(`/restaurants/${restaurantId}/payment/subscription-checkout`, data),
   getAllRestaurants:    (params)  => api.get('/tenants', { params }),
   deleteRestaurant:    (id)      => api.delete(`/tenants/${id}`),
 };
