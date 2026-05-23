@@ -12,14 +12,14 @@ router.get('/categories', ctrl.getCategories);
 router.post('/categories', 
   protect, 
   authorize(...staff), 
-  checkLimit('maxMenuCategories', async (rid) => Category.countDocuments({ restaurantId: rid })),
+  checkLimit('maxMenuCategories', async (rid) => Category.countDocuments({ restaurantId: rid, deletedAt: null })),
   validateCategory, 
   ctrl.createCategory
 );
 router.post('/categories/bulk', 
   protect, 
   authorize(...staff), 
-  checkLimit('maxMenuCategories', async (rid) => Category.countDocuments({ restaurantId: rid })),
+  checkLimit('maxMenuCategories', async (rid) => Category.countDocuments({ restaurantId: rid, deletedAt: null })),
   ctrl.createManyCategories
 );
 router.get('/categories/:id', ctrl.getCategoryById);
@@ -30,14 +30,14 @@ router.get('/items', ctrl.getItems);
 router.post('/items', 
   protect, 
   authorize(...staff), 
-  checkLimit('maxMenuItems', async (rid) => MenuItem.countDocuments({ restaurantId: rid })),
+  checkLimit('maxMenuItems', async (rid) => MenuItem.countDocuments({ restaurantId: rid, deletedAt: null })),
   validateMenuItem, 
   ctrl.createItem
 );
 router.post('/items/bulk', 
   protect, 
   authorize(...staff), 
-  checkLimit('maxMenuItems', async (rid) => MenuItem.countDocuments({ restaurantId: rid })),
+  checkLimit('maxMenuItems', async (rid) => MenuItem.countDocuments({ restaurantId: rid, deletedAt: null })),
   ctrl.createManyItems
 );
 router.get('/items/:id', ctrl.getItemById);

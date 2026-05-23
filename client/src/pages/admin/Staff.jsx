@@ -80,7 +80,9 @@ export default function Staff() {
       load();
       showToast('success', `${form.name} added as ${form.role}`);
     } catch (e) {
-      setError(e?.response?.data?.message || 'Validation failed');
+      const errorMsg = e?.response?.data?.error || e?.response?.data?.message || 'Validation failed';
+      setError(errorMsg);
+      showToast('error', errorMsg);
     } finally { setSaving(false); }
   };
 

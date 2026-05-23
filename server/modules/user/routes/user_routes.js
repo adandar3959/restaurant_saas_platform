@@ -18,7 +18,7 @@ router.post('/staff',
   protect, 
   authorize('Admin', 'Manager'), 
   checkLimit('maxStaff', async (restaurantId) => {
-    return await User.countDocuments({ restaurantId, role: { $in: ['Admin', 'Manager', 'Chef', 'Waiter', 'Driver'] } });
+    return await User.countDocuments({ restaurantId, role: { $in: ['Admin', 'Manager', 'Chef', 'Waiter', 'Driver'] }, deletedAt: null });
   }),
   validateStaff, 
   ctrl.createStaff

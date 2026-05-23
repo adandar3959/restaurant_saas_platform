@@ -3,38 +3,38 @@ import { Component, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
-import LandingPage        from './pages/public/LandingPage';
-import PricingPage        from './pages/public/PricingPage';
-import OnboardingPage     from './pages/public/OnboardingPage';
-import LoginPage          from './pages/public/LoginPage';
-import SignupPage         from './pages/public/SignupPage';
+import LandingPage from './pages/public/LandingPage';
+import PricingPage from './pages/public/PricingPage';
+import OnboardingPage from './pages/public/OnboardingPage';
+import LoginPage from './pages/public/LoginPage';
+import SignupPage from './pages/public/SignupPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
-import SuspendedPage      from './pages/public/SuspendedPage';
+import SuspendedPage from './pages/public/SuspendedPage';
 
 // Customer
-import MenuPage              from './pages/customer/MenuPage';
-import CartPage              from './pages/customer/CartPage';
-import OrderConfirmedPage   from './pages/customer/OrderConfirmedPage';
-import OrderTrackingPage    from './pages/customer/OrderTrackingPage';
-import OrderSuccess         from './pages/customer/OrderSuccess';
-import CustomerLoginPage    from './pages/customer/CustomerLoginPage';
-import CustomerAccountPage  from './pages/customer/CustomerAccountPage';
-import RestaurantSlugPage   from './pages/customer/RestaurantSlugPage';
+import MenuPage from './pages/customer/MenuPage';
+import CartPage from './pages/customer/CartPage';
+import OrderConfirmedPage from './pages/customer/OrderConfirmedPage';
+import OrderTrackingPage from './pages/customer/OrderTrackingPage';
+import OrderSuccess from './pages/customer/OrderSuccess';
+import CustomerLoginPage from './pages/customer/CustomerLoginPage';
+import CustomerAccountPage from './pages/customer/CustomerAccountPage';
+import RestaurantSlugPage from './pages/customer/RestaurantSlugPage';
 
-import AdminLayout     from './components/layout/AdminLayout';
-import AdminDashboard  from './pages/admin/AdminDashboard';
-import Orders          from './pages/admin/Orders';
-import MenuManagement  from './pages/admin/MenuManagement';
-import Tables          from './pages/admin/Tables';
-import Staff           from './pages/admin/Staff';
-import Inventory       from './pages/admin/Inventory';
-import Delivery        from './pages/admin/Delivery';
-import CRM             from './pages/admin/CRM';
-import AdminSettings   from './pages/admin/AdminSettings';
+import AdminLayout from './components/layout/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import Orders from './pages/admin/Orders';
+import MenuManagement from './pages/admin/MenuManagement';
+import Tables from './pages/admin/Tables';
+import Staff from './pages/admin/Staff';
+import Inventory from './pages/admin/Inventory';
+import Delivery from './pages/admin/Delivery';
+import CRM from './pages/admin/CRM';
+import AdminSettings from './pages/admin/AdminSettings';
 
-import KDS             from './pages/kitchen/KDS';
+import KDS from './pages/kitchen/KDS';
 
-import WaiterLayout    from './pages/waiter/WaiterLayout';
+import WaiterLayout from './pages/waiter/WaiterLayout';
 
 import DriverDashboard from './pages/driver/DriverDashboard';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -51,7 +51,7 @@ class AdminErrorBoundary extends Component {
           <div style={{ fontSize: 40 }}>💥</div>
           <h2 style={{ color: 'var(--error)', fontWeight: 800 }}>Page Error</h2>
           <pre style={{ background: 'var(--bg-surface)', border: '1px solid var(--error)', borderRadius: 8, padding: 16, color: '#FCA5A5', fontSize: 13, maxWidth: 640, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-            {this.state.error?.message}\n\n{this.state.error?.stack?.split('\n').slice(0,6).join('\n')}
+            {this.state.error?.message}\n\n{this.state.error?.stack?.split('\n').slice(0, 6).join('\n')}
           </pre>
           <button className="btn btn-outline btn-sm" onClick={() => this.setState({ error: null })}>
             Try Again
@@ -90,53 +90,53 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public pages */}
-      <Route path="/"             element={<LandingPage />} />
-      <Route path="/pricing"      element={<PricingPage />} />
-      <Route path="/onboarding"   element={<OnboardingPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/onboarding" element={<OnboardingPage />} />
 
       {/* Customer — slug entry point (simple URL) */}
-      <Route path="/r/:slug"                                    element={<RestaurantSlugPage />} />
+      <Route path="/r/:slug" element={<RestaurantSlugPage />} />
 
       {/* Customer — public menu + ordering (no auth needed) */}
-      <Route path="/menu/:restaurantId"                          element={<MenuPage />} />
-      <Route path="/menu/:restaurantId/cart"                     element={<CartPage />} />
+      <Route path="/menu/:restaurantId" element={<MenuPage />} />
+      <Route path="/menu/:restaurantId/cart" element={<CartPage />} />
       <Route path="/menu/:restaurantId/order-confirmed/:orderId" element={<OrderConfirmedPage />} />
-      <Route path="/menu/:restaurantId/track/:orderId"           element={<OrderTrackingPage />} />
-      <Route path="/order-success"                                element={<OrderSuccess />} />
-      <Route path="/order-confirmed-redirect"                    element={<OrderConfirmedRedirect />} />
+      <Route path="/menu/:restaurantId/track/:orderId" element={<OrderTrackingPage />} />
+      <Route path="/order-success" element={<OrderSuccess />} />
+      <Route path="/order-confirmed-redirect" element={<OrderConfirmedRedirect />} />
 
 
       {/* Customer auth & account */}
-      <Route path="/customer/login"  element={<CustomerLoginPage />} />
-      <Route path="/account"         element={<CustomerAccountPage />} />
+      <Route path="/customer/login" element={<CustomerLoginPage />} />
+      <Route path="/account" element={<CustomerAccountPage />} />
 
       {/* Staff Auth */}
-      <Route path="/login"           element={<GuestOnly><LoginPage /></GuestOnly>} />
-      <Route path="/signup"          element={<GuestOnly><SignupPage /></GuestOnly>} />
+      <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+      <Route path="/signup" element={<GuestOnly><SignupPage /></GuestOnly>} />
       <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />
-      <Route path="/suspended"       element={<SuspendedPage />} />
+      <Route path="/suspended" element={<SuspendedPage />} />
 
       {/* Admin Protected */}
       <Route
         path="/admin/:restaurantId"
-        element={<RequireAuth allowedRoles={['Admin','Manager']}><AdminLayout /></RequireAuth>}
+        element={<RequireAuth allowedRoles={['Admin', 'Manager']}><AdminLayout /></RequireAuth>}
       >
-        <Route index            element={<AdminErrorBoundary><AdminDashboard /></AdminErrorBoundary>} />
-        <Route path="orders"    element={<AdminErrorBoundary><Orders /></AdminErrorBoundary>} />
-        <Route path="menu"      element={<AdminErrorBoundary><MenuManagement /></AdminErrorBoundary>} />
-        <Route path="tables"    element={<AdminErrorBoundary><Tables /></AdminErrorBoundary>} />
-        <Route path="staff"     element={<AdminErrorBoundary><Staff /></AdminErrorBoundary>} />
+        <Route index element={<AdminErrorBoundary><AdminDashboard /></AdminErrorBoundary>} />
+        <Route path="orders" element={<AdminErrorBoundary><Orders /></AdminErrorBoundary>} />
+        <Route path="menu" element={<AdminErrorBoundary><MenuManagement /></AdminErrorBoundary>} />
+        <Route path="tables" element={<AdminErrorBoundary><Tables /></AdminErrorBoundary>} />
+        <Route path="staff" element={<AdminErrorBoundary><Staff /></AdminErrorBoundary>} />
         <Route path="inventory" element={<AdminErrorBoundary><Inventory /></AdminErrorBoundary>} />
-        <Route path="delivery"  element={<AdminErrorBoundary><Delivery /></AdminErrorBoundary>} />
-        <Route path="crm"       element={<AdminErrorBoundary><CRM /></AdminErrorBoundary>} />
-        <Route path="settings"  element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
+        <Route path="delivery" element={<AdminErrorBoundary><Delivery /></AdminErrorBoundary>} />
+        <Route path="crm" element={<AdminErrorBoundary><CRM /></AdminErrorBoundary>} />
+        <Route path="settings" element={<AdminErrorBoundary><AdminSettings /></AdminErrorBoundary>} />
       </Route>
 
       {/* Kitchen Protected */}
       <Route path="/kitchen/:restaurantId" element={<RequireAuth allowedRoles={['Chef']}><AdminErrorBoundary><KDS /></AdminErrorBoundary></RequireAuth>} />
 
       {/* Other Roles */}
-      <Route path="/superadmin"           element={<RequireAuth allowedRoles={['SuperAdmin']}><AdminErrorBoundary><SuperAdminDashboard /></AdminErrorBoundary></RequireAuth>} />
+      <Route path="/superadmin" element={<RequireAuth allowedRoles={['SuperAdmin']}><AdminErrorBoundary><SuperAdminDashboard /></AdminErrorBoundary></RequireAuth>} />
       <Route path="/waiter/:restaurantId" element={<RequireAuth allowedRoles={['Waiter']}><WaiterLayout /></RequireAuth>} />
       <Route path="/driver/:restaurantId" element={<RequireAuth allowedRoles={['Driver']}><DriverDashboard /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
