@@ -66,8 +66,7 @@ exports.onboard = async (data) => {
     slug,
     subscription: {
       planType: data.planType || 'Free',
-      status: data.planType && data.planType !== 'Free' ? 'Trial' : 'Active',
-      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      status: 'Pending', // Always Pending until Stripe payment is verified
     },
   });
 
@@ -78,6 +77,7 @@ exports.onboard = async (data) => {
   user.passwordHash = undefined;
   return { user, tenant, token };
 };
+
 exports.createInvite = async (email, superAdminId) => {
   await Invite.deleteMany({ email: email.toLowerCase(), usedAt: null });
 

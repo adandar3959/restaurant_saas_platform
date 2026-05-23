@@ -3,7 +3,7 @@ import { NavLink, Outlet, useParams, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, UtensilsCrossed, Armchair, Users,
   Package, Truck, Heart, Settings, ChevronLeft, ChevronRight,
-  Bell, LogOut, User, Menu, X, ChevronDown, Store, Lock
+  Bell, LogOut, User, Menu, X, ChevronDown, Store, Lock, CreditCard, AlertTriangle
 } from 'lucide-react';
 import { hasFeatureAccess } from '../../lib/planLimits';
 import { useAuth } from '../../context/AuthContext';
@@ -151,6 +151,70 @@ export default function AdminLayout() {
       </div>
     </>
   );
+
+  // --- Pending payment wall ---
+  const isPending = restaurant?.subscription?.status === 'Pending';
+  const [stripeLoading, setStripeLoading] = useState(false);
+
+  const handleCompletePayment = async () => {
+    try {
+      setStripeLoading(true);
+      const res = await tenantApi.createSubscriptionSession(restaurantId, {
+        planType: restaurant?.subscription?.planType || 'Free'
+      });
+      if (res.data?.data?.url) window.location.href = res.data.data.url;
+    } catch { alert('Failed to start checkout. Please try again.'); }
+    finally { setStripeLoading(false); }
+  };
+
+  if (restaurant && isPending) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: 'var(--bg-base)',
+        fontFamily: 'var(--font-body, Inter, sans-serif)', padding: 24,
+      }}>
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border)',
+          borderRadius: 20, padding: '48px 40px', textAlign: 'center',
+          maxWidth: 480, width: '100%', boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
+        }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: 'rgba(245,158,11,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 24px',
+          }}>
+            <AlertTriangle size={40} style={{ color: '#F59E0B' }} />
+          </div>
+          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>Complete Your Setup</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 8 }}>
+            Your <strong>{restaurant?.restaurantName}</strong> account is created but payment is pending.
+          </p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 32 }}>
+            Complete your <strong>{restaurant?.subscription?.planType}</strong> plan payment to access your dashboard.
+          </p>
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+            disabled={stripeLoading}
+            onClick={handleCompletePayment}
+          >
+            {stripeLoading
+              ? 'Redirecting...'
+              : <><CreditCard size={18} /> Complete Payment</>}
+          </button>
+          <button
+            className="btn btn-outline"
+            style={{ width: '100%', marginTop: 12 }}
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-layout">

@@ -18,7 +18,7 @@ const addressSchema = new mongoose.Schema(
 const subscriptionSchema = new mongoose.Schema(
   {
     planType: { type: String, enum: ['Free', 'Pro', 'Enterprise'], default: 'Free' },
-    status: { type: String, enum: ['Active', 'Suspended', 'Expired', 'Trial'], default: 'Trial' },
+    status: { type: String, enum: ['Active', 'Suspended', 'Expired', 'Trial', 'Pending'], default: 'Pending' },
     trialEndsAt: { type: Date },
     validUntil: { type: Date },
 

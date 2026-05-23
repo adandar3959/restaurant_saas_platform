@@ -103,15 +103,26 @@ exports.createSubscriptionSession = async (restaurantId, planType, successUrl, c
   if (!tenant) throw new Error('Restaurant not found');
 
   const plans = {
-    'Pro': { price: 4900, name: 'DineFlow Pro (Monthly)' }, // 4900 cents = $49.00
+    'Free':       { price: 0,     name: 'DineFlow Free Plan' },
+    'Pro':        { price: 4900,  name: 'DineFlow Pro (Monthly)' },
     'Enterprise': { price: 14900, name: 'DineFlow Enterprise (Monthly)' }
   };
 
   const plan = plans[planType];
   if (!plan) throw new Error('Invalid plan type');
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+  const baseSuccessUrl = successUrl || `${process.env.CLIENT_URL || 'http://localhost:5173'}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`;
+
+  // Free plan — skip Stripe card UI, use a zero-dollar session
+  const sessionConfig = {
+    mode: 'payment',
+    success_url: baseSuccessUrl,
+    cancel_url: cancelUrl || `${process.env.CLIENT_URL || 'http://localhost:5173'}/pricing`,
+    metadata: {
+      type: 'subscription_upgrade',
+      restaurantId: restaurantId.toString(),
+      planType: planType
+    },
     line_items: [{
       price_data: {
         currency: 'usd',
@@ -120,16 +131,18 @@ exports.createSubscriptionSession = async (restaurantId, planType, successUrl, c
       },
       quantity: 1,
     }],
-    mode: 'payment',
-    success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: cancelUrl || `${process.env.CLIENT_URL || 'http://localhost:5173'}/pricing`,
-    metadata: {
-      type: 'subscription_upgrade',
-      restaurantId: restaurantId.toString(),
-      planType: planType
-    },
-  });
+  };
 
+  // For paid plans, require card
+  if (plan.price > 0) {
+    sessionConfig.payment_method_types = ['card'];
+  } else {
+    // For free, still open Stripe but no payment needed — allow skipping card
+    sessionConfig.payment_method_types = ['card'];
+    sessionConfig.submit_type = 'auto';
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionConfig);
   return session;
 };
 
