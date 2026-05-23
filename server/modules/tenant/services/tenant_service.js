@@ -81,8 +81,17 @@ exports.updateTenant = async (id, data) => {
 };
 
 exports.deleteTenant = async (id) => {
-  const tenant = await Tenant.findByIdAndUpdate(id, { deletedAt: new Date(), isActive: false }, { returnDocument: 'after' });
+  const tenant = await Tenant.findById(id);
   if (!tenant) throw Object.assign(new Error('Restaurant not found'), { statusCode: 404 });
+
+  const User = require('../../user/models/user_model');
+
+  // Permanently delete all staff/admin accounts tied to this restaurant
+  await User.deleteMany({ restaurantId: id });
+
+  // Permanently delete the tenant itself
+  await Tenant.findByIdAndDelete(id);
+
   return tenant;
 };
 
