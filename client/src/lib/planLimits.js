@@ -9,6 +9,7 @@ export const PLAN_LIMITS = {
     maxStaff: 1,
     maxMenuCategories: 5,
     maxMenuItems: 50,
+    maxOrders: 100,
     features: {
       kds: false,
       tableManagement: false,
@@ -21,6 +22,7 @@ export const PLAN_LIMITS = {
     maxStaff: 5,
     maxMenuCategories: 9999,
     maxMenuItems: 9999,
+    maxOrders: 1000,
     features: {
       kds: true,
       tableManagement: true,
@@ -33,6 +35,7 @@ export const PLAN_LIMITS = {
     maxStaff: 9999,
     maxMenuCategories: 9999,
     maxMenuItems: 9999,
+    maxOrders: 999999,
     features: {
       kds: true,
       tableManagement: true,
