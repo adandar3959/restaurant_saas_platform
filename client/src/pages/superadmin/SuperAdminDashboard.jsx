@@ -682,8 +682,7 @@ export default function SuperAdminDashboard() {
                             onClick={async () => {
                               try {
                                 setPlanSaving(true);
-                                const token = JSON.parse(localStorage.getItem('rms_token') || 'null');
-                                await plansApi.update(plan.planId, planForm, token);
+                                await plansApi.update(plan.planId, planForm);
                                 const r = await plansApi.getAll();
                                 setDbPlans(r.data?.data || r.data || []);
                                 setEditingPlan(null);

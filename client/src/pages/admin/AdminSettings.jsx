@@ -94,7 +94,7 @@ function SubscriptionTab({ restaurantId, restaurant }) {
 
       {/* Plan cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-        {PLAN_CONFIG.map(p => {
+        {plans.map(p => {
           const isCurrent = currentPlan === p.plan;
           const isLoading = upgrading === p.plan;
           return (

@@ -1,11 +1,6 @@
-import axios from 'axios';
-
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+import api from './tenant.api'; // reuse the same axios instance — has auth interceptor built-in
 
 export const plansApi = {
-  getAll: () => axios.get(`${BASE}/plans`),
-  update: (planId, data, token) =>
-    axios.patch(`${BASE}/plans/${planId}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+  getAll:  ()              => api.get('/plans'),
+  update:  (planId, data)  => api.patch(`/plans/${planId}`, data),
 };

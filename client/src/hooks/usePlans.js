@@ -7,9 +7,9 @@ import { plansApi } from '../api/plans.api';
  * Returns: { plans, loading, error }
  */
 export function usePlans() {
-  const [plans, setPlans]     = useState([]);
+  const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     plansApi.getAll()
