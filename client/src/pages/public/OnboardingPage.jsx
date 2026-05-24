@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { tenantApi } from '../../api/tenant.api';
+import { usePlans } from '../../hooks/usePlans';
 import Navbar from '../../components/layout/Navbar';
 import './OnboardingPage.css';
 
@@ -46,6 +47,13 @@ export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
   const { onboard, isLoading, error } = useAuth();
   const navigate = useNavigate();
+  const { plans: dbPlans } = usePlans();
+
+  // Merge DB prices into static PLANS
+  const plans = PLANS.map(p => {
+    const db = dbPlans.find(d => d.planId === p.id);
+    return { ...p, price: db?.price ?? p.price };
+  });
 
   const [step, setStep] = useState(1);
   const [showPass, setShowPass] = useState(false);

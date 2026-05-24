@@ -3,6 +3,7 @@ import { Check, ArrowRight, Zap, Building2, Sprout } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import PlanCard from '../../components/shared/PlanCard';
+import { usePlans } from '../../hooks/usePlans';
 import './PricingPage.css';
 
 const plans = [
@@ -86,6 +87,9 @@ const plans = [
   },
 ];
 
+// Rename hardcoded array to PLAN_DEFS (prices overridden by DB at runtime)
+const PLAN_DEFS = plans;
+
 const compareFeatures = [
   { name: 'Online Ordering',         free: true,  pro: true,  ent: true },
   { name: 'Menu Management',          free: true,  pro: true,  ent: true },
@@ -121,6 +125,14 @@ const faqs = [
 ];
 
 export default function PricingPage() {
+  const { plans: dbPlans, loading: plansLoading } = usePlans();
+
+  // Merge DB prices into the static plan definitions
+  const plans = PLAN_DEFS.map(p => {
+    const db = dbPlans.find(d => d.planId === p.id);
+    return { ...p, price: db?.price ?? p.price };
+  });
+
   return (
     <div>
       <Navbar />

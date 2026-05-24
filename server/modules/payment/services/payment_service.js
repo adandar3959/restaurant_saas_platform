@@ -1,14 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order  = require('../../order/models/order_model');
 const Tenant = require('../../tenant/models/tenant_model');
-
-// ─── Plan Price ID map ────────────────────────────────────────────────────────
-// Free plan is handled without Stripe (no card required).
-// Pro and Enterprise use recurring Price IDs from Stripe dashboard.
-const PRICE_IDS = {
-  Pro:        process.env.STRIPE_PRO_PRICE_ID,
-  Enterprise: process.env.STRIPE_ENT_PRICE_ID,
-};
+const Plan   = require('../../plans/models/plan_model');
 
 // ─── Customer Order Checkout (food payment, not SaaS) ────────────────────────
 exports.createCheckoutSession = async (orderId, restaurantId, customCancelUrl) => {
@@ -67,16 +60,17 @@ exports.createSubscriptionSession = async (restaurantId, planType) => {
       'subscription.planType': 'Free',
       'subscription.status': 'Active',
     });
-    // Return a fake "session" that sends the frontend straight to success
     return { url: `${BASE}/upgrade-success?plan=Free&restaurant_id=${restaurantId}` };
   }
 
-  const priceId = PRICE_IDS[planType];
-  if (!priceId) throw new Error(`No Stripe Price ID configured for plan: ${planType}`);
+  // Look up plan config from DB (price, stripePriceId, etc.)
+  const planConfig = await Plan.findOne({ planId: planType, isActive: true });
+  if (!planConfig) throw new Error(`Plan not found: ${planType}`);
+  if (!planConfig.stripePriceId) throw new Error(`No Stripe Price ID set for plan: ${planType}. Please configure it in the SuperAdmin dashboard.`);
 
   const sessionConfig = {
     mode: 'subscription', // ← Recurring! Stripe auto-charges every month
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price: planConfig.stripePriceId, quantity: 1 }],
     success_url: `${BASE}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE}/pricing`,
     metadata: {

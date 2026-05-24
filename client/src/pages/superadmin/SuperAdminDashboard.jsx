@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { tenantApi } from '../../api/tenant.api';
+import { plansApi } from '../../api/plans.api';
 import './SuperAdminDashboard.css';
 import {
   LayoutDashboard,
@@ -63,6 +64,17 @@ export default function SuperAdminDashboard() {
   const [selectedSubTab, setSelectedSubTab] = useState('All'); // 'All' | 'Pro' | 'Enterprise' | 'Free'
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  // Plans & Pricing state
+  const [dbPlans, setDbPlans] = useState([]);
+  const [editingPlan, setEditingPlan] = useState(null); // planId being edited
+  const [planForm, setPlanForm] = useState({});
+  const [planSaving, setPlanSaving] = useState(false);
+
+  // Load plans from DB
+  useEffect(() => {
+    plansApi.getAll().then(r => setDbPlans(r.data?.data || r.data || [])).catch(() => {});
+  }, []);
 
   // Modal State
   const [subModal, setSubModal] = useState(false);
@@ -593,7 +605,7 @@ export default function SuperAdminDashboard() {
         {/* ================= VIEW 3: REVENUE & PLANS ================= */}
         {activeMenu === 'revenue' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* Subscription Billing overview */}
+            {/* KPI Row */}
             <div className="kpi-cards-grid">
               <div className="kpi-card" style={{ background: '#FFFFFF' }}>
                 <span className="kpi-card-label">Active MRR</span>
@@ -613,7 +625,84 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            {/* Plan details table */}
+            {/* ── Plans & Pricing Editor ── */}
+            <div className="panel-card-container" style={{ padding: '24px' }}>
+              <h3 className="panel-card-title" style={{ marginBottom: 20 }}>Plans &amp; Pricing</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                {dbPlans.map(plan => {
+                  const isEditing = editingPlan === plan.planId;
+                  return (
+                    <div key={plan.planId} style={{
+                      border: '1px solid #EEF0F2', borderRadius: 14,
+                      padding: 20, display: 'flex', flexDirection: 'column', gap: 12,
+                      background: isEditing ? '#F8F9FF' : '#fff',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 800, fontSize: 15 }}>{plan.planId}</span>
+                        {!isEditing ? (
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            style={{ color: '#6366F1', fontSize: 12 }}
+                            onClick={() => { setEditingPlan(plan.planId); setPlanForm({ price: plan.price, stripePriceId: plan.stripePriceId || '', tagline: plan.tagline || '' }); }}
+                          >
+                            ✏️ Edit
+                          </button>
+                        ) : (
+                          <button className="btn btn-ghost btn-xs" style={{ color: '#EF4444' }} onClick={() => setEditingPlan(null)}>✕ Cancel</button>
+                        )}
+                      </div>
+
+                      {!isEditing ? (
+                        <>
+                          <div style={{ fontSize: 28, fontWeight: 900 }}>${plan.price}<span style={{ fontSize: 13, fontWeight: 400, color: '#8E959F' }}>/mo</span></div>
+                          <div style={{ fontSize: 12, color: '#8E959F' }}>{plan.tagline}</div>
+                          {plan.stripePriceId && <div style={{ fontSize: 11, color: '#8E959F', fontFamily: 'monospace', wordBreak: 'break-all' }}>Stripe ID: {plan.stripePriceId}</div>}
+                        </>
+                      ) : (
+                        <>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: 11 }}>Price (USD)</label>
+                            <input type="number" className="form-input" value={planForm.price}
+                              onChange={e => setPlanForm(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: 11 }}>Stripe Price ID</label>
+                            <input type="text" className="form-input" placeholder="price_xxx..."
+                              value={planForm.stripePriceId}
+                              onChange={e => setPlanForm(p => ({ ...p, stripePriceId: e.target.value }))} />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: 11 }}>Tagline</label>
+                            <input type="text" className="form-input" value={planForm.tagline}
+                              onChange={e => setPlanForm(p => ({ ...p, tagline: e.target.value }))} />
+                          </div>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={planSaving}
+                            onClick={async () => {
+                              try {
+                                setPlanSaving(true);
+                                const token = JSON.parse(localStorage.getItem('rms_token') || 'null');
+                                await plansApi.update(plan.planId, planForm, token);
+                                const r = await plansApi.getAll();
+                                setDbPlans(r.data?.data || r.data || []);
+                                setEditingPlan(null);
+                                showToast('success', `${plan.planId} plan updated`);
+                              } catch { showToast('error', 'Failed to update plan'); }
+                              finally { setPlanSaving(false); }
+                            }}
+                          >
+                            {planSaving ? 'Saving...' : 'Save Plan'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Billing Grid */}
             <div className="panel-card-container" style={{ padding: '24px 0' }}>
               <div style={{ padding: '0 24px 20px 24px', borderBottom: '1px solid #EEF0F2' }}>
                 <h3 className="panel-card-title">Billing Grid</h3>
@@ -629,18 +718,19 @@ export default function SuperAdminDashboard() {
                 </thead>
                 <tbody>
                   {tenants.map(t => {
-                    const plan = t.subscription?.planType || 'Free';
-                    const amount = plan === 'Pro' ? 49 : plan === 'Enterprise' ? 149 : 0;
+                    const planId = t.subscription?.planType || 'Free';
+                    const planData = dbPlans.find(p => p.planId === planId);
+                    const amount = planData?.price ?? 0;
                     return (
                       <tr key={t._id}>
                         <td style={{ fontWeight: 700 }}>{t.restaurantName}</td>
                         <td>
                           <span className="kpi-card-footer-text" style={{
                             padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 800,
-                            background: plan === 'Enterprise' ? 'rgba(168,85,247,0.1)' : plan === 'Pro' ? 'rgba(99,102,241,0.1)' : '#F1F5F9',
-                            color: plan === 'Enterprise' ? '#A855F7' : plan === 'Pro' ? '#6366F1' : '#64748B'
+                            background: planId === 'Enterprise' ? 'rgba(168,85,247,0.1)' : planId === 'Pro' ? 'rgba(99,102,241,0.1)' : '#F1F5F9',
+                            color: planId === 'Enterprise' ? '#A855F7' : planId === 'Pro' ? '#6366F1' : '#64748B'
                           }}>
-                            {plan}
+                            {planId}
                           </span>
                         </td>
                         <td>Monthly Billing</td>

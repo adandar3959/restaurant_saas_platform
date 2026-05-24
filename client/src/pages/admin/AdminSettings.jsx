@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Save, Store, Clock, Palette, CreditCard, CheckCircle, Loader, Crown } from 'lucide-react';
 import { tenantApi } from '../../api/tenant.api';
+import { usePlans } from '../../hooks/usePlans';
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const DEFAULT_HOURS = DAYS.reduce((acc, d) => ({ ...acc, [d]: { open: '09:00', close: '22:00', isOpen: true } }), {});
@@ -31,7 +32,18 @@ const STATUS_COLORS = {
 };
 
 function SubscriptionTab({ restaurantId, restaurant }) {
-  const [upgrading, setUpgrading] = useState(null); // stores which plan is loading
+  const [upgrading, setUpgrading] = useState(null);
+  const { plans: dbPlans, loading: plansLoading } = usePlans();
+
+  // Merge DB prices into static PLAN_CONFIG
+  const plans = PLAN_CONFIG.map(p => {
+    const db = dbPlans.find(d => d.planId === p.plan);
+    return {
+      ...p,
+      price: db ? `$${db.price}` : p.price,
+      features: db?.features?.length ? db.features : p.features,
+    };
+  }); // end plan merge
 
   const currentPlan = restaurant?.subscription?.planType || 'Free';
   const currentStatus = restaurant?.subscription?.status || 'Active';

@@ -23,6 +23,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() 
 
 app.use('/api/v1/auth', require('./modules/user/routes/user_routes'));
 app.use('/api/v1/tenants', require('./modules/tenant/routes/tenant_routes'));
+app.use('/api/v1/plans', require('./modules/plans/routes/plan_routes'));
 
 const restaurantRouter = express.Router({ mergeParams: true });
 
