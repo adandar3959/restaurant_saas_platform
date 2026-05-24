@@ -10,10 +10,18 @@ export default function UpgradeSuccess() {
   const [planType, setPlanType] = useState('');
   const [error, setError] = useState('');
 
-  const sessionId = searchParams.get('session_id');
+  const sessionId    = searchParams.get('session_id');
+  const freePlan     = searchParams.get('plan');       // set for Free plan bypass
   const restaurantId = JSON.parse(localStorage.getItem('rms_user') || '{}')?.restaurantId;
 
   useEffect(() => {
+    // ── Free plan bypass — no Stripe session, already activated in backend ──
+    if (freePlan === 'Free') {
+      setPlanType('Free');
+      setStatus('success');
+      return;
+    }
+
     if (!sessionId || !restaurantId) {
       setStatus('error');
       setError('Invalid session. Please contact support.');
@@ -28,10 +36,11 @@ export default function UpgradeSuccess() {
         const upgraded = res.data?.data?.planType;
         setPlanType(upgraded);
 
-        // Update the locally cached user/restaurant data so the dashboard reflects it immediately
+        // Update locally cached restaurant so dashboard reflects it immediately
         const stored = JSON.parse(localStorage.getItem('rms_restaurant') || '{}');
         if (stored?.subscription) {
           stored.subscription.planType = upgraded;
+          stored.subscription.status   = 'Active';
           localStorage.setItem('rms_restaurant', JSON.stringify(stored));
         }
 
@@ -44,7 +53,7 @@ export default function UpgradeSuccess() {
     };
 
     verify();
-  }, [sessionId, restaurantId]);
+  }, [sessionId, restaurantId, freePlan]);
 
   return (
     <div style={{

@@ -22,8 +22,8 @@ const subscriptionSchema = new mongoose.Schema(
     trialEndsAt: { type: Date },
     validUntil: { type: Date },
 
-    // stripeCustomerId: { type: String },
-    // stripeSubscriptionId: { type: String },
+    stripeCustomerId:     { type: String },
+    stripeSubscriptionId: { type: String },
   },
   { _id: false }
 );
