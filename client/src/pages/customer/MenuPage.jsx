@@ -436,6 +436,25 @@ function MenuContent({ restaurantId, tableNo }) {
     );
   }
 
+  // Block customer access if restaurant hasn't completed payment setup
+  if (restaurant?.subscription?.status === 'Pending') {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        background: '#1B4332', color: '#F5F0E6', textAlign: 'center', padding: 32,
+      }}>
+        <div style={{ fontSize: 64, marginBottom: 20 }}>🔒</div>
+        <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '0.05em', marginBottom: 12 }}>
+          {restaurant.restaurantName}
+        </h1>
+        <p style={{ fontSize: 16, opacity: 0.7, maxWidth: 340, lineHeight: 1.7 }}>
+          This restaurant is not available yet. Please check back later.
+        </p>
+      </div>
+    );
+  }
+
   const catItems = (cat) => {
     if (cat.isDealCategory) return deals;
     return items.filter(i => getId(i.categoryId) === cat._id);
