@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { tenantApi } from '../../api/tenant.api';
 import { plansApi } from '../../api/plans.api';
+import api from '../../api/tenant.api';
 import './SuperAdminDashboard.css';
 import {
   LayoutDashboard,
@@ -67,14 +68,28 @@ export default function SuperAdminDashboard() {
 
   // Plans & Pricing state
   const [dbPlans, setDbPlans] = useState([]);
-  const [editingPlan, setEditingPlan] = useState(null); // planId being edited
+  const [editingPlan, setEditingPlan] = useState(null);
   const [planForm, setPlanForm] = useState({});
   const [planSaving, setPlanSaving] = useState(false);
+
+  // Analytics state
+  const [metrics, setMetrics] = useState(null);
+  const [metricsLoading, setMetricsLoading] = useState(false);
 
   // Load plans from DB
   useEffect(() => {
     plansApi.getAll().then(r => setDbPlans(r.data?.data || r.data || [])).catch(() => {});
   }, []);
+
+  // Load analytics when Revenue tab is opened
+  useEffect(() => {
+    if (activeMenu !== 'revenue') return;
+    setMetricsLoading(true);
+    api.get('/analytics/saas')
+      .then(r => setMetrics(r.data?.data || r.data))
+      .catch(() => {})
+      .finally(() => setMetricsLoading(false));
+  }, [activeMenu]);
 
   // Modal State
   const [subModal, setSubModal] = useState(false);
@@ -187,10 +202,9 @@ export default function SuperAdminDashboard() {
     return tenants
       .filter(t => t.isActive && t.subscription?.status === 'Active')
       .reduce((sum, t) => {
-        const plan = t.subscription?.planType || 'Free';
-        if (plan === 'Pro') return sum + 49;
-        if (plan === 'Enterprise') return sum + 149;
-        return sum;
+        const plan  = t.subscription?.planType || 'Free';
+        const planData = dbPlans.find(p => p.planId === plan);
+        return sum + (planData?.price || 0);
       }, 0);
   };
 
@@ -605,25 +619,102 @@ export default function SuperAdminDashboard() {
         {/* ================= VIEW 3: REVENUE & PLANS ================= */}
         {activeMenu === 'revenue' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* KPI Row */}
-            <div className="kpi-cards-grid">
-              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
-                <span className="kpi-card-label">Active MRR</span>
-                <h2 className="kpi-card-value">${calculateMRR()}.00</h2>
-              </div>
-              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
-                <span className="kpi-card-label">Paid Contracts</span>
-                <h2 className="kpi-card-value">
-                  {tenants.filter(t => t.isActive && t.subscription?.planType !== 'Free').length} Active
-                </h2>
-              </div>
-              <div className="kpi-card" style={{ background: '#FFFFFF' }}>
-                <span className="kpi-card-label">Free Accounts</span>
-                <h2 className="kpi-card-value">
-                  {tenants.filter(t => t.isActive && t.subscription?.planType === 'Free').length} Accounts
-                </h2>
-              </div>
-            </div>
+
+            {/* ── Analytics KPI Row ── */}
+            {metricsLoading ? (
+              <div style={{ textAlign: 'center', padding: 40, color: '#8E959F' }}>Loading analytics…</div>
+            ) : metrics ? (
+              <>
+                {/* Row 1: Revenue KPIs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                  {[
+                    { label: 'Monthly Recurring Revenue', value: `$${metrics.mrr.toLocaleString()}`, sub: 'Active paid subs', color: '#10B981' },
+                    { label: 'Annual Run Rate (ARR)', value: `$${metrics.arr.toLocaleString()}`, sub: 'MRR × 12', color: '#6366F1' },
+                    { label: 'Churn Rate', value: `${metrics.churnRate}%`, sub: `${metrics.counts.churned} suspended/expired`, color: metrics.churnRate > 10 ? '#EF4444' : '#F59E0B' },
+                    { label: 'Conversion Rate', value: `${metrics.convRate}%`, sub: 'Pending → Active', color: '#0EA5E9' },
+                  ].map(k => (
+                    <div key={k.label} className="kpi-card" style={{ background: '#fff', borderTop: `3px solid ${k.color}` }}>
+                      <span className="kpi-card-label">{k.label}</span>
+                      <h2 className="kpi-card-value" style={{ color: k.color }}>{k.value}</h2>
+                      <span className="kpi-card-footer-text">{k.sub}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Row 2: Customer counts */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                  {[
+                    { label: 'Total Restaurants', value: metrics.counts.total, color: '#1E293B' },
+                    { label: 'Paid Subscribers', value: metrics.counts.paid, color: '#6366F1' },
+                    { label: 'Free Tier', value: metrics.counts.free, color: '#64748B' },
+                    { label: 'Pending Activation', value: metrics.counts.pending, color: '#F59E0B' },
+                  ].map(k => (
+                    <div key={k.label} className="kpi-card" style={{ background: '#fff' }}>
+                      <span className="kpi-card-label">{k.label}</span>
+                      <h2 className="kpi-card-value" style={{ color: k.color }}>{k.value}</h2>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Row 3: Plan Distribution + New Signups */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+
+                  {/* Plan Distribution */}
+                  <div className="panel-card-container" style={{ padding: 24 }}>
+                    <h3 className="panel-card-title" style={{ marginBottom: 20 }}>Plan Distribution</h3>
+                    {['Free', 'Pro', 'Enterprise'].map(p => {
+                      const count = metrics.byPlan[p] || 0;
+                      const total = metrics.counts.active || 1;
+                      const pct   = Math.round((count / total) * 100);
+                      const colors = { Free: '#64748B', Pro: '#6366F1', Enterprise: '#A855F7' };
+                      return (
+                        <div key={p} style={{ marginBottom: 16 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                            <span style={{ color: colors[p] }}>{p}</span>
+                            <span>{count} restaurants ({pct}%)</span>
+                          </div>
+                          <div style={{ background: '#F1F5F9', borderRadius: 99, height: 8, overflow: 'hidden' }}>
+                            <div style={{ width: `${pct}%`, height: '100%', background: colors[p], borderRadius: 99, transition: 'width 0.6s ease' }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #EEF0F2', display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#8E959F' }}>
+                      <span>MRR from Pro: <b style={{ color: '#6366F1' }}>${metrics.mrrByPlan.Pro || 0}</b></span>
+                      <span>MRR from Enterprise: <b style={{ color: '#A855F7' }}>${metrics.mrrByPlan.Enterprise || 0}</b></span>
+                    </div>
+                  </div>
+
+                  {/* Growth & Health */}
+                  <div className="panel-card-container" style={{ padding: 24 }}>
+                    <h3 className="panel-card-title" style={{ marginBottom: 20 }}>Growth & Health</h3>
+                    {[
+                      { label: 'New This Month', value: metrics.counts.newThisMonth, icon: '📈', color: '#10B981' },
+                      { label: 'New Last Month', value: metrics.counts.newLastMonth, icon: '📅', color: '#64748B' },
+                      { label: 'Churned / Suspended', value: metrics.counts.churned, icon: '📉', color: '#EF4444' },
+                      { label: 'Trial Accounts', value: metrics.counts.trial, icon: '🧪', color: '#F59E0B' },
+                    ].map(s => (
+                      <div key={s.label} style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '12px 0', borderBottom: '1px solid #F1F5F9',
+                      }}>
+                        <span style={{ fontSize: 13, color: '#64748B' }}>{s.icon} {s.label}</span>
+                        <span style={{ fontWeight: 800, fontSize: 18, color: s.color }}>{s.value}</span>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 12, fontSize: 11, color: '#8E959F' }}>
+                      {metrics.counts.newThisMonth > metrics.counts.newLastMonth
+                        ? `▲ +${metrics.counts.newThisMonth - metrics.counts.newLastMonth} more than last month`
+                        : metrics.counts.newThisMonth < metrics.counts.newLastMonth
+                          ? `▼ ${metrics.counts.newLastMonth - metrics.counts.newThisMonth} fewer than last month`
+                          : '— Same as last month'}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: 40, color: '#EF4444' }}>Failed to load analytics</div>
+            )}
 
             {/* ── Plans & Pricing Editor ── */}
             <div className="panel-card-container" style={{ padding: '24px' }}>
@@ -640,18 +731,14 @@ export default function SuperAdminDashboard() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontWeight: 800, fontSize: 15 }}>{plan.planId}</span>
                         {!isEditing ? (
-                          <button
-                            className="btn btn-ghost btn-xs"
-                            style={{ color: '#6366F1', fontSize: 12 }}
-                            onClick={() => { setEditingPlan(plan.planId); setPlanForm({ price: plan.price, stripePriceId: plan.stripePriceId || '', tagline: plan.tagline || '' }); }}
-                          >
+                          <button className="btn btn-ghost btn-xs" style={{ color: '#6366F1', fontSize: 12 }}
+                            onClick={() => { setEditingPlan(plan.planId); setPlanForm({ price: plan.price, stripePriceId: plan.stripePriceId || '', tagline: plan.tagline || '' }); }}>
                             ✏️ Edit
                           </button>
                         ) : (
                           <button className="btn btn-ghost btn-xs" style={{ color: '#EF4444' }} onClick={() => setEditingPlan(null)}>✕ Cancel</button>
                         )}
                       </div>
-
                       {!isEditing ? (
                         <>
                           <div style={{ fontSize: 28, fontWeight: 900 }}>${plan.price}<span style={{ fontSize: 13, fontWeight: 400, color: '#8E959F' }}>/mo</span></div>
@@ -676,9 +763,7 @@ export default function SuperAdminDashboard() {
                             <input type="text" className="form-input" value={planForm.tagline}
                               onChange={e => setPlanForm(p => ({ ...p, tagline: e.target.value }))} />
                           </div>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            disabled={planSaving}
+                          <button className="btn btn-primary btn-sm" disabled={planSaving}
                             onClick={async () => {
                               try {
                                 setPlanSaving(true);
@@ -689,9 +774,8 @@ export default function SuperAdminDashboard() {
                                 showToast('success', `${plan.planId} plan updated`);
                               } catch { showToast('error', 'Failed to update plan'); }
                               finally { setPlanSaving(false); }
-                            }}
-                          >
-                            {planSaving ? 'Saving...' : 'Save Plan'}
+                            }}>
+                            {planSaving ? 'Saving…' : 'Save Plan'}
                           </button>
                         </>
                       )}
@@ -701,7 +785,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            {/* Billing Grid */}
+            {/* ── Billing Grid ── */}
             <div className="panel-card-container" style={{ padding: '24px 0' }}>
               <div style={{ padding: '0 24px 20px 24px', borderBottom: '1px solid #EEF0F2' }}>
                 <h3 className="panel-card-title">Billing Grid</h3>
@@ -710,36 +794,41 @@ export default function SuperAdminDashboard() {
                 <thead>
                   <tr>
                     <th>Restaurant</th>
-                    <th>Plan Type</th>
-                    <th>Projected Billing Cycle</th>
-                    <th>Expected Monthly Contribution</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Monthly Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tenants.map(t => {
-                    const planId = t.subscription?.planType || 'Free';
+                    const planId   = t.subscription?.planType || 'Free';
+                    const status   = t.subscription?.status || '—';
                     const planData = dbPlans.find(p => p.planId === planId);
-                    const amount = planData?.price ?? 0;
+                    const amount   = planData?.price ?? 0;
+                    const statusColors = { Active: '#10B981', Pending: '#F59E0B', Suspended: '#EF4444', Expired: '#EF4444', Trial: '#0EA5E9' };
                     return (
                       <tr key={t._id}>
                         <td style={{ fontWeight: 700 }}>{t.restaurantName}</td>
                         <td>
-                          <span className="kpi-card-footer-text" style={{
-                            padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 800,
+                          <span style={{
+                            padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 800,
                             background: planId === 'Enterprise' ? 'rgba(168,85,247,0.1)' : planId === 'Pro' ? 'rgba(99,102,241,0.1)' : '#F1F5F9',
                             color: planId === 'Enterprise' ? '#A855F7' : planId === 'Pro' ? '#6366F1' : '#64748B'
-                          }}>
-                            {planId}
-                          </span>
+                          }}>{planId}</span>
                         </td>
-                        <td>Monthly Billing</td>
-                        <td style={{ fontWeight: 800, color: amount > 0 ? '#10B981' : '#8E959F' }}>${amount}.00/mo</td>
+                        <td>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: statusColors[status] || '#64748B' }}>{status}</span>
+                        </td>
+                        <td style={{ fontWeight: 800, color: amount > 0 ? '#10B981' : '#8E959F' }}>
+                          {amount > 0 ? `$${amount}/mo` : 'Free'}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
+
           </div>
         )}
 
