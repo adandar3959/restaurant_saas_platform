@@ -625,13 +625,24 @@ export default function SuperAdminDashboard() {
               <div style={{ textAlign: 'center', padding: 40, color: '#8E959F' }}>Loading analytics…</div>
             ) : metrics ? (
               <>
-                {/* Row 1: Revenue KPIs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                {/* Row 1: Revenue KPIs — 6 cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
                   {[
-                    { label: 'Monthly Recurring Revenue', value: `$${metrics.mrr.toLocaleString()}`, sub: 'Active paid subs', color: '#10B981' },
+                    { label: 'Monthly Recurring Revenue', value: `$${metrics.mrr.toLocaleString()}`, sub: 'Active paid subs · forward-looking', color: '#10B981' },
                     { label: 'Annual Run Rate (ARR)', value: `$${metrics.arr.toLocaleString()}`, sub: 'MRR × 12', color: '#6366F1' },
+                    { label: 'Total Revenue Collected', value: `$${metrics.totalRevenue?.toLocaleString() ?? '—'}`, sub: `${metrics.invoiceCount ?? 0} Stripe payments · all-time`, color: '#F59E0B' },
+                  ].map(k => (
+                    <div key={k.label} className="kpi-card" style={{ background: '#fff', borderTop: `3px solid ${k.color}` }}>
+                      <span className="kpi-card-label">{k.label}</span>
+                      <h2 className="kpi-card-value" style={{ color: k.color }}>{k.value}</h2>
+                      <span className="kpi-card-footer-text">{k.sub}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16 }}>
+                  {[
                     { label: 'Churn Rate', value: `${metrics.churnRate}%`, sub: `${metrics.counts.churned} suspended/expired`, color: metrics.churnRate > 10 ? '#EF4444' : '#F59E0B' },
-                    { label: 'Conversion Rate', value: `${metrics.convRate}%`, sub: 'Pending → Active', color: '#0EA5E9' },
+                    { label: 'Conversion Rate', value: `${metrics.convRate}%`, sub: 'Pending → Active', color: '#10B981' },
                   ].map(k => (
                     <div key={k.label} className="kpi-card" style={{ background: '#fff', borderTop: `3px solid ${k.color}` }}>
                       <span className="kpi-card-label">{k.label}</span>
@@ -656,7 +667,38 @@ export default function SuperAdminDashboard() {
                   ))}
                 </div>
 
-                {/* Row 3: Plan Distribution + New Signups */}
+                {/* Revenue Trend — 6 month bar chart from Stripe invoices */}
+                {metrics.revenueByMonth && Object.keys(metrics.revenueByMonth).length > 0 && (
+                  <div className="panel-card-container" style={{ padding: 24 }}>
+                    <h3 className="panel-card-title" style={{ marginBottom: 4 }}>Stripe Payments — Last 6 Months</h3>
+                    <p style={{ fontSize: 12, color: '#8E959F', marginBottom: 20 }}>Actual SaaS subscription payments from Stripe (not projected MRR)</p>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 120 }}>
+                      {(() => {
+                        const entries = Object.entries(metrics.revenueByMonth);
+                        const maxVal  = Math.max(...entries.map(([, v]) => v), 1);
+                        return entries.map(([month, amount]) => {
+                          const pct   = Math.round((amount / maxVal) * 100);
+                          const label = new Date(month + '-01').toLocaleString('default', { month: 'short', year: '2-digit' });
+                          return (
+                            <div key={month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontSize: 10, color: '#8E959F', fontWeight: 700 }}>${amount.toFixed(0)}</span>
+                              <div style={{ width: '100%', background: '#F1F5F9', borderRadius: 6, height: 80, display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+                                <div style={{
+                                  width: '100%', height: `${pct}%`, minHeight: 4,
+                                  background: 'linear-gradient(180deg, #6366F1, #A855F7)',
+                                  borderRadius: '6px 6px 0 0', transition: 'height 0.6s ease',
+                                }} />
+                              </div>
+                              <span style={{ fontSize: 10, color: '#8E959F' }}>{label}</span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Row 3: Plan Distribution + Growth */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
                   {/* Plan Distribution */}
