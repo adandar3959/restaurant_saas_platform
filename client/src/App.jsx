@@ -87,12 +87,14 @@ function GuestOnly({ children }) {
   return children;
 }
 
+import { API_BASE } from './lib/constants';
+
 function AppRoutes() {
   const { user } = useAuth();
   const [isMaintenance, setIsMaintenance] = useState(false);
 
   useEffect(() => {
-    fetch('/api/v1/settings/public')
+    fetch(`${API_BASE}/settings/public`)
       .then(r => r.json())
       .then(d => setIsMaintenance(d?.data?.maintenanceMode ?? false))
       .catch(() => {});

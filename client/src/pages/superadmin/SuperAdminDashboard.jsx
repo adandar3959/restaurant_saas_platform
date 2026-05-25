@@ -107,9 +107,8 @@ export default function SuperAdminDashboard() {
 
   // Load maintenance mode state from API
   useEffect(() => {
-    fetch('/api/v1/settings/public')
-      .then(r => r.json())
-      .then(d => setMaintenanceOn(d?.data?.maintenanceMode ?? false))
+    api.get('/settings/public')
+      .then(res => setMaintenanceOn(res.data?.data?.maintenanceMode ?? false))
       .catch(() => {});
   }, []);
 
