@@ -10,7 +10,7 @@ const BYPASS_PATHS = [
   '/webhook/stripe',
 ];
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const { maintenanceMode } = getCache();
   if (!maintenanceMode) return next(); // Fast path — no DB hit
 
@@ -23,8 +23,13 @@ module.exports = (req, res, next) => {
   try {
     const token   = req.headers.authorization?.split(' ')[1] || req.cookies?.rms_token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role === 'SuperAdmin') return next();
-  } catch {
+    
+    // JWT only contains { id }, must query DB to get role
+    const User = require('../modules/user/models/user_model');
+    const user = await User.findById(decoded.id).select('role');
+    if (user && user.role === 'SuperAdmin') return next();
+  } catch (err) {
+    console.error('[Maintenance] SuperAdmin bypass failed:', err.message);
     // Token missing or invalid — fall through to maintenance block
   }
 
