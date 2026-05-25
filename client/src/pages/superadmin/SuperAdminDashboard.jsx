@@ -100,13 +100,22 @@ export default function SuperAdminDashboard() {
   const [systemSettings, setSystemSettings] = useState({
     commissionRate: 5.0,
     platformCurrency: 'PKR',
-    maintenanceMode: false,
     autoApproveTenants: true
   });
+  const [maintenanceOn, setMaintenanceOn] = useState(false);
+  const [maintenanceSaving, setMaintenanceSaving] = useState(false);
+
+  // Load maintenance mode state from API
+  useEffect(() => {
+    fetch('/api/v1/settings/public')
+      .then(r => r.json())
+      .then(d => setMaintenanceOn(d?.data?.maintenanceMode ?? false))
+      .catch(() => {});
+  }, []);
 
   const showToast = (type, msg) => {
     setToast({ type, msg });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   };
 
   const load = async () => {
@@ -923,10 +932,21 @@ export default function SuperAdminDashboard() {
               </div>
               <button
                 className="setting-toggle-btn"
-                style={{ color: systemSettings.maintenanceMode ? '#EF4444' : '#8E959F' }}
-                onClick={() => saveGlobalSettings({ ...systemSettings, maintenanceMode: !systemSettings.maintenanceMode })}
+                style={{ color: maintenanceOn ? '#EF4444' : '#8E959F', opacity: maintenanceSaving ? 0.6 : 1 }}
+                disabled={maintenanceSaving}
+                onClick={async () => {
+                  setMaintenanceSaving(true);
+                  try {
+                    const newVal = !maintenanceOn;
+                    await api.patch('/settings/system', { maintenanceMode: newVal });
+                    setMaintenanceOn(newVal);
+                    showToast(newVal ? 'error' : 'success',
+                      newVal ? 'Maintenance mode ON — all portals blocked' : 'Maintenance mode OFF — platform restored');
+                  } catch { showToast('error', 'Failed to update maintenance mode'); }
+                  finally { setMaintenanceSaving(false); }
+                }}
               >
-                {systemSettings.maintenanceMode ? <ToggleRight size={38} style={{ color: '#EF4444' }} /> : <ToggleLeft size={38} />}
+                {maintenanceOn ? <ToggleRight size={38} style={{ color: '#EF4444' }} /> : <ToggleLeft size={38} />}
               </button>
             </div>
 

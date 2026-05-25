@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
-import { Component, useEffect } from 'react';
+import { Component, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -88,6 +88,44 @@ function GuestOnly({ children }) {
 }
 
 function AppRoutes() {
+  const { user } = useAuth();
+  const [isMaintenance, setIsMaintenance] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/v1/settings/public')
+      .then(r => r.json())
+      .then(d => setIsMaintenance(d?.data?.maintenanceMode ?? false))
+      .catch(() => {});
+  }, []);
+
+  // SuperAdmins always bypass the maintenance screen
+  const isSuperAdmin = user?.role === 'SuperAdmin';
+
+  if (isMaintenance && !isSuperAdmin) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        color: '#fff', textAlign: 'center', padding: 32, gap: 16,
+      }}>
+        <div style={{ fontSize: 64 }}>🔧</div>
+        <h1 style={{ fontSize: 32, fontWeight: 900, margin: 0 }}>Under Maintenance</h1>
+        <p style={{ fontSize: 16, color: '#94A3B8', maxWidth: 480, lineHeight: 1.6 }}>
+          We're making some improvements to the platform. All services will be back shortly.
+          Thank you for your patience.
+        </p>
+        <div style={{
+          marginTop: 8, padding: '10px 20px',
+          borderRadius: 99, background: 'rgba(99,102,241,0.15)',
+          border: '1px solid rgba(99,102,241,0.3)',
+          fontSize: 13, color: '#A5B4FC',
+        }}>
+          🔒 Platform temporarily unavailable
+        </div>
+      </div>
+    );
+  }
   return (
     <Routes>
       {/* Public pages */}

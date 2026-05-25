@@ -2,11 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./utils/db');
-const errorHandler = require('./utils/errorHandler');
+const settingsService  = require('./modules/settings/services/settings_service');
+const maintenanceMode  = require('./middlewares/maintenanceMode');
+const errorHandler     = require('./utils/errorHandler');
 
 const app = express();
 
-connectDB();
+// Connect DB then pre-load maintenance mode cache
+connectDB().then(() => settingsService.loadCache().catch(console.error));
 
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
@@ -21,7 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
+// Maintenance mode — applied after webhook (Stripe always passes), before all app routes
+app.use('/api/v1', maintenanceMode);
+
 app.use('/api/v1/auth', require('./modules/user/routes/user_routes'));
+app.use('/api/v1/settings', require('./modules/settings/routes/settings_routes'));
 app.use('/api/v1/tenants', require('./modules/tenant/routes/tenant_routes'));
 app.use('/api/v1/plans', require('./modules/plans/routes/plan_routes'));
 app.use('/api/v1/analytics', require('./modules/analytics/routes/analytics_routes'));
