@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Component, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -92,6 +92,7 @@ import { API_BASE } from './lib/constants';
 function AppRoutes() {
   const { user } = useAuth();
   const [isMaintenance, setIsMaintenance] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     fetch(`${API_BASE}/settings/public`)
@@ -102,8 +103,17 @@ function AppRoutes() {
 
   // SuperAdmins always bypass the maintenance screen
   const isSuperAdmin = user?.role === 'SuperAdmin';
+  
+  // Only block tenant portals and checkout (marketing site remains up)
+  const isMaintenancePath = 
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/kitchen') ||
+    location.pathname.startsWith('/waiter') ||
+    location.pathname.startsWith('/driver') ||
+    location.pathname.startsWith('/menu') ||
+    location.pathname.startsWith('/r/');
 
-  if (isMaintenance && !isSuperAdmin) {
+  if (isMaintenance && isMaintenancePath && !isSuperAdmin) {
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', flexDirection: 'column',
