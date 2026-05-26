@@ -2,13 +2,13 @@
 
 export function formatCurrency(amount, currency) {
   let selectedCurrency = currency;
+  let shouldConvert = false;
 
   // If we are on the SuperAdmin portal, always render in USD ($)
   if (typeof window !== 'undefined' && window.location.pathname.startsWith('/superadmin')) {
     selectedCurrency = 'USD';
-  }
-
-  if (!selectedCurrency) {
+  } else if (!selectedCurrency) {
+    shouldConvert = true;
     try {
       const saved = localStorage.getItem('rms_system_settings');
       if (saved) {
@@ -20,10 +20,27 @@ export function formatCurrency(amount, currency) {
   }
   if (!selectedCurrency) selectedCurrency = 'USD';
 
-  if (selectedCurrency === 'PKR') {
-    return `Rs ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(amount)}`;
+  // Base database price currency is PKR
+  let convertedAmount = amount;
+  if (shouldConvert) {
+    if (selectedCurrency === 'USD') {
+      convertedAmount = amount / 278; // 1 USD = 278 PKR
+    } else if (selectedCurrency === 'EUR') {
+      convertedAmount = amount / 301; // 1 EUR = 301 PKR
+    }
   }
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedCurrency, maximumFractionDigits: 0 }).format(amount);
+
+  if (selectedCurrency === 'PKR') {
+    return `Rs ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(convertedAmount)}`;
+  }
+
+  // Format other currencies (USD, EUR) with 2 decimal places (e.g. $3.55)
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: selectedCurrency, 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 
+  }).format(convertedAmount);
 }
 
 export function formatDate(date, opts = {}) {
