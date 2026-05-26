@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { API_BASE } from '../../lib/constants';
 
 export default function OrderSuccess() {
   const [searchParams] = useSearchParams();
@@ -8,26 +9,39 @@ export default function OrderSuccess() {
   const { clearCart } = useCart();
   
   const orderId = searchParams.get('order_id');
-  const restaurantId = window.location.pathname.split('/')[2]; // Fallback if needed, but we should use a better route
 
   useEffect(() => {
     // Clear the cart as soon as the user arrives on the success page
     clearCart();
 
-    // After a short delay, redirect to the actual Order Confirmed page
-    const timer = setTimeout(() => {
-      if (orderId) {
-        // We find the restaurantId from the context or URL
-        // For now, let's just redirect to the confirmed page
-        // The URL in payment_service needs to be compatible with this
+    const sessionId = searchParams.get('session_id');
+    const rId = searchParams.get('restaurant_id');
+
+    async function verifyPaymentAndRedirect() {
+      if (sessionId && rId) {
+        try {
+          await fetch(`${API_BASE}/restaurants/${rId}/payment/verify-order?session_id=${sessionId}`);
+        } catch (e) {
+          console.error('Error verifying Stripe order payment:', e);
+        }
+      }
+      
+      // Redirect to the correct themed confirmation page directly
+      if (orderId && rId) {
+        navigate(`/menu/${rId}/order-confirmed/${orderId}`);
+      } else if (orderId) {
         navigate(`/order-confirmed-redirect?order_id=${orderId}`);
       } else {
         navigate('/');
       }
+    }
+
+    const timer = setTimeout(() => {
+      verifyPaymentAndRedirect();
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [orderId, clearCart, navigate]);
+  }, [orderId, clearCart, navigate, searchParams]);
 
   return (
     <div style={{

@@ -31,6 +31,15 @@ exports.verifySubscriptionSession = asyncHandler(async (req, res) => {
   sendSuccess(res, result, `Successfully upgraded to ${result.planType} plan`);
 });
 
+exports.verifyOrderSession = asyncHandler(async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) {
+    return res.status(400).json({ success: false, message: 'session_id is required' });
+  }
+  const order = await paymentService.verifyOrderSession(session_id);
+  sendSuccess(res, order, 'Payment verified and order placed successfully');
+});
+
 exports.stripeWebhook = asyncHandler(async (req, res) => {
   const sig = req.headers['stripe-signature'];
   // Note: For webhooks to work, express.raw() is needed for the webhook route

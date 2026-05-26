@@ -209,3 +209,29 @@ exports.handleWebhook = async (sig, payload) => {
       break;
   }
 };
+
+exports.verifyOrderSession = async (sessionId) => {
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (!session) throw new Error('Session not found');
+
+  const { orderId } = session.metadata || {};
+  if (!orderId) throw new Error('Order ID not found in session metadata');
+
+  if (session.payment_status !== 'paid') {
+    throw Object.assign(new Error('Payment not completed'), { statusCode: 402 });
+  }
+
+  const order = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      'payment.status':        'Paid',
+      'payment.method':        'Stripe',
+      'payment.transactionId': session.payment_intent,
+      'payment.paidAt':        new Date(),
+      status:                  'Accepted',
+    },
+    { new: true }
+  );
+
+  return order;
+};
