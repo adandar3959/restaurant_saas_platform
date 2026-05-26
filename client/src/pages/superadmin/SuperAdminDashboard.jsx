@@ -78,7 +78,7 @@ export default function SuperAdminDashboard() {
 
   // Load plans from DB
   useEffect(() => {
-    plansApi.getAll().then(r => setDbPlans(r.data?.data || r.data || [])).catch(() => {});
+    plansApi.getAll().then(r => setDbPlans(r.data?.data || r.data || [])).catch(() => { });
   }, []);
 
   // Load analytics when Revenue tab is opened
@@ -87,7 +87,7 @@ export default function SuperAdminDashboard() {
     setMetricsLoading(true);
     api.get('/analytics/saas')
       .then(r => setMetrics(r.data?.data || r.data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setMetricsLoading(false));
   }, [activeMenu]);
 
@@ -109,7 +109,7 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     api.get('/settings/public')
       .then(res => setMaintenanceOn(res.data?.data?.maintenanceMode ?? false))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const showToast = (type, msg) => {
@@ -210,7 +210,7 @@ export default function SuperAdminDashboard() {
     return tenants
       .filter(t => t.isActive && t.subscription?.status === 'Active')
       .reduce((sum, t) => {
-        const plan  = t.subscription?.planType || 'Free';
+        const plan = t.subscription?.planType || 'Free';
         const planData = dbPlans.find(p => p.planId === plan);
         return sum + (planData?.price || 0);
       }, 0);
@@ -405,12 +405,12 @@ export default function SuperAdminDashboard() {
                     <path d="M 0,120 C 100,120 120,40 250,80 C 350,110 400,30 500,30" fill="none" stroke="#6366F1" strokeWidth="3.5" strokeLinecap="round" />
                     <circle cx="250" cy="80" r="6" fill="#6366F1" stroke="#FFFFFF" strokeWidth="2.5" />
                   </svg>
-                  <div style={{ 
-                    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', 
-                    background: 'rgba(19, 20, 23, 0.95)', color: '#fff', 
+                  <div style={{
+                    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+                    background: 'rgba(19, 20, 23, 0.95)', color: '#fff',
                     padding: '6px 14px', borderRadius: 10, fontSize: 11, fontWeight: 800,
                     boxShadow: '0 4px 15px rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)' 
+                    border: '1px solid rgba(255, 255, 255, 0.08)'
                   }}>
                     {totalRestaurants} Registered Teams Peak
                   </div>
@@ -683,9 +683,9 @@ export default function SuperAdminDashboard() {
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 120 }}>
                       {(() => {
                         const entries = Object.entries(metrics.revenueByMonth);
-                        const maxVal  = Math.max(...entries.map(([, v]) => v), 1);
+                        const maxVal = Math.max(...entries.map(([, v]) => v), 1);
                         return entries.map(([month, amount]) => {
-                          const pct   = Math.round((amount / maxVal) * 100);
+                          const pct = Math.round((amount / maxVal) * 100);
                           const label = new Date(month + '-01').toLocaleString('default', { month: 'short', year: '2-digit' });
                           return (
                             <div key={month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
@@ -715,7 +715,7 @@ export default function SuperAdminDashboard() {
                     {['Free', 'Pro', 'Enterprise'].map(p => {
                       const count = metrics.byPlan[p] || 0;
                       const total = metrics.counts.active || 1;
-                      const pct   = Math.round((count / total) * 100);
+                      const pct = Math.round((count / total) * 100);
                       const colors = { Free: '#64748B', Pro: '#6366F1', Enterprise: '#A855F7' };
                       return (
                         <div key={p} style={{ marginBottom: 16 }}>
@@ -851,10 +851,10 @@ export default function SuperAdminDashboard() {
                 </thead>
                 <tbody>
                   {tenants.map(t => {
-                    const planId   = t.subscription?.planType || 'Free';
-                    const status   = t.subscription?.status || '—';
+                    const planId = t.subscription?.planType || 'Free';
+                    const status = t.subscription?.status || '—';
                     const planData = dbPlans.find(p => p.planId === planId);
-                    const amount   = planData?.price ?? 0;
+                    const amount = planData?.price ?? 0;
                     const statusColors = { Active: '#10B981', Pending: '#F59E0B', Suspended: '#EF4444', Expired: '#EF4444', Trial: '#0EA5E9' };
                     return (
                       <tr key={t._id}>
