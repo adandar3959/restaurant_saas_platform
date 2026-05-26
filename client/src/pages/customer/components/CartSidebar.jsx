@@ -52,7 +52,7 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
     try {
       const payload = {
         orderType,
-        items: items.map(i => ({ menuItemId: i._id.split('_')[0], quantity: i.qty, unitPrice: i.price, name: i.name })),
+        items: items.map(i => ({ menuItemId: i._id.split('_')[0], quantity: i.qty, unitPrice: i.price, name: i.name, sizeName: i._id.split('_')[1] || '' })),
         totalAmount: totalPrice,
         ...(orderType === 'Dine-In' && tableNum && { tableId: tableNum }),
         ...(orderType === 'Dine-In' && tableNum && { tableNumber: tables.find(t => t._id === tableNum)?.tableNumber }),

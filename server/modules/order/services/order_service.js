@@ -26,11 +26,21 @@ exports.createOrder = async (data, restaurantId) => {
       // 1. Try finding in MenuItem first
       let baseItem = await MenuItem.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
       let price = baseItem?.price;
+      let displayName = baseItem?.name;
+
+      if (baseItem && item.sizeName && baseItem.sizes?.length > 0) {
+        const sizeObj = baseItem.sizes.find(s => s.name === item.sizeName);
+        if (sizeObj) {
+          price = sizeObj.price;
+          displayName = `${baseItem.name} (${sizeObj.name})`;
+        }
+      }
 
       // 2. If not found, try finding in Deal
       if (!baseItem) {
         baseItem = await Deal.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
         price = baseItem?.dealPrice;
+        displayName = baseItem?.name;
       }
 
       if (!baseItem) {
@@ -43,7 +53,7 @@ exports.createOrder = async (data, restaurantId) => {
 
       return {
         ...item,
-        name: baseItem.name,
+        name: displayName,
         image: baseItem.image,
         unitPrice: price,
         itemTotal
