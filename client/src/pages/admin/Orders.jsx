@@ -186,7 +186,7 @@ export default function Orders() {
                         <span className={`payment-badge ${order.paymentStatus === 'Paid' ? 'paid' : ''}`} style={{ fontWeight: 700 }}>
                           {order.paymentStatus?.toUpperCase()}
                         </span>
-                        {order.paymentStatus !== 'Paid' && ['admin', 'manager', 'waiter'].includes((user?.role || '').toLowerCase()) && (
+                        {order.paymentStatus !== 'Paid' && order.status !== 'Cancelled' && ['admin', 'manager', 'waiter'].includes((user?.role || '').toLowerCase()) && (
                           <button
                             className="btn btn-outline btn-xs"
                             style={{ padding: '2px 6px', fontSize: 10, borderColor: '#10B981', color: '#10B981', background: 'transparent' }}
