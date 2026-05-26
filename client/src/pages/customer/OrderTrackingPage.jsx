@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { customerApi } from '../../api/customer.api';
 import '../../styles/customer.css';
+import { formatCurrency } from '../../lib/utils';
 
 const STEPS = [
   { key: 'Pending',         label: 'Order Received',    desc: 'We got your order!', emoji: '📋' },
@@ -146,12 +147,12 @@ export default function OrderTrackingPage() {
               {order.items?.map((item, i) => (
                 <div key={i} className="c-track-item-row">
                   <span>{item.quantity}× {item.name}</span>
-                  <span style={{fontWeight:700}}>Rs {(item.unitPrice * item.quantity).toLocaleString()}</span>
+                  <span style={{fontWeight:700}}>{formatCurrency(item.unitPrice * item.quantity)}</span>
                 </div>
               ))}
               <div className="c-track-item-row" style={{fontWeight:900,marginTop:4}}>
                 <span>Total</span>
-                <span style={{color:'var(--c-primary-dark)'}}>Rs {order.totalAmount?.toLocaleString()}</span>
+                <span style={{color:'var(--c-primary-dark)'}}>{formatCurrency(order.totalAmount)}</span>
               </div>
             </div>
 

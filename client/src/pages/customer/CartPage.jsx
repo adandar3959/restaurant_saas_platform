@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { CartProvider, useCart } from '../../context/CartContext';
 import { customerApi } from '../../api/customer.api';
 import '../../styles/customer.css';
+import { formatCurrency } from '../../lib/utils';
 
 const FOOD_EMOJI_MAP = { burger:'🍔',pizza:'🍕',pasta:'🍝',salad:'🥗',chicken:'🍗',rice:'🍚',soup:'🍜',sandwich:'🥪',dessert:'🍰',cake:'🎂',coffee:'☕',drink:'🥤',wrap:'🌯',steak:'🥩',curry:'🍛',biryani:'🍛' };
 function getEmoji(name=''){const n=name.toLowerCase();for(const[k,v]of Object.entries(FOOD_EMOJI_MAP))if(n.includes(k))return v;return'🍽️';}
@@ -96,15 +97,15 @@ function CheckoutModal({ restaurantId, tableNo, items, totalPrice, onClose, onSu
 
           {/* Summary */}
           <div className="c-cart-summary" style={{margin:0}}>
-            <div className="c-summary-row"><span>{items.reduce((s,i)=>s+i.qty,0)} items</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+            <div className="c-summary-row"><span>{items.reduce((s,i)=>s+i.qty,0)} items</span><span>{formatCurrency(totalPrice)}</span></div>
             <div className="c-summary-row"><span>Service</span><span>Free</span></div>
-            <div className="c-summary-row total"><span>Total</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+            <div className="c-summary-row total"><span>Total</span><span>{formatCurrency(totalPrice)}</span></div>
           </div>
         </div>
 
         <div className="c-checkout-footer">
           <button className="c-checkout-btn" style={{width:'100%',margin:0}} onClick={handlePlace} disabled={loading}>
-            {loading ? '⏳ Placing Order...' : `✅ Confirm Order · Rs ${totalPrice.toLocaleString()}`}
+            {loading ? '⏳ Placing Order...' : `✅ Confirm Order · ${formatCurrency(totalPrice)}`}
           </button>
         </div>
       </div>
@@ -156,7 +157,7 @@ function CartContent({ restaurantId, tableNo }) {
             <div className="c-cart-item-emoji">{getEmoji(item.name)}</div>
             <div className="c-cart-item-info">
               <div className="c-cart-item-name">{item.name}</div>
-              <div className="c-cart-item-price">Rs {(item.price * item.qty).toLocaleString()}</div>
+              <div className="c-cart-item-price">{formatCurrency(item.price * item.qty)}</div>
             </div>
             <div className="c-cart-item-controls">
               <div className="c-qty-sm">
@@ -172,9 +173,9 @@ function CartContent({ restaurantId, tableNo }) {
 
       {/* Summary */}
       <div className="c-cart-summary">
-        <div className="c-summary-row"><span>Subtotal</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+        <div className="c-summary-row"><span>Subtotal</span><span>{formatCurrency(totalPrice)}</span></div>
         <div className="c-summary-row"><span>Service Fee</span><span style={{color:'var(--c-green)'}}>Free</span></div>
-        <div className="c-summary-row total"><span>Total</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+        <div className="c-summary-row total"><span>Total</span><span>{formatCurrency(totalPrice)}</span></div>
       </div>
 
       {/* CTA */}

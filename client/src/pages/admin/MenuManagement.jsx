@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Search, ChefHat, AlertCircle, CheckCircle } from 'lucide-react';
 import { menuApi } from '../../api/menu.api';
-import { truncate } from '../../lib/utils';
+import { truncate, formatCurrency } from '../../lib/utils';
 import './MenuManagement.css';
 
 function Toast({ toast }) {
@@ -252,7 +252,7 @@ export default function MenuManagement() {
                 <div className="mic-name gradient-text-cyan">{item.name}</div>
                 {item.description && <p className="mic-desc text-sm text-muted">{truncate(item.description, 80)}</p>}
                 <div className="mic-footer" style={{ marginTop: 'auto', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--glass-border)' }}>
-                  <span className="mic-price" style={{ color: 'var(--neon-cyan)', fontWeight: '900', fontSize: '18px' }}>${item.price?.toFixed(2)}</span>
+                  <span className="mic-price" style={{ color: 'var(--neon-cyan)', fontWeight: '900', fontSize: '18px' }}>{formatCurrency(item.price)}</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-ghost btn-xs" onClick={() => openModal('item', item)}>
                       <Pencil size={14} style={{ color: 'var(--neon-cyan)' }} />
@@ -294,8 +294,8 @@ export default function MenuManagement() {
                           {deal.tag && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>🏷️ {deal.tag}</div>}
                         </td>
                         <td className="text-sm text-muted">{deal.items?.map(i => `${i.quantity}× ${i.name}`).join(' + ') || '—'}</td>
-                        <td><span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs {deal.dealPrice?.toLocaleString()}</span></td>
-                        <td className="text-muted">{deal.originalPrice ? `Rs ${deal.originalPrice.toLocaleString()}` : '—'}</td>
+                        <td><span style={{ fontWeight: 900, color: 'var(--primary)' }}>{formatCurrency(deal.dealPrice)}</span></td>
+                        <td className="text-muted">{deal.originalPrice ? formatCurrency(deal.originalPrice) : '—'}</td>
                         <td>{pct > 0 ? <span style={{ background: 'rgba(5,150,105,0.1)', color: 'var(--success)', padding: '2px 8px', borderRadius: 9999, fontWeight: 700, fontSize: 12 }}>{pct}% OFF</span> : '—'}</td>
                         <td>
                           <button onClick={() => handleToggleDeal(deal._id)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -423,7 +423,7 @@ export default function MenuManagement() {
                                   <optgroup key={cat._id} label={cat.name}>
                                     {catItems.map(m => (
                                       <option key={m._id} value={m._id}>
-                                        {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — Rs ${m.price?.toLocaleString()}`}
+                                        {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — ${formatCurrency(m.price)}`}
                                       </option>
                                     ))}
                                   </optgroup>
@@ -433,7 +433,7 @@ export default function MenuManagement() {
                                 <optgroup label="Other">
                                   {items.filter(m => !categories.some(c => c._id === getId(m.categoryId))).map(m => (
                                     <option key={m._id} value={m._id}>
-                                      {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — Rs ${m.price?.toLocaleString()}`}
+                                      {m.name}{m.sizes?.length > 0 ? ' (has sizes)' : ` — ${formatCurrency(m.price)}`}
                                     </option>
                                   ))}
                                 </optgroup>

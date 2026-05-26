@@ -97,7 +97,20 @@ function AppRoutes() {
   useEffect(() => {
     fetch(`${API_BASE}/settings/public`)
       .then(r => r.json())
-      .then(d => setIsMaintenance(d?.data?.maintenanceMode ?? false))
+      .then(d => {
+        setIsMaintenance(d?.data?.maintenanceMode ?? false);
+        const curr = d?.data?.platformCurrency || 'PKR';
+        const saved = localStorage.getItem('rms_system_settings');
+        let settingsObj = { platformCurrency: curr };
+        if (saved) {
+          try {
+            settingsObj = { ...JSON.parse(saved), platformCurrency: curr };
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        localStorage.setItem('rms_system_settings', JSON.stringify(settingsObj));
+      })
       .catch(() => {});
   }, []);
 

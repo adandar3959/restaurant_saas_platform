@@ -5,6 +5,7 @@ import { inventoryApi } from '../../api/inventory.api';
 import { menuApi } from '../../api/menu.api';
 import { UNITS } from '../../lib/constants';
 import UpgradeGate from '../../components/common/UpgradeGate';
+import { formatCurrency } from '../../lib/utils';
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -24,6 +25,14 @@ function Toast({ toast }) {
 }
 
 export default function Inventory() {
+  const savedSettings = localStorage.getItem('rms_system_settings');
+  let platformCurrency = 'USD';
+  if (savedSettings) {
+    try {
+      platformCurrency = JSON.parse(savedSettings).platformCurrency || 'USD';
+    } catch {}
+  }
+
   const { restaurantId } = useOutletContext();
   const [activeMainTab, setActiveMainTab] = useState('ingredients'); // 'ingredients' | 'recipes'
   
@@ -311,7 +320,7 @@ export default function Inventory() {
                         </td>
                         <td className="text-muted">{ing.unit || '—'}</td>
                         <td className="text-muted">{ing.reorderLevel ?? '—'}</td>
-                        <td className="font-semi" style={{ color: 'var(--text)' }}>{ing.costPerUnit ? `$${ing.costPerUnit}` : '—'}</td>
+                        <td className="font-semi" style={{ color: 'var(--text)' }}>{ing.costPerUnit ? formatCurrency(ing.costPerUnit) : '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 8 }}>
                             <button className="btn btn-ghost btn-xs" style={{ color: 'var(--neon-cyan)' }} onClick={() => { setForm(ing); setModal(true); }}>
@@ -447,7 +456,7 @@ export default function Inventory() {
                     placeholder="Alert below this" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Cost per Unit ($)</label>
+                  <label className="form-label">Cost per Unit ({platformCurrency})</label>
                   <input className="form-input" type="number" min="0" step="0.01"
                     value={form.costPerUnit ?? ''}
                     onChange={e => setForm(p => ({ ...p, costPerUnit: parseFloat(e.target.value) }))}
@@ -485,7 +494,7 @@ export default function Inventory() {
                   >
                     <option value="">Select menu item...</option>
                     {menuItems.map(item => (
-                      <option key={item._id} value={item._id}>{item.name} (${item.price})</option>
+                      <option key={item._id} value={item._id}>{item.name} ({formatCurrency(item.price)})</option>
                     ))}
                   </select>
                 </div>

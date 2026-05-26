@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../context/CartContext';
 import { customerApi } from '../../../api/customer.api';
+import { formatCurrency } from '../../../lib/utils';
 
 const FOOD_EMOJI_MAP = { burger:'🍔',pizza:'🍕',pasta:'🍝',salad:'🥗',chicken:'🍗',rice:'🍚',soup:'🍜',sandwich:'🥪',dessert:'🍰',cake:'🎂',coffee:'☕',drink:'🥤',wrap:'🌯',steak:'🥩',curry:'🍛',biryani:'🍛' };
 function getEmoji(name=''){const n=name.toLowerCase();for(const[k,v]of Object.entries(FOOD_EMOJI_MAP))if(n.includes(k))return v;return'🍽️';}
@@ -115,7 +116,7 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
                 <div className="mz-cart-item-emoji">{getEmoji(item.name)}</div>
                 <div className="mz-cart-item-info">
                   <div className="mz-cart-item-name">{item.name}</div>
-                  <div className="mz-cart-item-price">Rs {(item.price * item.qty).toLocaleString()}</div>
+                  <div className="mz-cart-item-price">{formatCurrency(item.price * item.qty)}</div>
                 </div>
                 <div className="mz-cart-item-controls">
                   <button className="mz-cart-qty-btn" onClick={() => updateQty(item._id, item.qty - 1)} disabled={item.qty <= 1}>−</button>
@@ -209,15 +210,15 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
 
         {totalItems > 0 && (
           <div className="mz-cart-footer">
-            <div className="mz-cart-summary-row"><span>Subtotal</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+            <div className="mz-cart-summary-row"><span>Subtotal</span><span>{formatCurrency(totalPrice)}</span></div>
             <div className="mz-cart-summary-row"><span>Service Fee</span><span style={{color:'var(--mz-sage)'}}>Free</span></div>
-            <div className="mz-cart-summary-total"><span>Total</span><span>Rs {totalPrice.toLocaleString()}</span></div>
+            <div className="mz-cart-summary-total"><span>Total</span><span>{formatCurrency(totalPrice)}</span></div>
             
             {!showCheckout ? (
               <button className="mz-cart-checkout-btn" onClick={() => setShowCheckout(true)}>Proceed to Checkout →</button>
             ) : (
               <button className="mz-cart-checkout-btn" onClick={handlePlace} disabled={loading}>
-                {loading ? '⏳ Placing Order...' : `✅ Confirm Order · Rs ${totalPrice.toLocaleString()}`}
+                {loading ? '⏳ Placing Order...' : `✅ Confirm Order · ${formatCurrency(totalPrice)}`}
               </button>
             )}
           </div>

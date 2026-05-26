@@ -5,15 +5,15 @@ const { sendSuccess } = require('../../../utils/apiResponse');
 // GET /api/v1/settings/public — no auth, used by frontend to check maintenance
 exports.getPublic = asyncHandler(async (req, res) => {
   const doc = await settingsService.getSettings();
-  sendSuccess(res, { maintenanceMode: doc.maintenanceMode });
+  sendSuccess(res, { maintenanceMode: doc.maintenanceMode, platformCurrency: doc.platformCurrency || 'PKR' });
 });
 
 // PATCH /api/v1/settings/system — SuperAdmin only
 exports.update = asyncHandler(async (req, res) => {
-  const allowed = ['maintenanceMode'];
+  const allowed = ['maintenanceMode', 'platformCurrency'];
   const data = {};
   allowed.forEach(k => { if (req.body[k] !== undefined) data[k] = req.body[k]; });
 
   const doc = await settingsService.updateSettings(data);
-  sendSuccess(res, { maintenanceMode: doc.maintenanceMode }, 'Settings updated');
+  sendSuccess(res, { maintenanceMode: doc.maintenanceMode, platformCurrency: doc.platformCurrency || 'PKR' }, 'Settings updated');
 });

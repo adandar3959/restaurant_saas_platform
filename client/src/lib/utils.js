@@ -1,7 +1,29 @@
 
 
-export function formatCurrency(amount, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+export function formatCurrency(amount, currency) {
+  let selectedCurrency = currency;
+
+  // If we are on the SuperAdmin portal, always render in USD ($)
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/superadmin')) {
+    selectedCurrency = 'USD';
+  }
+
+  if (!selectedCurrency) {
+    try {
+      const saved = localStorage.getItem('rms_system_settings');
+      if (saved) {
+        selectedCurrency = JSON.parse(saved).platformCurrency;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  if (!selectedCurrency) selectedCurrency = 'USD';
+
+  if (selectedCurrency === 'PKR') {
+    return `Rs ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(amount)}`;
+  }
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedCurrency, maximumFractionDigits: 0 }).format(amount);
 }
 
 export function formatDate(date, opts = {}) {

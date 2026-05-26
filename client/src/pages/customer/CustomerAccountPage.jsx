@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { customerApi } from '../../api/customer.api';
 import '../../styles/customer.css';
+import { formatCurrency } from '../../lib/utils';
 
 const STATUS_COLORS = {
   Pending:        { bg:'rgba(99,102,241,0.1)',  color:'#4F46E5' },
@@ -61,7 +62,7 @@ function OrdersTab({ user }) {
             </div>
             <div className="c-order-items-preview">{preview}{order.items?.length > 2 ? ` +${order.items.length - 2} more` : ''}</div>
             <div className="c-order-card-foot">
-              <span className="c-order-total">Rs {order.totalAmount?.toLocaleString()}</span>
+              <span className="c-order-total">{formatCurrency(order.totalAmount)}</span>
               <span className="c-order-date">{formatDate(order.createdAt)}</span>
             </div>
           </div>

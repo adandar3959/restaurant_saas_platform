@@ -105,10 +105,18 @@ export default function SuperAdminDashboard() {
   const [maintenanceOn, setMaintenanceOn] = useState(false);
   const [maintenanceSaving, setMaintenanceSaving] = useState(false);
 
-  // Load maintenance mode state from API
+  // Load maintenance mode and platform currency state from API
   useEffect(() => {
     api.get('/settings/public')
-      .then(res => setMaintenanceOn(res.data?.data?.maintenanceMode ?? false))
+      .then(res => {
+        setMaintenanceOn(res.data?.data?.maintenanceMode ?? false);
+        const backendCurrency = res.data?.data?.platformCurrency || 'PKR';
+        setSystemSettings(prev => {
+          const updated = { ...prev, platformCurrency: backendCurrency };
+          localStorage.setItem('rms_system_settings', JSON.stringify(updated));
+          return updated;
+        });
+      })
       .catch(() => { });
   }, []);
 
@@ -142,10 +150,15 @@ export default function SuperAdminDashboard() {
     }
   }, []);
 
-  const saveGlobalSettings = (newSettings) => {
+  const saveGlobalSettings = async (newSettings) => {
     setSystemSettings(newSettings);
     localStorage.setItem('rms_system_settings', JSON.stringify(newSettings));
-    showToast('success', 'Global system settings saved');
+    try {
+      await api.patch('/settings/system', { platformCurrency: newSettings.platformCurrency });
+      showToast('success', 'Global system settings saved');
+    } catch (e) {
+      showToast('error', 'Failed to sync settings to server');
+    }
   };
 
   const handleToggleStatus = async (tenant) => {

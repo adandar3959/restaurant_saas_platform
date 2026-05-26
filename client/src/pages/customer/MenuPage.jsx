@@ -4,6 +4,7 @@ import { customerApi } from '../../api/customer.api';
 import { CartProvider, useCart } from '../../context/CartContext';
 import CartSidebar from './components/CartSidebar';
 import '../../styles/customer.css';
+import { formatCurrency } from '../../lib/utils';
 
 // ── helpers ──────────────────────────────────────────────────────
 const getId = (v) => (v && typeof v === 'object' ? String(v._id ?? v) : String(v ?? ''));
@@ -57,10 +58,10 @@ function ItemModal({ item, onClose, onAdded }) {
           {item.description ? <p className="mz-modal-desc">{item.description}</p> : (isDeal && item.items ? <p className="mz-modal-desc">{item.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</p> : null)}
           <div className="mz-modal-price">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Rs {price?.toLocaleString()}</span>
+              <span>{formatCurrency(price)}</span>
               {isDeal && item.originalPrice && item.originalPrice > item.dealPrice && (
                 <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.6em' }}>
-                  Rs {item.originalPrice.toLocaleString()}
+                  {formatCurrency(item.originalPrice)}
                 </span>
               )}
             </div>
@@ -76,7 +77,7 @@ function ItemModal({ item, onClose, onAdded }) {
                     className={`mz-size-pill ${selSize?.name === s.name ? 'active' : ''}`}
                     onClick={() => setSelSize(s)}
                   >
-                    {s.name} · Rs {s.price?.toLocaleString()}
+                    {s.name} · {formatCurrency(s.price)}
                   </button>
                 ))}
               </div>
@@ -91,7 +92,7 @@ function ItemModal({ item, onClose, onAdded }) {
           </div>
 
           <button className="mz-modal-add-btn" onClick={handleAdd} disabled={hasSizes && !selSize}>
-            Add {qty} to Cart — Rs {((price || 0) * qty).toLocaleString()}
+            Add {qty} to Cart — {formatCurrency((price || 0) * qty)}
           </button>
         </div>
       </div>
@@ -190,17 +191,17 @@ function ItemsPanel({ cat, items, nextCat, onNextCat, onItemSelect }) {
               <div className="mz-item-price">
                 {item.dealPrice !== undefined ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>Rs {item.dealPrice.toLocaleString()}</span>
+                    <span>{formatCurrency(item.dealPrice)}</span>
                     {item.originalPrice && item.originalPrice > item.dealPrice && (
                       <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.85em' }}>
-                        Rs {item.originalPrice.toLocaleString()}
+                        {formatCurrency(item.originalPrice)}
                       </span>
                     )}
                   </div>
                 ) : item.sizes?.length > 0 ? (
-                  `From Rs ${Math.min(...item.sizes.map(s => s.price)).toLocaleString()}`
+                  `From ${formatCurrency(Math.min(...item.sizes.map(s => s.price)))}`
                 ) : (
-                  `Rs ${item.price?.toLocaleString()}`
+                  `${formatCurrency(item.price)}`
                 )}
               </div>
             </div>

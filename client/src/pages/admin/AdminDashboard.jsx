@@ -35,6 +35,15 @@ function sameDay(a, b) {
 }
 
 function RevenueChart({ data }) {
+  const saved = localStorage.getItem('rms_system_settings');
+  let platformCurrency = 'USD';
+  if (saved) {
+    try {
+      platformCurrency = JSON.parse(saved).platformCurrency || 'USD';
+    } catch {}
+  }
+  const symbol = platformCurrency === 'PKR' ? 'Rs ' : '$';
+
   const maxVal = Math.max(...data.map(d => d.revenue), 1);
   const W = 700, H = 180, PL = 48, PB = 32, PR = 16, PT = 20;
   const cW = W - PL - PR;
@@ -63,29 +72,25 @@ function RevenueChart({ data }) {
         </linearGradient>
       </defs>
 
-      {}
       {ticks.map((t, i) => (
         <g key={i}>
           <line x1={PL} y1={t.y} x2={W-PR} y2={t.y} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
           <text x={PL-6} y={t.y+4} textAnchor="end" fontSize={9} fill="rgba(255,255,255,0.3)">
-            ${t.val >= 1000 ? `${(t.val/1000).toFixed(1)}k` : t.val.toFixed(0)}
+            {symbol}{t.val >= 1000 ? `${(t.val/1000).toFixed(1)}k` : t.val.toFixed(0)}
           </text>
         </g>
       ))}
 
-      {}
       <path d={areaPath} fill="url(#revGrad)" />
 
-      {}
       <path d={linePath} fill="none" stroke="var(--neon-cyan)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
 
-      {}
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r={4.5} fill="var(--neon-cyan)" stroke="var(--bg-surface)" strokeWidth={2} />
           {p.revenue > 0 && (
             <text x={p.x} y={p.y - 13} textAnchor="middle" fontSize={9.5} fill="var(--neon-cyan)" fontWeight="700">
-              ${p.revenue >= 1000 ? `${(p.revenue/1000).toFixed(1)}k` : p.revenue.toFixed(0)}
+              {symbol}{p.revenue >= 1000 ? `${(p.revenue/1000).toFixed(1)}k` : p.revenue.toFixed(0)}
             </text>
           )}
           <text x={p.x} y={H - 8} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.45)">
