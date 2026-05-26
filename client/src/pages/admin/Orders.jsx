@@ -61,12 +61,27 @@ export default function Orders() {
   const handleStatusUpdate = async (orderId, newStatus) => {
     setUpdating(orderId);
     try {
-      await ordersApi.updateStatus(restaurantId, orderId, newStatus);
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+      const res = await ordersApi.updateStatus(restaurantId, orderId, newStatus);
+      const updated = res.data?.data;
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, ...updated } : o));
       showToast('success', `Order marked as ${newStatus}`);
     } catch (err) {
       const msg = err?.response?.data?.message || 'Action not permitted for your role';
       showToast('error', msg);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleMarkPaid = async (orderId) => {
+    setUpdating(orderId);
+    try {
+      const res = await ordersApi.recordPayment(restaurantId, orderId, { status: 'Paid', method: 'Cash' });
+      const updated = res.data?.data;
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, ...updated } : o));
+      showToast('success', 'Order marked as paid');
+    } catch (err) {
+      showToast('error', 'Failed to update payment');
     } finally {
       setUpdating(null);
     }
@@ -167,9 +182,21 @@ export default function Orders() {
                       </span>
                     </td>
                     <td>
-                      <span className={`payment-badge ${order.paymentStatus === 'Paid' ? 'paid' : ''}`} style={{ fontWeight: 700 }}>
-                        {order.paymentStatus?.toUpperCase()}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+                        <span className={`payment-badge ${order.paymentStatus === 'Paid' ? 'paid' : ''}`} style={{ fontWeight: 700 }}>
+                          {order.paymentStatus?.toUpperCase()}
+                        </span>
+                        {order.paymentStatus !== 'Paid' && ['admin', 'manager', 'waiter'].includes((user?.role || '').toLowerCase()) && (
+                          <button
+                            className="btn btn-outline btn-xs"
+                            style={{ padding: '2px 6px', fontSize: 10, borderColor: '#10B981', color: '#10B981', background: 'transparent' }}
+                            onClick={() => handleMarkPaid(order._id)}
+                            disabled={updating === order._id}
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="text-sm text-subtle">{timeAgo(order.createdAt)}</td>
                     <td>

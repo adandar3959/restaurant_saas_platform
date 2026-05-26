@@ -121,9 +121,24 @@ const orderSchema = new mongoose.Schema(
     source: { type: String, enum: ['Web', 'App', 'POS', 'QR'], default: 'Web' },
     inventoryDeducted: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
+orderSchema.virtual('totalAmount').get(function() {
+  return this.financials ? this.financials.totalAmount : 0;
+});
+
+orderSchema.virtual('paymentStatus').get(function() {
+  return this.payment ? this.payment.status : 'Unpaid';
+});
+
+orderSchema.virtual('paymentMethod').get(function() {
+  return this.payment ? this.payment.method : 'Cash';
+});
 
 orderSchema.index({ restaurantId: 1, status: 1 });
 orderSchema.index({ restaurantId: 1, createdAt: -1 });

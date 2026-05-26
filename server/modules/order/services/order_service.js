@@ -166,9 +166,19 @@ exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
   const order = await Order.findOne({ _id: id, restaurantId });
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
 
-  if (status === 'Completed' && !order.inventoryDeducted) {
-    await deductOrderInventory(order);
-    update.inventoryDeducted = true;
+  if (status === 'Completed') {
+    if (!order.inventoryDeducted) {
+      await deductOrderInventory(order);
+      update.inventoryDeducted = true;
+    }
+    // Auto-pay Cash/unpaid orders on completion
+    if (order.payment?.status !== 'Paid') {
+      update['payment.status'] = 'Paid';
+      update['payment.paidAt'] = new Date();
+      if (!order.payment?.method) {
+        update['payment.method'] = 'Cash';
+      }
+    }
   }
 
   const updatedOrder = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
