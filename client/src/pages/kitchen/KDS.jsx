@@ -15,9 +15,35 @@ const formatTime = (dateObj) => {
   return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
-const getElapsedMins = (createdAt) => {
-  if (!createdAt) return 0;
-  return Math.floor((new Date() - new Date(createdAt)) / 60000);
+const getElapsedTimeInfo = (createdAt, now) => {
+  if (!createdAt) return { display: '0s', timeClass: 'normal' };
+  const diffMs = Math.max(0, now - new Date(createdAt));
+  const diffSecs = Math.floor(diffMs / 1000);
+  const mins = Math.floor(diffSecs / 60);
+  const secs = diffSecs % 60;
+
+  let timeClass = 'normal';
+  if (mins >= 20) {
+    timeClass = 'urgent';
+  } else if (mins >= 10) {
+    timeClass = 'warning';
+  }
+
+  let display = '';
+  if (mins < 60) {
+    display = `${mins}m ${secs.toString().padStart(2, '0')}s`;
+  } else {
+    const hours = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    if (hours < 24) {
+      display = `${hours}h ${remainingMins}m`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      display = `${days}d ${remainingHours}h`;
+    }
+  }
+  return { display, timeClass };
 };
 
 const playDing = () => {
@@ -47,6 +73,7 @@ export default function KDS() {
   const [historyOrders, setHistoryOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastAction, setLastAction] = useState(null);
   const [time, setTime] = useState(new Date());
 
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -115,12 +142,31 @@ export default function KDS() {
   }, [restaurantId, soundEnabled]);
 
   const updateStatus = async (orderId, newStatus) => {
+    const orderBefore = orders.find(o => o._id === orderId) || historyOrders.find(o => o._id === orderId);
+    const oldStatus = orderBefore ? orderBefore.status : null;
+
     try {
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
       await ordersApi.updateStatus(restaurantId, orderId, newStatus);
+      if (oldStatus) {
+        setLastAction({ orderId, oldStatus, newStatus });
+      }
     } catch (e) {
       alert(`Failed to update to ${newStatus}. Requires Chef role permissions.`);
       fetchOrders(true);
+    }
+  };
+
+  const handleUndoAction = async () => {
+    if (!lastAction) return;
+    const { orderId, oldStatus } = lastAction;
+    try {
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: oldStatus } : o));
+      await ordersApi.updateStatus(restaurantId, orderId, oldStatus);
+      setLastAction(null);
+      fetchOrders(true);
+    } catch (e) {
+      alert('Failed to undo last action.');
     }
   };
 
@@ -218,6 +264,25 @@ export default function KDS() {
               {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
             </button>
 
+            {lastAction && (
+              <button 
+                className="btn btn-sm btn-outline" 
+                onClick={handleUndoAction}
+                style={{ 
+                  color: 'var(--neon-cyan)', 
+                  borderColor: 'var(--neon-cyan)', 
+                  background: 'rgba(6, 182, 212, 0.05)', 
+                  borderRadius: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontWeight: 700
+                }}
+              >
+                ↩️ Recall Last Action
+              </button>
+            )}
+
             <button className="btn btn-ghost btn-sm" style={{ color: 'var(--text)', border: '1px solid var(--border)', background: 'var(--bg-surface-2)', borderRadius: 12 }} onClick={() => setShowHistory(true)}>
               <History size={16} /> History
             </button>
@@ -290,16 +355,25 @@ export default function KDS() {
 
       { }
       {profileModalOpen && (
-        <div className="kds-modal-backdrop fade-in" style={{ zIndex: 9999 }}>
-          <div className="kds-profile-settings-modal glass-panel">
-            <div className="kds-glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 24 }}>
-              <h3 className="gradient-text" style={{ margin: 0 }}>Profile Settings</h3>
-              <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{ color: '#94a3b8' }}>
-                <X size={24} />
+        <div className="kds-modal-backdrop fade-in" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="kds-profile-settings-modal" style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+            width: '100%',
+            maxWidth: '500px',
+            color: '#0f172a',
+            fontFamily: "'Inter', sans-serif"
+          }}>
+            <div className="kds-glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>Profile Settings</h3>
+              <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{ color: '#64748b' }}>
+                <X size={20} />
               </button>
             </div>
 
-            <div className="w-modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', maxHeight: '70vh', overflowY: 'auto' }}>
+            <div className="w-modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '70vh', overflowY: 'auto' }}>
 
               <form onSubmit={async (e) => {
                 e.preventDefault();
@@ -337,29 +411,46 @@ export default function KDS() {
                   }
                   alert(msg);
                 }
-              }} className="kds-edit-form">
-                <h4 style={{ color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px', marginTop: 0 }}>Personal Details</h4>
+              }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h4 style={{ color: '#475569', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px', marginTop: 0, fontSize: '14px', fontWeight: 700 }}>Personal Details</h4>
 
-                <div className="kds-input-group">
-                  <label>Email</label>
-                  <input type="email" value={profileForm.email} onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Email</label>
+                  <input 
+                    type="email" 
+                    value={profileForm.email} 
+                    onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} 
+                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
+                  />
                 </div>
 
-                <div className="kds-input-group">
-                  <label>Full Name</label>
-                  <input type="text" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} required />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Full Name</label>
+                  <input 
+                    type="text" 
+                    value={profileForm.name} 
+                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} 
+                    required 
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
+                  />
                 </div>
 
-                <div className="kds-input-group">
-                  <label>Contact No</label>
-                  <input type="text" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Contact No</label>
+                  <input 
+                    type="text" 
+                    value={profileForm.phone} 
+                    onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} 
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
+                  />
                 </div>
 
-                <div className="kds-input-group">
-                  <label>Gender</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Gender</label>
                   <select
                     value={profileForm.gender}
                     onChange={e => setProfileForm({ ...profileForm, gender: e.target.value })}
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none', cursor: 'pointer' }}
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -367,24 +458,36 @@ export default function KDS() {
                   </select>
                 </div>
 
-                <div className="kds-input-group" style={{ marginTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px' }}>
-                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    Security
-                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
-                      {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
+                <div style={{ marginTop: '8px', borderTop: '1px dashed #e2e8f0', paddingTop: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#475569' }}>Security Settings</span>
+                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #0284c7', color: '#0284c7', padding: '6px 14px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}>
+                      {showPasswordForm ? 'Cancel Change' : 'Change Password'}
                     </button>
-                  </label>
+                  </div>
                 </div>
 
                 {showPasswordForm && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.1)', padding: '16px', borderRadius: '12px', marginTop: '8px' }}>
-                    <div className="kds-input-group">
-                      <label>Current Password</label>
-                      <input type="password" value={pwdForm.oldPassword} onChange={e => setPwdForm({ ...pwdForm, oldPassword: e.target.value })} placeholder="Enter current password" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '12px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Current Password</label>
+                      <input 
+                        type="password" 
+                        value={pwdForm.oldPassword} 
+                        onChange={e => setPwdForm({ ...pwdForm, oldPassword: e.target.value })} 
+                        placeholder="Enter current password" 
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', width: '100%', outline: 'none' }}
+                      />
                     </div>
-                    <div className="kds-input-group">
-                      <label>New Password</label>
-                      <input type="password" value={pwdForm.newPassword} onChange={e => setPwdForm({ ...pwdForm, newPassword: e.target.value })} placeholder="Enter new password" />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>New Password</label>
+                      <input 
+                        type="password" 
+                        value={pwdForm.newPassword} 
+                        onChange={e => setPwdForm({ ...pwdForm, newPassword: e.target.value })} 
+                        placeholder="Enter new password" 
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', width: '100%', outline: 'none' }}
+                      />
                     </div>
                     <button type="button" onClick={async () => {
                       if (!pwdForm.oldPassword || !pwdForm.newPassword) return alert('Both passwords are required');
@@ -397,13 +500,28 @@ export default function KDS() {
                       } catch (err) {
                         alert(err.response?.data?.message || 'Failed to update password');
                       }
-                    }} style={{ alignSelf: 'flex-start', padding: '10px 24px', fontSize: '14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    }} style={{ alignSelf: 'flex-start', padding: '8px 18px', fontSize: '13px', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>
                       Update Password
                     </button>
                   </div>
                 )}
 
-                <button type="submit" className="btn-glow-cyan" style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: '16px', marginTop: '24px', width: '100%' }}>Update Profile Details</button>
+                <button type="submit" style={{ 
+                  background: '#0f172a', 
+                  color: '#ffffff', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  padding: '12px', 
+                  fontSize: '14px', 
+                  fontWeight: 700, 
+                  cursor: 'pointer', 
+                  marginTop: '12px', 
+                  width: '100%',
+                  textAlign: 'center',
+                  transition: 'background 0.2s'
+                }}>
+                  Update Profile Details
+                </button>
               </form>
 
             </div>
@@ -456,11 +574,10 @@ function KDSColumn({ title, orders, icon, colColor, time, activeStation, onActio
 }
 
 function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemToggle }) {
-  const mins = getElapsedMins(order.createdAt);
-
-  let timeClass = 'normal';
-  if (mins >= 30) timeClass = 'urgent';
-  else if (mins >= 15) timeClass = 'warning';
+  const { display: timeDisplay, timeClass } = getElapsedTimeInfo(order.createdAt, time);
+  
+  const diffMs = Math.max(0, time - new Date(order.createdAt));
+  const isRecent = diffMs < 15000; // 15 seconds
 
   const typeIcon = order.orderType === 'Delivery' ? <Truck size={14} /> : order.orderType === 'Dine-In' ? <Monitor size={14} /> : <ShoppingBag size={14} />;
 
@@ -470,14 +587,14 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
 
   const allItemsReady = displayItems.every(i => i.kitchenStatus === 'Ready');
 
-  const isPreparingCol = actionBtn.label.includes('Ready');
-  const canProceed = !isPreparingCol || allItemsReady;
+  const isPreparingCol = actionBtn.label.includes('Ready') || actionBtn.label.includes('PREP');
+  const canProceed = !actionBtn.label.includes('Ready') || allItemsReady;
 
   const isReadyCol = actionBtn.label.includes('Clear');
   const hideAction = isReadyCol && order.orderType === 'Dine-In';
 
   return (
-    <div className={`kds-card ${mins === 0 ? 'new-arrival neon-border-purple' : ''} animate-fade-up`}>
+    <div className={`kds-card ${isRecent ? 'new-arrival neon-border-purple' : ''} animate-fade-up`}>
       <div className="kds-card-header" style={{ borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span className="kds-card-title">#{order._id?.slice(-5).toUpperCase()}</span>
@@ -486,7 +603,7 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <span className={`kds-card-time ${timeClass}`} style={{ background: 'rgba(0,0,0,0.4)', padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <Clock size={14} /> {mins}m
+            <Clock size={14} /> {timeDisplay}
           </span>
           {order.orderType === 'Dine-In' && order.tableNumber && (
             <span className="kds-table-badge" style={{ background: 'var(--primary)', color: '#fff', fontSize: '12px' }}>T{order.tableNumber}</span>
@@ -502,7 +619,6 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
               key={item._id || idx}
               className={`kds-item ${isDone && isPreparingCol ? 'done' : ''}`}
             >
-              { }
               {isPreparingCol && (
                 <button
                   className="kds-item-toggle"
@@ -527,7 +643,7 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
                 </div>
 
                 {item.selectedModifiers?.length > 0 && (
-                  <div className="kds-item-mods">
+                  <div className="kds-item-mods" style={{ fontWeight: 800 }}>
                     + {item.selectedModifiers.map(m => m.name).join(', ')}
                   </div>
                 )}
