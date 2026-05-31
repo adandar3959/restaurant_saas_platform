@@ -35,10 +35,26 @@ exports.createCheckoutSession = async (orderId, restaurantId, customCancelUrl) =
     cancelUrl += `&table=${encodeURIComponent(order.tableNumber)}`;
   }
 
+  let discountConfig = {};
+  if (order.financials.discountAmount > 0) {
+    try {
+      const stripeCoupon = await stripe.coupons.create({
+        amount_off: Math.round(order.financials.discountAmount * 100),
+        currency: 'pkr',
+        duration: 'once',
+        name: 'Promo & Rewards Discount'
+      });
+      discountConfig = { discounts: [{ coupon: stripeCoupon.id }] };
+    } catch (couponError) {
+      console.error('Failed to create Stripe coupon', couponError);
+    }
+  }
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: lineItems,
     mode: 'payment',
+    ...discountConfig,
     success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}&restaurant_id=${restaurantId}`,
     cancel_url: cancelUrl,
     metadata: { orderId: order._id.toString(), restaurantId: restaurantId.toString() },

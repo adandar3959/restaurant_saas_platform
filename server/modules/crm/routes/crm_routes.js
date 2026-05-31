@@ -11,7 +11,7 @@ router.patch('/reviews/:id/flag', protect, authorize(...staff), ctrl.flagReview)
 
 router.get('/coupons', protect, authorize(...staff), ctrl.getCoupons);
 router.post('/coupons', protect, authorize(...staff), ctrl.createCoupon);
-router.get('/coupons/validate/:code', protect, ctrl.validateCoupon);
+router.get('/coupons/validate/:code', ctrl.validateCoupon);
 router.patch('/coupons/:id', protect, authorize(...staff), ctrl.updateCoupon);
 router.delete('/coupons/:id', protect, authorize(...staff), ctrl.deleteCoupon);
 
