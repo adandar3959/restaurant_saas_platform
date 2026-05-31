@@ -83,11 +83,23 @@ exports.getLoyaltyHistory = async (customerId, restaurantId, pagination) => {
 exports.awardPoints = async (customerId, restaurantId, orderId, points, description) => {
   const user = await User.findById(customerId);
   if (!user) throw Object.assign(new Error('Customer not found'), { statusCode: 404 });
+  
   const currentPoints = user.customerDetails?.loyalty?.points || 0;
+  const currentTotalEarned = user.customerDetails?.loyalty?.totalEarned || 0;
+  
   const newBalance = currentPoints + points;
+  const newTotalEarned = currentTotalEarned + points;
+
+  let tier = 'Bronze';
+  if (newTotalEarned >= 3000) tier = 'Platinum';
+  else if (newTotalEarned >= 1500) tier = 'Gold';
+  else if (newTotalEarned >= 500) tier = 'Silver';
+
   await User.findByIdAndUpdate(customerId, {
     'customerDetails.loyalty.points': newBalance,
-    $inc: { 'customerDetails.loyalty.totalEarned': points },
+    'customerDetails.loyalty.totalEarned': newTotalEarned,
+    'customerDetails.loyalty.tier': tier
   });
+  
   return LoyaltyTransaction.create({ restaurantId, customerId, orderId, type: 'Earn', points, balanceAfter: newBalance, description });
 };

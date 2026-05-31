@@ -114,9 +114,8 @@ const orderSchema = new mongoose.Schema(
     },
 
 
-    // The CRM loyalty service handles points via LoyaltyTransaction model directly.
-    // loyaltyPointsEarned: { type: Number, default: 0 },
-    // loyaltyPointsRedeemed: { type: Number, default: 0 },
+    loyaltyPointsEarned: { type: Number, default: 0 },
+    loyaltyPointsRedeemed: { type: Number, default: 0 },
 
     source: { type: String, enum: ['Web', 'App', 'POS', 'QR'], default: 'Web' },
     inventoryDeducted: { type: Boolean, default: false },

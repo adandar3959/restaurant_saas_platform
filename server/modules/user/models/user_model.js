@@ -1,32 +1,32 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// const savedAddressSchema = new mongoose.Schema(
-//   {
-//     label: { type: String, default: 'Home' },
-//     street: { type: String, required: true },
-//     city: { type: String, required: true },
-//     state: { type: String },
-//     zipCode: { type: String },
-//     country: { type: String, default: 'Pakistan' },
-//     coordinates: {
-//       type: { type: String, enum: ['Point'], default: 'Point' },
-//       coordinates: { type: [Number] },
-//     },
-//     isDefault: { type: Boolean, default: false },
-//   },
-//   { _id: true, timestamps: true }
-// );
+const savedAddressSchema = new mongoose.Schema(
+  {
+    label: { type: String, default: 'Home' },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String },
+    zipCode: { type: String },
+    country: { type: String, default: 'Pakistan' },
+    coordinates: {
+      type: { type: String, enum: ['Point'], default: 'Point' },
+      coordinates: { type: [Number] },
+    },
+    isDefault: { type: Boolean, default: false },
+  },
+  { _id: true, timestamps: true }
+);
 
-// const loyaltySchema = new mongoose.Schema(
-//   {
-//     points: { type: Number, default: 0 },
-//     totalEarned: { type: Number, default: 0 },
-//     totalRedeemed: { type: Number, default: 0 },
-//     tier: { type: String, enum: ['Bronze', 'Silver', 'Gold', 'Platinum'], default: 'Bronze' },
-//   },
-//   { _id: false }
-// );
+const loyaltySchema = new mongoose.Schema(
+  {
+    points: { type: Number, default: 0 },
+    totalEarned: { type: Number, default: 0 },
+    totalRedeemed: { type: Number, default: 0 },
+    tier: { type: String, enum: ['Bronze', 'Silver', 'Gold', 'Platinum'], default: 'Bronze' },
+  },
+  { _id: false }
+);
 
 const userSchema = new mongoose.Schema(
   {
@@ -48,14 +48,14 @@ const userSchema = new mongoose.Schema(
 
     assignedStation: { type: String },
 
-    // customerDetails: {
-    //   savedAddresses: [savedAddressSchema],
-    //   loyalty: loyaltySchema,
-    //   preferredPaymentMethod: { type: String, enum: ['Cash', 'CreditCard', 'Wallet'] },
-    //   dietaryPreferences: [{ type: String }],
-    //   orderCount: { type: Number, default: 0 },   // never incremented
-    //   totalSpent: { type: Number, default: 0 },   // never incremented
-    // },
+    customerDetails: {
+      savedAddresses: [savedAddressSchema],
+      loyalty: loyaltySchema,
+      preferredPaymentMethod: { type: String, enum: ['Cash', 'CreditCard', 'Wallet'] },
+      dietaryPreferences: [{ type: String }],
+      orderCount: { type: Number, default: 0 },
+      totalSpent: { type: Number, default: 0 },
+    },
 
     status: { type: String, enum: ['Active', 'Inactive', 'Banned'], default: 'Active' },
 

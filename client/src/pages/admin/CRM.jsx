@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Plus, Star, X, MessageSquare, Tag, CheckCircle, AlertCircle, Trash2, Pencil } from 'lucide-react';
 import { crmApi } from '../../api/crm.api';
-import { formatDate } from '../../lib/utils';
+import { formatDate, formatCurrency } from '../../lib/utils';
 import UpgradeGate from '../../components/common/UpgradeGate';
 
 function Toast({ toast }) {
@@ -72,18 +72,39 @@ export default function CRM() {
   useEffect(() => { load(); }, [restaurantId]);
 
   const handleSaveCoupon = async () => {
-    if (!form.code || !form.discountValue) {
+    if (!form.code || (form.discountType !== 'FreeDelivery' && !form.discountValue)) {
       showToast('error', 'Code and discount value are required');
       return;
     }
+    const payload = { ...form };
+    // Standardize discountType for backend schema enum
+    if (payload.discountType === 'Fixed') {
+      payload.discountType = 'FixedAmount';
+    }
+    if (payload.discountType === 'FreeDelivery') {
+      payload.discountValue = 0;
+    }
+    if (!payload.validFrom) {
+      payload.validFrom = new Date().toISOString();
+    }
+    // Map expiryDate from datepicker to validUntil for the backend schema
+    if (payload.expiryDate) {
+      payload.validUntil = new Date(payload.expiryDate).toISOString();
+    } else if (!payload.validUntil) {
+      // Default expiry of 1 year
+      const oneYear = new Date();
+      oneYear.setFullYear(oneYear.getFullYear() + 1);
+      payload.validUntil = oneYear.toISOString();
+    }
+
     setSaving(true);
     try {
-      if (form._id) await crmApi.updateCoupon(restaurantId, form._id, form);
-      else          await crmApi.createCoupon(restaurantId, form);
+      if (payload._id) await crmApi.updateCoupon(restaurantId, payload._id, payload);
+      else          await crmApi.createCoupon(restaurantId, payload);
       setModal(false);
       setForm({});
       load();
-      showToast('success', form._id ? 'Coupon updated' : 'Coupon created');
+      showToast('success', payload._id ? 'Coupon updated' : 'Coupon created');
     } catch (e) {
       showToast('error', e?.response?.data?.message || 'Failed to save coupon');
     } finally { setSaving(false); }
@@ -288,13 +309,13 @@ export default function CRM() {
                           {c.code}
                         </code>
                       </td>
-                      <td className="text-muted">{c.discountType.toUpperCase()}</td>
+                      <td className="text-muted">{c.discountType === 'FixedAmount' ? 'FIXED' : c.discountType.toUpperCase()}</td>
                       <td className="font-semi" style={{ color: 'var(--neon-cyan)', fontSize: 16 }}>
-                        {c.discountType === 'Percentage' ? `${c.discountValue}%` : `$${c.discountValue}`}
+                        {c.discountType === 'Percentage' ? `${c.discountValue}%` : c.discountType === 'FreeDelivery' ? 'FREE SHIP' : formatCurrency(c.discountValue)}
                       </td>
-                      <td className="text-muted">${c.minimumOrderAmount?.toFixed(2) || '0.00'}</td>
-                      <td className="text-muted text-sm">{c.expiryDate ? formatDate(c.expiryDate).toUpperCase() : '—'}</td>
-                      <td className="text-muted font-semi">{c.usageCount ?? 0} <span style={{ opacity: 0.5 }}>/</span> {c.usageLimit ?? '∞'}</td>
+                      <td className="text-muted">{formatCurrency(c.minimumOrderAmount || 0)}</td>
+                      <td className="text-muted text-sm">{(c.validUntil || c.expiryDate) ? formatDate(c.validUntil || c.expiryDate).toUpperCase() : '—'}</td>
+                      <td className="text-muted font-semi">{c.usedCount ?? c.usageCount ?? 0} <span style={{ opacity: 0.5 }}>/</span> {c.usageLimit ?? '∞'}</td>
                       <td>
                         <span className="status-badge" style={{
                           background: c.isActive ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
@@ -346,36 +367,38 @@ export default function CRM() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                 <div className="form-group">
                   <label className="form-label">Discount Type</label>
-                  <select className="form-select" value={form.discountType || 'Percentage'} onChange={e => setForm(p => ({ ...p, discountType: e.target.value }))}>
+                  <select className="form-select" value={form.discountType === 'FixedAmount' ? 'Fixed' : (form.discountType || 'Percentage')} onChange={e => setForm(p => ({ ...p, discountType: e.target.value }))}>
                     <option value="Percentage">Percentage (%)</option>
-                    <option value="Fixed">Fixed Amount ($)</option>
+                    <option value="Fixed">Fixed Amount</option>
+                    <option value="FreeDelivery">Free Delivery</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Value *</label>
                   <input className="form-input" type="number" min="0"
-                    value={form.discountValue || ''}
+                    value={form.discountValue ?? ''}
                     onChange={e => setForm(p => ({ ...p, discountValue: parseFloat(e.target.value) }))}
-                    placeholder={form.discountType === 'Percentage' ? '20' : '5.00'} />
+                    placeholder={form.discountType === 'Percentage' ? '20' : '500'}
+                    disabled={form.discountType === 'FreeDelivery'} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Min Order ($)</label>
+                  <label className="form-label">Min Order Amount</label>
                   <input className="form-input" type="number" min="0"
-                    value={form.minimumOrderAmount || ''}
+                    value={form.minimumOrderAmount ?? ''}
                     onChange={e => setForm(p => ({ ...p, minimumOrderAmount: parseFloat(e.target.value) }))} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Usage Limit</label>
                   <input className="form-input" type="number" min="1"
-                    value={form.usageLimit || ''}
+                    value={form.usageLimit ?? ''}
                     onChange={e => setForm(p => ({ ...p, usageLimit: parseInt(e.target.value) }))}
                     placeholder="Unlimited" />
                 </div>
                 <div className="form-group" style={{ gridColumn: '1/-1' }}>
                   <label className="form-label">Expiry Date</label>
                   <input className="form-input" type="date"
-                    value={form.expiryDate?.slice(0, 10) || ''}
-                    onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))} />
+                    value={form.expiryDate?.slice(0, 10) || form.validUntil?.slice(0, 10) || ''}
+                    onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value, validUntil: e.target.value }))} />
                 </div>
                 {form._id && (
                   <div className="form-group" style={{ gridColumn: '1/-1' }}>

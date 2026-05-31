@@ -79,6 +79,34 @@ exports.createOrder = async (data, restaurantId) => {
 
   const order = await Order.create(data);
 
+  if (order.customerId && order.loyaltyPointsRedeemed > 0) {
+    try {
+      const User = require('../../user/models/user_model');
+      const LoyaltyTransaction = require('../../crm/models/loyaltyTransaction_model');
+      const userObj = await User.findById(order.customerId);
+      const currentPoints = userObj?.customerDetails?.loyalty?.points || 0;
+      const deductPoints = Math.min(currentPoints, order.loyaltyPointsRedeemed);
+      if (deductPoints > 0) {
+        const newBalance = currentPoints - deductPoints;
+        await User.findByIdAndUpdate(order.customerId, {
+          'customerDetails.loyalty.points': newBalance,
+          $inc: { 'customerDetails.loyalty.totalRedeemed': deductPoints }
+        });
+        await LoyaltyTransaction.create({
+          restaurantId,
+          customerId: order.customerId,
+          orderId: order._id,
+          type: 'Redeem',
+          points: deductPoints,
+          balanceAfter: newBalance,
+          description: `Redeemed ${deductPoints} points as discount for order #${order.orderNumber}`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to deduct loyalty points during order creation:', err);
+    }
+  }
+
   await KitchenTicket.create({
     restaurantId,
     orderId: order._id,
@@ -187,6 +215,25 @@ exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
       update['payment.paidAt'] = new Date();
       if (!order.payment?.method) {
         update['payment.method'] = 'Cash';
+      }
+    }
+    // Auto-award loyalty points on order completion
+    if (order.customerId && !order.loyaltyPointsEarned) {
+      try {
+        const crmService = require('../../crm/services/crm_service');
+        const pointsEarned = Math.floor((order.financials.subTotal || 0) / 10);
+        if (pointsEarned > 0) {
+          await crmService.awardPoints(
+            order.customerId,
+            order.restaurantId,
+            order._id,
+            pointsEarned,
+            `Earned points from order #${order.orderNumber}`
+          );
+          update.loyaltyPointsEarned = pointsEarned;
+        }
+      } catch (err) {
+        console.error('Failed to award loyalty points on order completion:', err);
       }
     }
   }
