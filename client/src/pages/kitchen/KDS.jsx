@@ -100,7 +100,10 @@ export default function KDS() {
       const res = await ordersApi.getOrders(restaurantId, { limit: 100 });
       const allOrders = res.data?.data?.orders || [];
 
-      const active = allOrders.filter(o => ['Pending', 'Accepted', 'Preparing', 'Ready'].includes(o.status));
+      const active = allOrders.filter(o => {
+        const isUnpaidStripe = o.payment?.method === 'Stripe' && o.payment?.status !== 'Paid';
+        return ['Pending', 'Accepted', 'Preparing', 'Ready'].includes(o.status) && !isUnpaidStripe;
+      });
       const history = allOrders.filter(o => ['Completed', 'Cancelled'].includes(o.status));
 
       let hasNewOrder = false;

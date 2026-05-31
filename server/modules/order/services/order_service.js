@@ -79,67 +79,89 @@ exports.createOrder = async (data, restaurantId) => {
 
   const order = await Order.create(data);
 
-  // Auto-increment coupon usage count on order placement
-  const couponIdToUse = order.couponId || data.couponId;
-  const couponCodeToUse = order.couponCode || data.couponCode;
-  if (couponIdToUse || couponCodeToUse) {
-    try {
-      const Coupon = require('../../crm/models/coupon_model');
-      if (couponIdToUse) {
-        await Coupon.findByIdAndUpdate(couponIdToUse, { $inc: { usedCount: 1 } });
-      } else if (couponCodeToUse) {
-        await Coupon.findOneAndUpdate(
-          { code: couponCodeToUse.toUpperCase(), restaurantId: order.restaurantId },
-          { $inc: { usedCount: 1 } }
-        );
-      }
-    } catch (couponErr) {
-      console.error('Failed to increment coupon uses during order creation:', couponErr);
-    }
+  // If the order is paid online (Stripe), we DEFER coupon usage, loyalty deductions, and KDS tickets
+  // until the payment succeeds!
+  const isOnlinePayment = 
+    (order.payment?.method === 'Stripe') || 
+    (data.payment?.method === 'Stripe') ||
+    (data.payment?.method?.toLowerCase() === 'stripe');
+
+  try {
+    const fs = require('fs');
+    fs.appendFileSync('debug_order.log', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      orderId: order._id,
+      orderPayment: order.payment,
+      dataPayment: data.payment,
+      isOnlinePayment
+    }, null, 2) + '\n');
+  } catch (logErr) {
+    console.error('Failed to write debug log:', logErr);
   }
 
-  if (order.customerId && order.loyaltyPointsRedeemed > 0) {
-    try {
-      const User = require('../../user/models/user_model');
-      const LoyaltyTransaction = require('../../crm/models/loyaltyTransaction_model');
-      const userObj = await User.findById(order.customerId);
-      const currentPoints = userObj?.customerDetails?.loyalty?.points || 0;
-      const deductPoints = Math.min(currentPoints, order.loyaltyPointsRedeemed);
-      if (deductPoints > 0) {
-        const newBalance = currentPoints - deductPoints;
-        await User.findByIdAndUpdate(order.customerId, {
-          'customerDetails.loyalty.points': newBalance,
-          $inc: { 'customerDetails.loyalty.totalRedeemed': deductPoints }
-        });
-        await LoyaltyTransaction.create({
-          restaurantId,
-          customerId: order.customerId,
-          orderId: order._id,
-          type: 'Redeem',
-          points: deductPoints,
-          balanceAfter: newBalance,
-          description: `Redeemed ${deductPoints} points as discount for order #${order.orderNumber}`
-        });
+  if (!isOnlinePayment) {
+    // Auto-increment coupon usage count on order placement
+    const couponIdToUse = order.couponId || data.couponId;
+    const couponCodeToUse = order.couponCode || data.couponCode;
+    if (couponIdToUse || couponCodeToUse) {
+      try {
+        const Coupon = require('../../crm/models/coupon_model');
+        if (couponIdToUse) {
+          await Coupon.findByIdAndUpdate(couponIdToUse, { $inc: { usedCount: 1 } });
+        } else if (couponCodeToUse) {
+          await Coupon.findOneAndUpdate(
+            { code: couponCodeToUse.toUpperCase(), restaurantId: order.restaurantId },
+            { $inc: { usedCount: 1 } }
+          );
+        }
+      } catch (couponErr) {
+        console.error('Failed to increment coupon uses during order creation:', couponErr);
       }
-    } catch (err) {
-      console.error('Failed to deduct loyalty points during order creation:', err);
     }
-  }
 
-  await KitchenTicket.create({
-    restaurantId,
-    orderId: order._id,
-    orderNumber: order.orderNumber,
-    orderType: order.orderType,
-    tableNumber: order.tableNumber,
-    items: order.items.map((i) => ({
-      menuItemId: i.menuItemId,
-      name: i.name,
-      quantity: i.quantity,
-      selectedModifiers: i.selectedModifiers,
-      specialInstructions: i.specialInstructions,
-    })),
-  });
+    if (order.customerId && order.loyaltyPointsRedeemed > 0) {
+      try {
+        const User = require('../../user/models/user_model');
+        const LoyaltyTransaction = require('../../crm/models/loyaltyTransaction_model');
+        const userObj = await User.findById(order.customerId);
+        const currentPoints = userObj?.customerDetails?.loyalty?.points || 0;
+        const deductPoints = Math.min(currentPoints, order.loyaltyPointsRedeemed);
+        if (deductPoints > 0) {
+          const newBalance = currentPoints - deductPoints;
+          await User.findByIdAndUpdate(order.customerId, {
+            'customerDetails.loyalty.points': newBalance,
+            $inc: { 'customerDetails.loyalty.totalRedeemed': deductPoints }
+          });
+          await LoyaltyTransaction.create({
+            restaurantId,
+            customerId: order.customerId,
+            orderId: order._id,
+            type: 'Redeem',
+            points: deductPoints,
+            balanceAfter: newBalance,
+            description: `Redeemed ${deductPoints} points as discount for order #${order.orderNumber}`
+          });
+        }
+      } catch (err) {
+        console.error('Failed to deduct loyalty points during order creation:', err);
+      }
+    }
+
+    await KitchenTicket.create({
+      restaurantId,
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      orderType: order.orderType,
+      tableNumber: order.tableNumber,
+      items: order.items.map((i) => ({
+        menuItemId: i.menuItemId,
+        name: i.name,
+        quantity: i.quantity,
+        selectedModifiers: i.selectedModifiers,
+        specialInstructions: i.specialInstructions,
+      })),
+    });
+  }
 
   return order;
 };
@@ -155,6 +177,19 @@ exports.getOrders = async (restaurantId, filters, pagination) => {
     end.setDate(end.getDate() + 1);
     query.createdAt = { $gte: start, $lt: end };
   }
+
+  // Exclude unpaid Stripe/online-card orders — they haven't been paid for yet
+  // so they should not appear on KDS, admin orders, or any staff view
+  query.$or = [
+    { 'payment.method': { $exists: false } },
+    { 'payment.method': null },
+    { 'payment.method': 'Cash' },
+    { 'payment.method': 'CreditCard' },
+    { 'payment.method': 'Wallet' },
+    { 'payment.method': 'PayPal' },
+    { 'payment.method': 'Stripe', 'payment.status': 'Paid' },
+  ];
+
   const [orders, total] = await Promise.all([
     Order.find(query)
       .populate('customerId', 'name email phone')
@@ -301,6 +336,10 @@ exports.getOrderStats = async (restaurantId, query = {}) => {
     restaurantId: new (require('mongoose').Types.ObjectId)(restaurantId),
     status: { $nin: ['Cancelled'] },
     createdAt: { $gte: startDate, $lte: endDate },
+    $or: [
+      { 'payment.method': { $ne: 'Stripe' } },
+      { 'payment.status': 'Paid' }
+    ]
   };
 
   const dailyRevenue = await Order.aggregate([
@@ -374,5 +413,95 @@ exports.addTip = async (orderId, restaurantId, tipAmount) => {
 exports.publicFindOrder = async (id) => {
   const order = await Order.findById(id).select('restaurantId');
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+  return order;
+};
+
+exports.processOrderPaymentSuccess = async (orderId, transactionId) => {
+  const order = await Order.findById(orderId);
+  if (!order) return null;
+
+  // Prevent double processing
+  if (order.payment?.status === 'Paid') {
+    return order;
+  }
+
+  // Update payment status and accept order
+  order.payment.status = 'Paid';
+  order.payment.paidAt = new Date();
+  order.payment.method = 'Stripe';
+  if (transactionId) {
+    order.payment.transactionId = transactionId;
+  }
+  order.status = 'Accepted';
+  order.statusTimestamps.acceptedAt = new Date();
+
+  // 1. Create KDS Kitchen Ticket
+  try {
+    const KitchenTicket = require('../../kitchen/models/kitchenTicket_model');
+    await KitchenTicket.create({
+      restaurantId: order.restaurantId,
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      orderType: order.orderType,
+      tableNumber: order.tableNumber,
+      items: order.items.map((i) => ({
+        menuItemId: i.menuItemId,
+        name: i.name,
+        quantity: i.quantity,
+        selectedModifiers: i.selectedModifiers,
+        specialInstructions: i.specialInstructions,
+      })),
+    });
+  } catch (kdsErr) {
+    console.error('Failed to create kitchen ticket on payment success:', kdsErr);
+  }
+
+  // 2. Deduct Loyalty Points
+  if (order.customerId && order.loyaltyPointsRedeemed > 0) {
+    try {
+      const User = require('../../user/models/user_model');
+      const LoyaltyTransaction = require('../../crm/models/loyaltyTransaction_model');
+      const userObj = await User.findById(order.customerId);
+      const currentPoints = userObj?.customerDetails?.loyalty?.points || 0;
+      const deductPoints = Math.min(currentPoints, order.loyaltyPointsRedeemed);
+      if (deductPoints > 0) {
+        const newBalance = currentPoints - deductPoints;
+        await User.findByIdAndUpdate(order.customerId, {
+          'customerDetails.loyalty.points': newBalance,
+          $inc: { 'customerDetails.loyalty.totalRedeemed': deductPoints }
+        });
+        await LoyaltyTransaction.create({
+          restaurantId: order.restaurantId,
+          customerId: order.customerId,
+          orderId: order._id,
+          type: 'Redeem',
+          points: deductPoints,
+          balanceAfter: newBalance,
+          description: `Redeemed ${deductPoints} points as discount for order #${order.orderNumber}`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to deduct loyalty points on payment success:', err);
+    }
+  }
+
+  // 3. Increment Coupon usage count
+  if (order.couponId || order.couponCode) {
+    try {
+      const Coupon = require('../../crm/models/coupon_model');
+      if (order.couponId) {
+        await Coupon.findByIdAndUpdate(order.couponId, { $inc: { usedCount: 1 } });
+      } else if (order.couponCode) {
+        await Coupon.findOneAndUpdate(
+          { code: order.couponCode.toUpperCase(), restaurantId: order.restaurantId },
+          { $inc: { usedCount: 1 } }
+        );
+      }
+    } catch (couponErr) {
+      console.error('Failed to increment coupon uses on payment success:', couponErr);
+    }
+  }
+
+  await order.save();
   return order;
 };

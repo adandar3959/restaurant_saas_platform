@@ -209,13 +209,8 @@ exports.handleWebhook = async (sig, payload) => {
       if (session.metadata?.type !== 'subscription_upgrade') {
         const orderId = session.metadata?.orderId;
         if (orderId) {
-          await Order.findByIdAndUpdate(orderId, {
-            'payment.status':        'Paid',
-            'payment.method':        'Stripe',
-            'payment.transactionId': session.payment_intent,
-            'payment.paidAt':        new Date(),
-            status:                  'Accepted',
-          });
+          const orderService = require('../../order/services/order_service');
+          await orderService.processOrderPaymentSuccess(orderId, session.payment_intent);
         }
       }
       break;
@@ -237,17 +232,8 @@ exports.verifyOrderSession = async (sessionId) => {
     throw Object.assign(new Error('Payment not completed'), { statusCode: 402 });
   }
 
-  const order = await Order.findByIdAndUpdate(
-    orderId,
-    {
-      'payment.status':        'Paid',
-      'payment.method':        'Stripe',
-      'payment.transactionId': session.payment_intent,
-      'payment.paidAt':        new Date(),
-      status:                  'Accepted',
-    },
-    { new: true }
-  );
+  const orderService = require('../../order/services/order_service');
+  const order = await orderService.processOrderPaymentSuccess(orderId, session.payment_intent);
 
   return order;
 };

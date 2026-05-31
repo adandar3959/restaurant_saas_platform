@@ -122,6 +122,11 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
     setError('');
     setLoading(true);
     try {
+      const needsPayment = 
+        orderType === 'Takeaway' || 
+        (orderType === 'Delivery' && paymentMethod === 'Online') || 
+        (orderType === 'Dine-In' && paymentMethod === 'Online');
+
       const payload = {
         orderType,
         items: items.map(i => ({ menuItemId: i._id.split('_')[0], quantity: i.qty, unitPrice: i.price, name: i.name, sizeName: i._id.split('_')[1] || '' })),
@@ -134,6 +139,10 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
         loyaltyPointsRedeemed: redeemPoints ? maxRedeemablePoints : 0,
         couponId: appliedCoupon?._id || undefined,
         couponCode: appliedCoupon?.code || undefined,
+        payment: {
+          method: needsPayment ? 'Stripe' : 'Cash',
+          status: 'Unpaid'
+        },
         financials: {
           subTotal: totalPrice,
           deliveryFee: finalDeliveryFee,
@@ -148,11 +157,6 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
       const orderId = res.data?.data?._id || res.data?._id;
 
       // 2. Stripe Checkout session if Online Card payment
-      const needsPayment = 
-        orderType === 'Takeaway' || 
-        (orderType === 'Delivery' && paymentMethod === 'Online') || 
-        (orderType === 'Dine-In' && paymentMethod === 'Online');
-
       if (needsPayment) {
         const payRes = await customerApi.createCheckoutSession(restaurantId, { 
           orderId,
