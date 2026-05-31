@@ -133,6 +133,7 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
         ...(notes && { notes }),
         loyaltyPointsRedeemed: redeemPoints ? maxRedeemablePoints : 0,
         couponId: appliedCoupon?._id || undefined,
+        couponCode: appliedCoupon?.code || undefined,
         financials: {
           subTotal: totalPrice,
           deliveryFee: finalDeliveryFee,

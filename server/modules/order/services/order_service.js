@@ -79,6 +79,25 @@ exports.createOrder = async (data, restaurantId) => {
 
   const order = await Order.create(data);
 
+  // Auto-increment coupon usage count on order placement
+  const couponIdToUse = order.couponId || data.couponId;
+  const couponCodeToUse = order.couponCode || data.couponCode;
+  if (couponIdToUse || couponCodeToUse) {
+    try {
+      const Coupon = require('../../crm/models/coupon_model');
+      if (couponIdToUse) {
+        await Coupon.findByIdAndUpdate(couponIdToUse, { $inc: { usedCount: 1 } });
+      } else if (couponCodeToUse) {
+        await Coupon.findOneAndUpdate(
+          { code: couponCodeToUse.toUpperCase(), restaurantId: order.restaurantId },
+          { $inc: { usedCount: 1 } }
+        );
+      }
+    } catch (couponErr) {
+      console.error('Failed to increment coupon uses during order creation:', couponErr);
+    }
+  }
+
   if (order.customerId && order.loyaltyPointsRedeemed > 0) {
     try {
       const User = require('../../user/models/user_model');
@@ -234,6 +253,16 @@ exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
         }
       } catch (err) {
         console.error('Failed to award loyalty points on order completion:', err);
+      }
+    }
+
+    // Auto-increment coupon usage count on order completion
+    if (order.couponId) {
+      try {
+        const Coupon = require('../../crm/models/coupon_model');
+        await Coupon.findByIdAndUpdate(order.couponId, { $inc: { usedCount: 1 } });
+      } catch (couponErr) {
+        console.error('Failed to increment coupon uses on order completion:', couponErr);
       }
     }
   }

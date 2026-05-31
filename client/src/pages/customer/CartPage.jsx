@@ -107,6 +107,7 @@ function CheckoutModal({ restaurantId, tableNo, items, totalPrice, onClose, onSu
         ...(notes && { notes }),
         loyaltyPointsRedeemed: redeemPoints ? maxRedeemablePoints : 0,
         couponId: appliedCoupon?._id || undefined,
+        couponCode: appliedCoupon?.code || undefined,
         financials: {
           subTotal: totalPrice,
           deliveryFee: finalDeliveryFee,
