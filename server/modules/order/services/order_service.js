@@ -258,6 +258,17 @@ exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
   const order = await Order.findOne({ _id: id, restaurantId });
   if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
 
+  if (status === 'Ready' && order.orderType === 'Delivery') {
+    try {
+      const deliveryService = require('../../delivery/services/delivery_service');
+      deliveryService.autoDispatch(id, restaurantId).catch(err => 
+        console.error('Auto dispatch failed:', err)
+      );
+    } catch (err) {
+      console.error('Could not load delivery service for auto dispatch', err);
+    }
+  }
+
   if (status === 'Completed') {
     if (!order.inventoryDeducted) {
       await deductOrderInventory(order);

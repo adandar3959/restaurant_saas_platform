@@ -10,11 +10,13 @@ export const deliveryApi = {
   deleteZone:  (rid, id)     => api.delete(`/restaurants/${rid}/delivery/zones/${id}`),
 
   getDrivers:      (rid, params)  => api.get(`/restaurants/${rid}/delivery/drivers`, { params }),
+  getMyDriverProfile: (rid)       => api.get(`/restaurants/${rid}/delivery/drivers/me`),
   registerDriver:  (rid, data)    => api.post(`/restaurants/${rid}/delivery/drivers`, data),
   updateDriverStatus: (rid, id, status) => api.patch(`/restaurants/${rid}/delivery/drivers/${id}/status`, { status }),
   updateDriverLocation:(rid, id, coords) => api.patch(`/restaurants/${rid}/delivery/drivers/${id}/location`, { coordinates: coords }),
 
   getDispatches:   (rid, params)  => api.get(`/restaurants/${rid}/delivery/dispatches`, { params }),
+  getMyDispatches: (rid, params)  => api.get(`/restaurants/${rid}/delivery/dispatches/my`, { params }),
   createDispatch:  (rid, data)    => api.post(`/restaurants/${rid}/delivery/dispatches`, data),
   updateDispatch:  (rid, id, status) => api.patch(`/restaurants/${rid}/delivery/dispatches/${id}/status`, { status }),
 };

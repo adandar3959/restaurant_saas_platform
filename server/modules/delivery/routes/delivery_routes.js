@@ -9,11 +9,13 @@ router.post('/zones', protect, authorize(...staff), ctrl.createZone);
 router.patch('/zones/:id', protect, authorize(...staff), ctrl.updateZone);
 router.delete('/zones/:id', protect, authorize(...staff), ctrl.deleteZone);
 
+router.get('/drivers/me', protect, authorize('Driver'), ctrl.getMyDriverProfile);
 router.get('/drivers', protect, authorize(...staff), ctrl.getDrivers);
 router.post('/drivers', protect, authorize(...staff), ctrl.createDriver);
 router.patch('/drivers/:id/status', protect, authorize(...staff, 'Driver'), ctrl.updateDriverStatus);
 router.patch('/drivers/:id/location', protect, authorize('Driver'), ctrl.updateDriverLocation);
 
+router.get('/dispatches/my', protect, authorize('Driver'), ctrl.getMyDispatches);
 router.get('/dispatches', protect, authorize(...staff), ctrl.getDispatches);
 router.post('/dispatches', protect, authorize(...staff), ctrl.createDispatch);
 router.patch('/dispatches/:id/status', protect, authorize(...staff, 'Driver'), ctrl.updateDispatchStatus);

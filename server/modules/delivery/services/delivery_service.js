@@ -50,7 +50,10 @@ exports.getDispatches = async (restaurantId, filters, pagination) => {
   if (filters.driverId) query.driverId = filters.driverId;
   const [dispatches, total] = await Promise.all([
     Dispatch.find(query)
-      .populate('orderId', 'orderNumber totalAmount')
+      .populate({
+        path: 'orderId',
+        populate: { path: 'customerId', select: 'name phone email' }
+      })
       .populate('driverId')
       .skip(pagination.skip)
       .limit(pagination.limit)
@@ -66,5 +69,77 @@ exports.updateDispatchStatus = async (id, restaurantId, status) => {
   if (status === 'Delivered') update.deliveredAt = new Date();
   const dispatch = await Dispatch.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
   if (!dispatch) throw Object.assign(new Error('Dispatch not found'), { statusCode: 404 });
+
+  try {
+    const Order = require('../../order/models/order_model');
+    if (status === 'PickedUp' || status === 'InTransit') {
+       await Order.findByIdAndUpdate(dispatch.orderId, { status: 'OutForDelivery' });
+    } else if (status === 'Delivered') {
+       const orderService = require('../../order/services/order_service');
+       await orderService.updateOrderStatus(dispatch.orderId, restaurantId, 'Completed', null);
+       
+       const activeCount = await Dispatch.countDocuments({
+         driverId: dispatch.driverId,
+         status: { $in: ['Assigned', 'PickedUp', 'InTransit'] }
+       });
+       if (activeCount === 0) {
+         await Driver.findByIdAndUpdate(dispatch.driverId, { status: 'Available' });
+       }
+    }
+  } catch (err) {
+    console.error('Failed to sync dispatch status to order:', err);
+  }
+
   return dispatch;
+};
+
+exports.autoDispatch = async (orderId, restaurantId) => {
+  try {
+    const existing = await Dispatch.findOne({ orderId, restaurantId });
+    if (existing) return existing;
+
+    const availableDrivers = await Driver.find({ 
+      restaurantId, 
+      status: { $in: ['Available', 'OnDelivery'] } 
+    });
+    
+    if (!availableDrivers.length) {
+      console.log(`[AutoDispatch] No available drivers for order ${orderId}`);
+      return null;
+    }
+
+    let selectedDriver = null;
+    let minDispatches = Infinity;
+
+    for (const driver of availableDrivers) {
+      const activeCount = await Dispatch.countDocuments({
+        driverId: driver._id,
+        status: { $in: ['Assigned', 'PickedUp', 'InTransit'] }
+      });
+      if (activeCount < minDispatches) {
+        minDispatches = activeCount;
+        selectedDriver = driver;
+      }
+    }
+
+    if (!selectedDriver) return null;
+
+    const dispatch = await Dispatch.create({
+      restaurantId,
+      orderId,
+      driverId: selectedDriver._id,
+      status: 'Assigned',
+    });
+
+    // We can keep them as Available or OnDelivery so they can keep receiving
+    if (selectedDriver.status === 'Available') {
+      await Driver.findByIdAndUpdate(selectedDriver._id, { status: 'OnDelivery' });
+    }
+    console.log(`[AutoDispatch] Assigned order ${orderId} to driver ${selectedDriver._id}`);
+    
+    return dispatch;
+  } catch (err) {
+    console.error('[AutoDispatch] Error:', err);
+    return null;
+  }
 };

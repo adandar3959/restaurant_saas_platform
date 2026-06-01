@@ -35,6 +35,29 @@ exports.getDrivers = asyncHandler(async (req, res) => {
 
 exports.updateDriverStatus = asyncHandler(async (req, res) => {
   const driver = await deliveryService.updateDriverStatus(req.params.id, req.params.restaurantId, req.body.status);
+  
+  if (req.body.status === 'Available') {
+    try {
+      const Order = require('../../order/models/order_model');
+      const Dispatch = require('../models/dispatch_model');
+      
+      const unassignedReadyOrders = await Order.find({
+        restaurantId: req.params.restaurantId,
+        orderType: 'Delivery',
+        status: 'Ready'
+      });
+      
+      for (const order of unassignedReadyOrders) {
+        const exists = await Dispatch.findOne({ orderId: order._id });
+        if (!exists) {
+          await deliveryService.autoDispatch(order._id, req.params.restaurantId);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to retroactively dispatch orders when driver came online', err);
+    }
+  }
+
   sendSuccess(res, driver, 'Driver status updated');
 });
 
@@ -57,4 +80,22 @@ exports.getDispatches = asyncHandler(async (req, res) => {
 exports.updateDispatchStatus = asyncHandler(async (req, res) => {
   const dispatch = await deliveryService.updateDispatchStatus(req.params.id, req.params.restaurantId, req.body.status);
   sendSuccess(res, dispatch, 'Dispatch status updated');
+});
+
+exports.getMyDriverProfile = asyncHandler(async (req, res) => {
+  const Driver = require('../models/driver_model');
+  const driver = await Driver.findOne({ userId: req.user._id, restaurantId: req.params.restaurantId });
+  if (!driver) return res.status(404).json({ success: false, message: 'Driver profile not found' });
+  sendSuccess(res, driver);
+});
+
+exports.getMyDispatches = asyncHandler(async (req, res) => {
+  const Driver = require('../models/driver_model');
+  const driver = await Driver.findOne({ userId: req.user._id, restaurantId: req.params.restaurantId });
+  if (!driver) return res.status(404).json({ success: false, message: 'Driver profile not found' });
+
+  req.query.driverId = driver._id;
+  const pagination = paginate(req.query);
+  const { dispatches, total } = await deliveryService.getDispatches(req.params.restaurantId, req.query, pagination);
+  sendSuccess(res, { dispatches, meta: paginateMeta(total, pagination.page, pagination.limit) });
 });

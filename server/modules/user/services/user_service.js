@@ -104,7 +104,23 @@ exports.createStaff = async (data, createdBy) => {
   data.restaurantId = createdBy.restaurantId;
   const existing = await User.findOne({ email: data.email });
   if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
-  return User.create(data);
+  const user = await User.create(data);
+
+  if (user.role === 'Driver') {
+    try {
+      const Driver = require('../../delivery/models/driver_model');
+      await Driver.create({
+        restaurantId: user.restaurantId,
+        userId: user._id,
+        status: 'Offline',
+        currentLocation: { type: 'Point', coordinates: [0, 0] }
+      });
+    } catch (err) {
+      console.error('Failed to create driver profile:', err);
+    }
+  }
+
+  return user;
 };
 
 exports.login = async (email, password) => {

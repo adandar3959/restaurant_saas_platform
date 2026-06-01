@@ -593,8 +593,8 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
   const isPreparingCol = actionBtn.label.includes('Ready') || actionBtn.label.includes('PREP');
   const canProceed = !actionBtn.label.includes('Ready') || allItemsReady;
 
-  const isReadyCol = actionBtn.label.includes('Clear');
-  const hideAction = isReadyCol && order.orderType === 'Dine-In';
+  const isReadyCol = actionBtn.label.includes('DONE');
+  const hideAction = isReadyCol && order.orderType === 'Delivery';
 
   return (
     <div className={`kds-card ${isRecent ? 'new-arrival neon-border-purple' : ''} animate-fade-up`}>
@@ -665,7 +665,7 @@ function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemTogg
       <div className="kds-card-actions">
         {hideAction ? (
           <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 700, padding: 8, textAlign: 'center', width: '100%' }}>
-            Waiting for Waiter to serve...
+            {order.orderType === 'Delivery' ? 'Waiting for Driver to deliver...' : 'Waiting for Waiter to serve...'}
           </div>
         ) : (
           <button
