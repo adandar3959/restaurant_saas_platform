@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Truck, Package, MapPin, CheckCircle, Clock, 
-  DollarSign, LogOut, Navigation, Phone, 
-  ChevronRight, ArrowLeft, Loader2, User, ToggleLeft, ToggleRight
+  LogOut, Navigation, Phone, 
+  ChevronRight, Loader2, ToggleLeft, ToggleRight,
+  History, X
 } from 'lucide-react';
 import { deliveryApi } from '../../api/delivery.api';
 import { useAuth } from '../../context/AuthContext';
@@ -19,16 +20,14 @@ export default function DriverDashboard() {
   const [dispatches, setDispatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('active');
+  const [showHistory, setShowHistory] = useState(false);
 
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      // 1. Get driver profile
       const driverRes = await deliveryApi.getMyDriverProfile(restaurantId);
       setDriver(driverRes.data?.data);
 
-      // 2. Get dispatches
       const dispatchRes = await deliveryApi.getMyDispatches(restaurantId);
       setDispatches(dispatchRes.data?.data?.dispatches || []);
     } catch (err) {
@@ -37,7 +36,6 @@ export default function DriverDashboard() {
       } else {
         setError('Failed to load dashboard');
       }
-      console.error(err);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -55,6 +53,9 @@ export default function DriverDashboard() {
     try {
       await deliveryApi.updateDriverStatus(restaurantId, driver._id, newStatus);
       setDriver(p => ({ ...p, status: newStatus }));
+      if (newStatus === 'Available') {
+        setTimeout(() => fetchData(true), 1500); // give time for retroactive dispatch
+      }
     } catch (err) {
       console.error('Failed to toggle status', err);
     }
@@ -71,41 +72,43 @@ export default function DriverDashboard() {
 
   const activeDispatches = dispatches.filter(d => ['Assigned', 'PickedUp', 'InTransit'].includes(d.status));
   const completedDispatches = dispatches.filter(d => d.status === 'Delivered');
-
   const earningsToday = completedDispatches.reduce((sum, d) => sum + (d.orderId?.financials?.tipAmount || 0) + (d.deliveryFee || 0), 0);
 
   if (loading) return (
     <div className="driver-loading">
-      <Loader2 className="spin" size={40} color="var(--primary)" />
-      <p>Loading Dashboard...</p>
+      <Loader2 className="spin" size={48} color="#8b5cf6" />
+      <p style={{ fontWeight: 600 }}>Loading Dashboard...</p>
     </div>
   );
 
   if (error) return (
     <div className="driver-loading">
-      <p style={{ color: 'var(--error)', fontWeight: 600 }}>{error}</p>
-      <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={() => logout()}>Logout</button>
+      <p style={{ color: '#ef4444', fontWeight: 600, fontSize: 18 }}>{error}</p>
+      <button className="btn-logout-driver" style={{ marginTop: 16 }} onClick={() => logout()}>Logout</button>
     </div>
   );
 
   return (
     <div className="driver-app fade-in">
-      <nav className="driver-nav glass-header">
+      <nav className="driver-nav">
         <div className="driver-brand">
           <div className="driver-logo-neon">
             <Truck size={24} color="#fff" />
           </div>
           <div>
-            <h2 style={{ fontWeight: 700, color: 'var(--text)', fontSize: 16 }}>Driver Port</h2>
-            <div className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} onClick={toggleStatus}>
-              {driver?.status === 'Available' ? <ToggleRight size={16} color="var(--success)" /> : <ToggleLeft size={16} color="var(--text-muted)" />}
-              {driver?.status === 'Available' ? 'Online' : 'Offline'}
+            <h2 style={{ fontWeight: 800, color: '#0f172a', fontSize: 16, margin: 0 }}>Driver Port</h2>
+            <div className="text-xs" style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: driver?.status === 'Available' ? '#10b981' : '#64748b', fontWeight: 600 }} onClick={toggleStatus}>
+              {driver?.status === 'Available' ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {driver?.status === 'Available' ? 'ONLINE' : 'OFFLINE'}
             </div>
           </div>
         </div>
         <div className="driver-nav-actions">
-           <div className="driver-avatar-mini" title={user?.name}>{user?.name?.[0]}</div>
-           <button className="btn-logout-driver" onClick={logout}><LogOut size={18} /></button>
+           <button className="btn-icon-driver" onClick={() => setShowHistory(true)} title="View History">
+             <History size={20} />
+           </button>
+           <div className="driver-avatar-mini" title={user?.name}>{user?.name?.[0]?.toUpperCase()}</div>
+           <button className="btn-logout-driver" onClick={logout} title="Logout"><LogOut size={18} /></button>
         </div>
       </nav>
 
@@ -121,28 +124,30 @@ export default function DriverDashboard() {
       </header>
 
       <main className="driver-main">
-        <div className="driver-tabs">
-           <button className={`d-tab ${activeTab === 'active' ? 'active' : ''}`} onClick={() => setActiveTab('active')}>
-             Active ({activeDispatches.length})
-           </button>
-           <button className={`d-tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
-             Completed
-           </button>
-        </div>
-
         <div className="delivery-list">
-          {activeTab === 'active' ? (
-            activeDispatches.length === 0 ? (
-              <div className="empty-deliveries animate-fade-up">
-                <Package size={48} style={{ color: 'var(--primary)', opacity: 0.5 }} />
-                <p className="text-muted">No active assignments right now.</p>
-                <button className="btn btn-outline btn-sm" onClick={() => fetchData()}>Refresh Queue</button>
-              </div>
-            ) : (
-              activeDispatches.map((dispatch, idx) => (
-                <DeliveryCard key={dispatch._id} dispatch={dispatch} onUpdate={updateDispatchStatus} delay={idx * 100} />
-              ))
-            )
+          {activeDispatches.length === 0 ? (
+            <div className="empty-deliveries animate-fade-up">
+              <Package size={64} style={{ color: '#6366f1', opacity: 0.5 }} />
+              <p style={{ color: '#64748b', fontWeight: 600, fontSize: 16 }}>No active assignments right now.</p>
+              <button onClick={() => fetchData()} style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#64748b', padding: '10px 20px', borderRadius: 12, cursor: 'pointer', fontWeight: 600 }}>Refresh Queue</button>
+            </div>
+          ) : (
+            activeDispatches.map((dispatch, idx) => (
+              <DeliveryCard key={dispatch._id} dispatch={dispatch} onUpdate={updateDispatchStatus} delay={idx * 100} />
+            ))
+          )}
+        </div>
+      </main>
+
+      {/* History Drawer */}
+      <div className={`d-history-drawer ${showHistory ? 'open' : ''}`}>
+        <div className="d-history-header">
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, color: '#0f172a', fontSize: 18 }}><CheckCircle size={20} color="#10b981" /> Completed</h3>
+          <button className="btn-icon-driver" onClick={() => setShowHistory(false)} style={{ border: 'none' }}><X size={24} /></button>
+        </div>
+        <div className="d-history-body">
+          {completedDispatches.length === 0 ? (
+            <p style={{ color: '#64748b', textAlign: 'center', marginTop: 40, fontWeight: 600 }}>No completed deliveries today.</p>
           ) : (
             completedDispatches.map((dispatch, idx) => (
               <div key={dispatch._id} className="delivery-card-mini animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
@@ -158,7 +163,8 @@ export default function DriverDashboard() {
             ))
           )}
         </div>
-      </main>
+      </div>
+      {showHistory && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999 }} onClick={() => setShowHistory(false)} />}
     </div>
   );
 }
@@ -166,54 +172,70 @@ export default function DriverDashboard() {
 function DeliveryCard({ dispatch, onUpdate, delay = 0 }) {
   const order = dispatch.orderId || {};
   const isPickedUp = dispatch.status === 'PickedUp' || dispatch.status === 'InTransit';
+  const totalAmount = order.financials?.totalAmount || 0;
+  const customerPhone = order.customerPhone || order.customerId?.phone || '';
+  
+  const rawCustName = order.customerId?.name || 'Guest User';
+  const custName = rawCustName.toLowerCase() === 'admin' ? 'Guest User' : rawCustName;
 
   return (
     <div className={`delivery-card animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
       <div className="d-card-header">
-        <div className="d-id-tag">ORDER #{order.orderNumber || dispatch._id.slice(-5).toUpperCase()}</div>
-        <div className={`d-status-pill ${dispatch.status.toLowerCase()}`}>
-          {dispatch.status === 'Assigned' ? '📦 ASSIGNED' : 
-           dispatch.status === 'PickedUp' ? '🚀 EN ROUTE' : 
-           `🚀 ${dispatch.status.toUpperCase()}`}
-        </div>
+        <div className="d-id-tag">#{order.orderNumber || dispatch._id.slice(-5).toUpperCase()}</div>
+        <div className="d-price-tag">{formatCurrency(totalAmount)}</div>
       </div>
 
       <div className="d-card-body">
         <div className="d-info-row">
-          <MapPin size={18} className="text-muted" />
+          <MapPin size={24} color="#a855f7" style={{ marginTop: 2 }} />
           <div className="d-address">
             <p className="d-addr-main">{order.deliveryAddress?.street || '123 Delivery Lane, City Center'}</p>
-            <p className="d-addr-sub">Customer: {order.customerId?.name || 'Guest User'}</p>
+            <p className="d-addr-sub">Customer: <strong style={{ color: '#475569' }}>{custName}</strong></p>
           </div>
         </div>
         
         <div className="d-info-row">
-          <Clock size={18} className="text-muted" />
-          <p className="text-sm">Assigned {timeAgo(dispatch.createdAt)}</p>
+          <Clock size={20} color="#94a3b8" style={{ marginTop: 2 }} />
+          <div className="d-address">
+            <p className="d-addr-main" style={{ fontSize: 14 }}>Assigned {timeAgo(dispatch.createdAt)}</p>
+            <div className={`d-status-pill ${dispatch.status.toLowerCase()}`} style={{ display: 'inline-block', marginTop: 6 }}>
+              {dispatch.status === 'Assigned' ? '📦 Waiting at Kitchen' : 
+               dispatch.status === 'PickedUp' ? '🚀 Out For Delivery' : 
+               dispatch.status.toUpperCase()}
+            </div>
+          </div>
         </div>
 
-        <div className="d-items-preview">
+        <div className="d-items-list">
            {order.items?.map((it, idx) => (
-             <span key={idx}>{it.quantity}x {it.name}{idx < order.items.length - 1 ? ', ' : ''}</span>
+             <div key={idx} className="d-item-row">
+                <span className="d-item-qty">{it.quantity}x</span>
+                <span className="d-item-name">{it.name}</span>
+             </div>
            ))}
         </div>
       </div>
 
       <div className="d-card-footer">
-        <a href={`tel:${order.customerPhone || order.customerId?.phone || ''}`} className="d-btn-icon" title="Call Customer">
-          <Phone size={20} />
+        {customerPhone && (
+          <a href={`tel:${customerPhone}`} className="d-contact-pill">
+            <Phone size={18} color="#10b981" />
+            {customerPhone}
+          </a>
+        )}
+        
+        <a href={`https://maps.google.com/?q=${encodeURIComponent(order.deliveryAddress?.street || '')}`} target="_blank" rel="noreferrer" className="d-contact-pill" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
+          <Navigation size={18} />
+          Map
         </a>
-        <button className="d-btn-icon" title="View Map">
-          <Navigation size={20} />
-        </button>
         
         {dispatch.status === 'Assigned' ? (
           <button className="d-btn-prime" onClick={() => onUpdate(dispatch._id, 'PickedUp')}>
-            Mark Picked Up <ChevronRight size={18} />
+            Mark Picked Up <ChevronRight size={20} />
           </button>
         ) : (
           <button className="d-btn-prime complete" onClick={() => onUpdate(dispatch._id, 'Delivered')}>
-            Confirm Delivery <CheckCircle size={18} />
+            Confirm Delivery <CheckCircle size={20} />
           </button>
         )}
       </div>
