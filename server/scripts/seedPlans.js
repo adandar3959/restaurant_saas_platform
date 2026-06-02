@@ -85,7 +85,7 @@ async function seed() {
     await Plan.findOneAndUpdate(
       { planId: planData.planId },
       { $set: planData },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
     console.log(`✅ Seeded: ${planData.planId} ($${planData.price}/mo)`);
   }

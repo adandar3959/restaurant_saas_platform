@@ -8,7 +8,7 @@ exports.loadCache = async () => {
   const doc = await Settings.findOneAndUpdate(
     { key: 'system' },
     { $setOnInsert: { maintenanceMode: false, platformCurrency: 'PKR' } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
   _cache = { maintenanceMode: doc.maintenanceMode, platformCurrency: doc.platformCurrency || 'PKR' };
   return _cache;
@@ -22,7 +22,7 @@ exports.getSettings = async () => {
   const doc = await Settings.findOneAndUpdate(
     { key: 'system' },
     { $setOnInsert: { maintenanceMode: false, platformCurrency: 'PKR' } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
   _cache = { maintenanceMode: doc.maintenanceMode, platformCurrency: doc.platformCurrency || 'PKR' };
   return doc;
@@ -33,7 +33,7 @@ exports.updateSettings = async (data) => {
   const doc = await Settings.findOneAndUpdate(
     { key: 'system' },
     { $set: data },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
   _cache = { maintenanceMode: doc.maintenanceMode, platformCurrency: doc.platformCurrency || 'PKR' };
   return doc;

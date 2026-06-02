@@ -143,7 +143,7 @@ exports.verifySubscriptionSession = async (sessionId) => {
         ? new Date(sub.current_period_end * 1000)
         : null,
     },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!tenant) throw new Error('Restaurant not found');
