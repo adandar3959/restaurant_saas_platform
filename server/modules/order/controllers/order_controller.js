@@ -88,3 +88,12 @@ exports.publicFindOrder = asyncHandler(async (req, res) => {
   const order = await orderService.publicFindOrder(req.params.id);
   sendSuccess(res, order);
 });
+
+exports.addItemsToOrder = asyncHandler(async (req, res) => {
+  const order = await orderService.addItemsToOrder(
+    req.params.id,
+    req.params.restaurantId,
+    req.body.items
+  );
+  sendSuccess(res, order, 'Items added to order successfully');
+});

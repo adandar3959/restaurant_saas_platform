@@ -26,6 +26,7 @@ router.get('/',      protect, authorize(...fieldStaff),                         
 router.get('/:id',   protect, authorize(...fieldStaff),                                           ctrl.getOrderById);
 router.patch('/:id/status',         protect, authorize(...fieldStaff), validateUpdateStatus,      ctrl.updateOrderStatus);
 router.patch('/:id/items/:itemId',  protect, authorize(...staff),                                 ctrl.updateItemStatus);
+router.post('/:id/items',           protect, authorize('Waiter', 'Admin', 'Manager', 'SuperAdmin'), ctrl.addItemsToOrder);
 router.patch('/:id/tip',            optionalAuth,                                                 ctrl.addTip);
 router.patch('/:id/payment',        protect, authorize('SuperAdmin', 'Admin', 'Manager', 'Waiter'), validatePayment, ctrl.updatePayment);
 

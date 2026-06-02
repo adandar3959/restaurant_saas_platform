@@ -45,7 +45,15 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
       try {
         const res = await customerApi.getTables(restaurantId);
         const all = res.data?.data || [];
-        setTables(all.filter(t => t.isActive));
+        const activeTables = all.filter(t => t.isActive);
+        setTables(activeTables);
+        
+        if (tableNo) {
+          const matched = activeTables.find(t => t._id === tableNo || t.tableNumber === tableNo);
+          if (matched && matched.status === 'Occupied') {
+            setTableNum('');
+          }
+        }
       } catch (err) {
         console.error('Failed to load tables', err);
       } finally {
@@ -239,9 +247,19 @@ export default function CartSidebar({ isOpen, onClose, restaurantId, tableNo }) 
                     onChange={e=>setTableNum(e.target.value)}
                   >
                     <option value="">-- Choose a table --</option>
-                    {tables.map(t => (
-                      <option key={t._id} value={t._id}>Table {t.tableNumber} ({t.capacity} Seats)</option>
-                    ))}
+                    {tables.map(t => {
+                      const isOccupied = t.status === 'Occupied';
+                      return (
+                        <option 
+                          key={t._id} 
+                          value={t._id} 
+                          disabled={isOccupied}
+                          style={{ color: isOccupied ? '#94a3b8' : 'inherit' }}
+                        >
+                          Table {t.tableNumber} ({t.capacity} Seats) {isOccupied ? '- Occupied' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                   {fetchingTables && <div style={{fontSize:10,color:'var(--mz-sage)',marginTop:4}}>Loading tables...</div>}
                 </div>

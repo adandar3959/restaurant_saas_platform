@@ -202,24 +202,31 @@ export default function WaiterLayout() {
     if (cart.length === 0) return alert('Cart is empty!');
     setIsSubmitting(true);
     try {
-      const payload = {
-        orderType: 'Dine-In',
-        waiterId: user?._id,
-        items: cart.map(i => ({ 
-          menuItemId: i.menuItemId, 
-          quantity: i.quantity,
-          selectedModifiers: i.selectedModifiers?.length ? i.selectedModifiers.map(sm => ({
-             groupId: sm.groupId,
-             optionId: sm.optionId,
-             name: sm.optionName,
-             price: sm.extraPrice
-          })) : []
-        })),
-        tableNumber: selectedTable.tableNumber,
-        financials: { tipAmount: 0, discountAmount: 0 }
-      };
+      const itemsPayload = cart.map(i => ({ 
+        menuItemId: i.menuItemId, 
+        quantity: i.quantity,
+        selectedModifiers: i.selectedModifiers?.length ? i.selectedModifiers.map(sm => ({
+           groupId: sm.groupId,
+           optionId: sm.optionId,
+           name: sm.optionName,
+           price: sm.extraPrice
+        })) : []
+      }));
 
-      await ordersApi.placeOrder(restaurantId, payload);
+      const activeOrder = orders.find(o => o.tableNumber === selectedTable.tableNumber);
+
+      if (activeOrder) {
+        await ordersApi.addItems(restaurantId, activeOrder._id, { items: itemsPayload });
+      } else {
+        const payload = {
+          orderType: 'Dine-In',
+          waiterId: user?._id,
+          items: itemsPayload,
+          tableNumber: selectedTable.tableNumber,
+          financials: { tipAmount: 0, discountAmount: 0 }
+        };
+        await ordersApi.placeOrder(restaurantId, payload);
+      }
       
       if (selectedTable.status === 'Available') {
          setTables(prev => prev.map(t => t._id === selectedTable._id ? { ...t, status: 'Occupied' } : t));
@@ -231,7 +238,7 @@ export default function WaiterLayout() {
       setActiveTab('active');
     } catch (e) {
       console.error(e);
-      alert('Failed to place order.');
+      alert(e.response?.data?.message || 'Failed to place order.');
     } finally {
       setIsSubmitting(false);
     }

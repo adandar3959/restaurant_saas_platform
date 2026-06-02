@@ -5,6 +5,7 @@ const Tenant = require('../../tenant/models/tenant_model');
 const KitchenTicket = require('../../kitchen/models/kitchenTicket_model');
 const Recipe = require('../../inventory/models/recipe_model');
 const Ingredient = require('../../inventory/models/ingredient_model');
+const Table = require('../../table/models/table_model');
 
 const generateOrderNumber = async (restaurantId) => {
   const tenant = await Tenant.findById(restaurantId).select('settings.orderPrefix');
@@ -163,6 +164,98 @@ exports.createOrder = async (data, restaurantId) => {
     });
   }
 
+  if (order.orderType === 'Dine-In' && order.tableNumber) {
+    await Table.findOneAndUpdate(
+      { restaurantId, tableNumber: order.tableNumber },
+      { status: 'Occupied', currentOrderId: order._id }
+    ).catch(err => console.error('Failed to update table status:', err));
+  }
+
+  return order;
+};
+
+exports.addItemsToOrder = async (orderId, restaurantId, newItems) => {
+  const order = await Order.findOne({ _id: orderId, restaurantId });
+  if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+  
+  if (['Completed', 'Delivered', 'Cancelled'].includes(order.status)) {
+    throw Object.assign(new Error(`Cannot add items to a ${order.status} order`), { statusCode: 400 });
+  }
+
+  const tenant = await Tenant.findById(restaurantId).select('settings');
+  const taxRate = tenant?.settings?.taxRate || 0;
+
+  let addedSubTotal = 0;
+  const enrichedNewItems = await Promise.all(
+    newItems.map(async (item) => {
+      let baseItem = await MenuItem.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
+      let price = baseItem?.price;
+      let displayName = baseItem?.name;
+
+      if (baseItem && item.sizeName && baseItem.sizes?.length > 0) {
+        const sizeObj = baseItem.sizes.find(s => s.name === item.sizeName);
+        if (sizeObj) {
+          price = sizeObj.price;
+          displayName = `${baseItem.name} (${sizeObj.name})`;
+        }
+      }
+
+      if (!baseItem) {
+        baseItem = await Deal.findOne({ _id: item.menuItemId, restaurantId, isAvailable: true });
+        price = baseItem?.dealPrice;
+        displayName = baseItem?.name;
+      }
+
+      if (!baseItem) {
+        throw Object.assign(new Error(`Item ${item.menuItemId} not found or unavailable`), { statusCode: 400 });
+      }
+
+      const modifierTotal = (item.selectedModifiers || []).reduce((sum, m) => sum + (m.extraPrice || 0), 0);
+      const itemTotal = (price + modifierTotal) * item.quantity;
+      addedSubTotal += itemTotal;
+
+      return {
+        ...item,
+        name: displayName,
+        image: baseItem.image,
+        unitPrice: price,
+        itemTotal
+      };
+    })
+  );
+
+  const newSubTotal = (order.financials.subTotal || 0) + addedSubTotal;
+  const newTaxAmount = parseFloat(((newSubTotal * taxRate) / 100).toFixed(2));
+  
+  const discountAmount = order.financials.discountAmount || 0;
+  const tipAmount = order.financials.tipAmount || 0;
+  const deliveryFee = order.financials.deliveryFee || 0;
+  const serviceCharge = order.financials.serviceCharge || 0;
+  
+  const newTotalAmount = parseFloat((newSubTotal + newTaxAmount + deliveryFee + serviceCharge - discountAmount + tipAmount).toFixed(2));
+
+  order.items.push(...enrichedNewItems);
+  order.financials.subTotal = newSubTotal;
+  order.financials.taxAmount = newTaxAmount;
+  order.financials.totalAmount = newTotalAmount;
+
+  await order.save();
+
+  await KitchenTicket.create({
+    restaurantId,
+    orderId: order._id,
+    orderNumber: order.orderNumber,
+    orderType: order.orderType,
+    tableNumber: order.tableNumber,
+    items: enrichedNewItems.map((i) => ({
+      menuItemId: i.menuItemId,
+      name: i.name,
+      quantity: i.quantity,
+      selectedModifiers: i.selectedModifiers,
+      specialInstructions: i.specialInstructions,
+    })),
+  });
+
   return order;
 };
 
@@ -314,6 +407,16 @@ exports.updateOrderStatus = async (id, restaurantId, status, userId) => {
   }
 
   const updatedOrder = await Order.findOneAndUpdate({ _id: id, restaurantId }, update, { returnDocument: 'after' });
+  
+  if (updatedOrder && updatedOrder.orderType === 'Dine-In' && updatedOrder.tableNumber) {
+    if (['Completed', 'Delivered', 'Cancelled'].includes(status)) {
+      await Table.findOneAndUpdate(
+        { restaurantId, tableNumber: updatedOrder.tableNumber },
+        { status: 'Available', currentOrderId: null }
+      ).catch(err => console.error('Failed to free table status:', err));
+    }
+  }
+
   return updatedOrder;
 };
 
