@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Truck, Package, MapPin, CheckCircle, Clock, 
-  LogOut, Navigation, Phone, 
+import {
+  Truck, Package, MapPin, CheckCircle, Clock,
+  LogOut, Navigation, Phone,
   ChevronRight, Loader2, ToggleLeft, ToggleRight,
   History, X
 } from 'lucide-react';
@@ -104,23 +104,22 @@ export default function DriverDashboard() {
           </div>
         </div>
         <div className="driver-nav-actions">
-           <button className="btn-icon-driver" onClick={() => setShowHistory(true)} title="View History">
-             <History size={20} />
-           </button>
-           <div className="driver-avatar-mini" title={user?.name}>{user?.name?.[0]?.toUpperCase()}</div>
-           <button className="btn-logout-driver" onClick={logout} title="Logout"><LogOut size={18} /></button>
+          <button className="btn-icon-driver" onClick={() => setShowHistory(true)} title="View History">
+            <History size={20} />
+          </button>
+          <button className="btn-logout-driver" onClick={logout} title="Logout"><LogOut size={18} /></button>
         </div>
       </nav>
 
       <header className="driver-stats-header">
-         <div className="d-stat-card animate-fade-up">
-            <span className="d-stat-label">Deliveries Today</span>
-            <span className="d-stat-value">{completedDispatches.length}</span>
-         </div>
-         <div className="d-stat-card animate-fade-up" style={{ animationDelay: '100ms' }}>
-            <span className="d-stat-label">Tips Earned</span>
-            <span className="d-stat-value">{formatCurrency(earningsToday)}</span>
-         </div>
+        <div className="d-stat-card animate-fade-up">
+          <span className="d-stat-label">Deliveries Today</span>
+          <span className="d-stat-value">{completedDispatches.length}</span>
+        </div>
+        <div className="d-stat-card animate-fade-up" style={{ animationDelay: '100ms' }}>
+          <span className="d-stat-label">Tips Earned</span>
+          <span className="d-stat-value">{formatCurrency(earningsToday)}</span>
+        </div>
       </header>
 
       <main className="driver-main">
@@ -151,14 +150,14 @@ export default function DriverDashboard() {
           ) : (
             completedDispatches.map((dispatch, idx) => (
               <div key={dispatch._id} className="delivery-card-mini animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
-                 <div className="d-mini-info">
-                    <span className="d-mini-id">#{dispatch.orderId?.orderNumber || dispatch._id.slice(-5).toUpperCase()}</span>
-                    <span className="d-mini-time">{timeAgo(dispatch.deliveredAt || dispatch.updatedAt)}</span>
-                 </div>
-                 <div className="d-mini-status">
-                    <CheckCircle size={14} color="#10b981" />
-                    <span>DELIVERED</span>
-                 </div>
+                <div className="d-mini-info">
+                  <span className="d-mini-id">#{dispatch.orderId?.orderNumber || dispatch._id.slice(-5).toUpperCase()}</span>
+                  <span className="d-mini-time">{timeAgo(dispatch.deliveredAt || dispatch.updatedAt)}</span>
+                </div>
+                <div className="d-mini-status">
+                  <CheckCircle size={14} color="#10b981" />
+                  <span>DELIVERED</span>
+                </div>
               </div>
             ))
           )}
@@ -174,7 +173,7 @@ function DeliveryCard({ dispatch, onUpdate, delay = 0 }) {
   const isPickedUp = dispatch.status === 'PickedUp' || dispatch.status === 'InTransit';
   const totalAmount = order.financials?.totalAmount || 0;
   const customerPhone = order.customerPhone || order.customerId?.phone || '';
-  
+
   const rawCustName = order.customerId?.name || 'Guest User';
   const custName = rawCustName.toLowerCase() === 'admin' ? 'Guest User' : rawCustName;
 
@@ -193,26 +192,26 @@ function DeliveryCard({ dispatch, onUpdate, delay = 0 }) {
             <p className="d-addr-sub">Customer: <strong style={{ color: '#475569' }}>{custName}</strong></p>
           </div>
         </div>
-        
+
         <div className="d-info-row">
           <Clock size={20} color="#94a3b8" style={{ marginTop: 2 }} />
           <div className="d-address">
             <p className="d-addr-main" style={{ fontSize: 14 }}>Assigned {timeAgo(dispatch.createdAt)}</p>
             <div className={`d-status-pill ${dispatch.status.toLowerCase()}`} style={{ display: 'inline-block', marginTop: 6 }}>
-              {dispatch.status === 'Assigned' ? '📦 Waiting at Kitchen' : 
-               dispatch.status === 'PickedUp' ? '🚀 Out For Delivery' : 
-               dispatch.status.toUpperCase()}
+              {dispatch.status === 'Assigned' ? '📦 Waiting at Kitchen' :
+                dispatch.status === 'PickedUp' ? '🚀 Out For Delivery' :
+                  dispatch.status.toUpperCase()}
             </div>
           </div>
         </div>
 
         <div className="d-items-list">
-           {order.items?.map((it, idx) => (
-             <div key={idx} className="d-item-row">
-                <span className="d-item-qty">{it.quantity}x</span>
-                <span className="d-item-name">{it.name}</span>
-             </div>
-           ))}
+          {order.items?.map((it, idx) => (
+            <div key={idx} className="d-item-row">
+              <span className="d-item-qty">{it.quantity}x</span>
+              <span className="d-item-name">{it.name}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -223,12 +222,12 @@ function DeliveryCard({ dispatch, onUpdate, delay = 0 }) {
             {customerPhone}
           </a>
         )}
-        
+
         <a href={`https://maps.google.com/?q=${encodeURIComponent(order.deliveryAddress?.street || '')}`} target="_blank" rel="noreferrer" className="d-contact-pill" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
           <Navigation size={18} />
           Map
         </a>
-        
+
         {dispatch.status === 'Assigned' ? (
           <button className="d-btn-prime" onClick={() => onUpdate(dispatch._id, 'PickedUp')}>
             Mark Picked Up <ChevronRight size={20} />
