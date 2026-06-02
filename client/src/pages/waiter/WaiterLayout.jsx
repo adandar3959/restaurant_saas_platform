@@ -7,7 +7,7 @@ import { menuApi } from '../../api/menu.api';
 import { ordersApi } from '../../api/orders.api';
 import {
   LayoutDashboard, Bell, LogOut, CheckCircle, 
-  Minus, Plus, ShoppingBag, Utensils, X, Clock, Coffee, User, BarChart2
+  Minus, Plus, ShoppingBag, Utensils, X, Clock, Coffee, User, BarChart2, History
 } from 'lucide-react';
 import './Waiter.css';
 
@@ -37,6 +37,8 @@ export default function WaiterLayout() {
   const [tipAmount, setTipAmount] = useState('');
 
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
   const [profileForm, setProfileForm] = useState({ 
     name: user?.name || '', 
     phone: user?.phone || '', 
@@ -45,6 +47,20 @@ export default function WaiterLayout() {
   });
   const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '' });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+  // Performance Stats Calculation
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const myLifetimeOrders = allOrders.filter(o => {
+     const uId = user?._id;
+     const matchWaiter = (o.waiterId?._id || o.waiterId) === uId;
+     const matchCustomerFallback = (o.customerId?._id || o.customerId) === uId;
+     return (matchWaiter || matchCustomerFallback) && o.status === 'Completed';
+  });
+
+  const myServedOrders = myLifetimeOrders.filter(o => new Date(o.createdAt) >= startOfToday);
+  const totalSales = myServedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -294,7 +310,7 @@ export default function WaiterLayout() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         {occupiedTables.length > 0 && (
           <div>
-            <h3 style={{ color: '#94a3b8', fontSize: 16, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>
+            <h3 style={{ color: '#475569', fontSize: 16, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>
               Active Tables ({occupiedTables.length})
             </h3>
             <div className="waiter-grid">
@@ -305,7 +321,7 @@ export default function WaiterLayout() {
 
         {availableTables.length > 0 && (
           <div>
-            <h3 style={{ color: '#94a3b8', fontSize: 16, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>
+            <h3 style={{ color: '#475569', fontSize: 16, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>
               Open Tables ({availableTables.length})
             </h3>
             <div className="waiter-grid">
@@ -366,88 +382,6 @@ export default function WaiterLayout() {
     );
   };
 
-  const renderDashboard = () => {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const myLifetimeOrders = allOrders.filter(o => {
-       const uId = user?._id;
-       const matchWaiter = (o.waiterId?._id || o.waiterId) === uId;
-       const matchCustomerFallback = (o.customerId?._id || o.customerId) === uId;
-       return (matchWaiter || matchCustomerFallback) && o.status === 'Completed';
-    });
-    const lifeSales = myLifetimeOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-    const lifeTips = myLifetimeOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
-
-    const myServedOrders = myLifetimeOrders.filter(o => new Date(o.createdAt) >= startOfToday);
-    const totalSales = myServedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-    const totalTips = myServedOrders.reduce((sum, o) => sum + (o.financials?.tipAmount || 0), 0);
-
-    return (
-      <div className="waiter-dashboard fade-in">
-        <div className="wd-header-glass">
-           <div className="wd-avatar-neon"><User size={44} strokeWidth={2.5} /></div>
-           <div className="wd-info">
-             <h2>{user?.name || 'Waiter'}</h2>
-             <p>{user?.email} • Waiter ID: {user?._id?.slice(-5).toUpperCase()}</p>
-           </div>
-        </div>
-
-        <h3 className="wd-section-title">Today's Shift Performance</h3>
-        <div className="wd-metrics-grid">
-           <div className="wd-metric-glass card-blue">
-              <div className="metric-glow"></div>
-              <h4>Total Orders</h4>
-              <div className="wd-val">{myServedOrders.length}</div>
-           </div>
-           <div className="wd-metric-glass card-purple">
-              <div className="metric-glow"></div>
-              <h4>Sales Generated</h4>
-              <div className="wd-val">${totalSales.toFixed(2)}</div>
-           </div>
-           <div className="wd-metric-glass card-green">
-              <div className="metric-glow"></div>
-              <h4>Tips Earned</h4>
-              <div className="wd-val">${totalTips.toFixed(2)}</div>
-           </div>
-        </div>
-
-        <h3 className="wd-section-title" style={{marginTop: 32}}>All-Time Performance (Since Join)</h3>
-        <div className="wd-metrics-grid">
-           <div className="wd-metric-glass card-blue" style={{background: 'rgba(56, 189, 248, 0.05)'}}>
-              <h4>Lifetime Orders</h4>
-              <div className="wd-val">{myLifetimeOrders.length}</div>
-           </div>
-           <div className="wd-metric-glass card-purple" style={{background: 'rgba(192, 132, 252, 0.05)'}}>
-              <h4>Lifetime Sales</h4>
-              <div className="wd-val">${lifeSales.toFixed(2)}</div>
-           </div>
-           <div className="wd-metric-glass card-green" style={{background: 'rgba(16, 185, 129, 0.05)'}}>
-              <h4>Lifetime Tips</h4>
-              <div className="wd-val">${lifeTips.toFixed(2)}</div>
-           </div>
-        </div>
-
-        <h3 className="wd-section-title" style={{marginTop: 32}}>Recent Orders</h3>
-        <div className="wd-recent-list">
-          {myLifetimeOrders.length === 0 && <p className="wd-empty-glass">No orders finished yet.</p>}
-          {myLifetimeOrders.slice(0, 10).map(o => (
-            <div key={o._id} className="wd-recent-glass-row">
-              <div className="wrr-left">
-                <div className="wrr-table">Table {o.tableNumber}</div>
-                <div className="wrr-time">{new Date(o.createdAt).toLocaleDateString()} • {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-              </div>
-              <div className="wrr-right">
-                <div className="wrr-total">${(o.totalAmount || 0).toFixed(2)}</div>
-                {o.financials?.tipAmount > 0 && <div className="wrr-tip">+${o.financials.tipAmount.toFixed(2)} Tip</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="waiter-layout">
       {}
@@ -456,11 +390,20 @@ export default function WaiterLayout() {
           <Coffee size={24} color="#f59e0b" />
           <span>Waiter View</span>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(true)} style={{color: '#94a3b8'}} title="Profile Settings">
+        
+        <div className="waiter-nav-stats">
+           <div className="wn-stat"><span>Today's Orders:</span> <strong>{myServedOrders.length}</strong></div>
+           <div className="wn-stat"><span>Sales:</span> <strong>${totalSales.toFixed(2)}</strong></div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn-icon-waiter" onClick={() => setShowHistory(true)} title="View History">
+             <History size={20} />
+          </button>
+          <button className="btn-icon-waiter" onClick={() => setProfileModalOpen(true)} title="Profile Settings">
             <User size={20} />
           </button>
-          <button className="btn btn-ghost btn-circle" onClick={logout} style={{color: '#ef4444'}} title="Logout">
+          <button className="btn-logout-waiter" onClick={logout} title="Logout">
             <LogOut size={20} />
           </button>
         </div>
@@ -469,11 +412,9 @@ export default function WaiterLayout() {
       {}
       <main className="waiter-main">
         {loading && tables.length===0 ? (
-           <div className="waiter-loading">Loading floor plan...</div>
+           <div className="waiter-loading" style={{textAlign:'center', marginTop:100}}>Loading floor plan...</div>
         ) : activeTab === 'tables' ? (
            renderTables()
-        ) : activeTab === 'dashboard' ? (
-           renderDashboard()
         ) : (
            renderActive()
         )}
@@ -493,10 +434,6 @@ export default function WaiterLayout() {
              )}
           </div>
           <span>Kitchen</span>
-        </button>
-        <button className={`nav-item ${activeTab==='dashboard'?'active':''}`} onClick={()=>setActiveTab('dashboard')}>
-          <BarChart2 size={24} />
-          <span>Dashboard</span>
         </button>
       </nav>
 
@@ -704,10 +641,10 @@ export default function WaiterLayout() {
       {}
       {profileModalOpen && (
         <div className="waiter-modal-backdrop fade-in" style={{zIndex: 400}}>
-          <div className="waiter-modal profile-settings-modal glass-panel">
-            <div className="w-modal-header glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="waiter-modal profile-settings-modal">
+            <div className="w-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <h3 className="gradient-text">Profile Settings</h3>
-               <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{color: '#94a3b8'}}>
+               <button className="btn btn-ghost btn-circle" onClick={() => setProfileModalOpen(false)} style={{color: '#94a3b8', border: 'none', background: 'transparent', cursor: 'pointer'}}>
                  <X size={24} />
                </button>
             </div>
@@ -752,7 +689,7 @@ export default function WaiterLayout() {
                   alert(msg);
                 }
               }} className="wd-edit-form">
-                <h4 style={{ color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px' }}>Personal Details</h4>
+                <h4 style={{ color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', margin: 0 }}>Personal Details</h4>
                 
                 <div className="wd-input-group">
                   <label>Email</label>
@@ -774,7 +711,6 @@ export default function WaiterLayout() {
                   <select 
                     value={profileForm.gender} 
                     onChange={e => setProfileForm({...profileForm, gender: e.target.value})}
-                    style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '14px', borderRadius: '12px', color: '#fff', fontSize: '16px', outline: 'none' }}
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -782,24 +718,24 @@ export default function WaiterLayout() {
                   </select>
                 </div>
 
-                <div className="wd-input-group" style={{ marginTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                <div className="wd-input-group" style={{ marginTop: '8px', borderTop: '1px dashed #cbd5e1', paddingTop: '16px' }}>
                   <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     Password
-                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
+                    <button type="button" onClick={() => setShowPasswordForm(!showPasswordForm)} style={{ background: 'transparent', border: '1px solid #6366f1', color: '#6366f1', padding: '6px 14px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', transition: 'all 0.2s' }}>
                       {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
                     </button>
                   </label>
                 </div>
 
                 {showPasswordForm && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '16px', borderRadius: '12px', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#fef2f2', border: '1px solid #fecaca', padding: '16px', borderRadius: '12px', marginTop: '8px' }}>
                     <div className="wd-input-group">
-                      <label style={{ color: '#ef4444' }}>Current Password</label>
-                      <input type="password" value={pwdForm.oldPassword} onChange={e => setPwdForm({...pwdForm, oldPassword: e.target.value})} placeholder="Enter current password" />
+                      <label style={{ color: '#dc2626' }}>Current Password</label>
+                      <input type="password" value={pwdForm.oldPassword} onChange={e => setPwdForm({...pwdForm, oldPassword: e.target.value})} placeholder="Enter current password" style={{background: '#fff', borderColor: '#fca5a5', color: '#0f172a'}} />
                     </div>
                     <div className="wd-input-group">
-                      <label style={{ color: '#ef4444' }}>New Password</label>
-                      <input type="password" value={pwdForm.newPassword} onChange={e => setPwdForm({...pwdForm, newPassword: e.target.value})} placeholder="Enter new password" />
+                      <label style={{ color: '#dc2626' }}>New Password</label>
+                      <input type="password" value={pwdForm.newPassword} onChange={e => setPwdForm({...pwdForm, newPassword: e.target.value})} placeholder="Enter new password" style={{background: '#fff', borderColor: '#fca5a5', color: '#0f172a'}} />
                     </div>
                     <button type="button" onClick={async () => {
                       if (!pwdForm.oldPassword || !pwdForm.newPassword) return alert('Both passwords are required');
@@ -817,19 +753,47 @@ export default function WaiterLayout() {
                       } catch (err) {
                         alert(err.response?.data?.message || 'Failed to update password');
                       }
-                    }} style={{ alignSelf: 'flex-start', padding: '10px 24px', fontSize: '14px', background: 'linear-gradient(135deg, #ef4444, #b91c1c)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    }} style={{ alignSelf: 'flex-start', padding: '10px 24px', fontSize: '14px', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                       Update Secure Password
                     </button>
                   </div>
                 )}
 
-                <button type="submit" className="btn-glow-cyan" style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: '16px', marginTop: '24px' }}>Save All Changes</button>
+                <button type="submit" className="btn-glow-cyan" style={{ alignSelf: 'flex-start', padding: '12px 32px', fontSize: '16px', marginTop: '16px' }}>Save All Changes</button>
               </form>
 
             </div>
           </div>
         </div>
       )}
+
+      {/* History Drawer */}
+      <div className={`w-history-drawer ${showHistory ? 'open' : ''}`}>
+        <div className="w-history-header">
+          <h3><CheckCircle size={20} color="#10b981" /> Completed</h3>
+          <button className="btn-icon-waiter" onClick={() => setShowHistory(false)} style={{ border: 'none', background: 'transparent' }}><X size={24} /></button>
+        </div>
+        <div className="w-history-body">
+          {myLifetimeOrders.length === 0 ? (
+            <p style={{ color: '#64748b', textAlign: 'center', marginTop: 40, fontWeight: 600 }}>No completed orders found.</p>
+          ) : (
+            myLifetimeOrders.slice(0, 30).map((o, idx) => (
+              <div key={o._id} className="w-history-card animate-fade-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <strong style={{ color: '#0f172a', fontSize: 16 }}>Table {o.tableNumber}</strong>
+                    <span style={{ color: '#64748b', fontSize: 12 }}>{new Date(o.createdAt).toLocaleDateString()} at {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <strong style={{ color: '#059669', fontSize: 16 }}>${(o.totalAmount || 0).toFixed(2)}</strong>
+                    {o.financials?.tipAmount > 0 && <span style={{ color: '#6366f1', fontSize: 12, fontWeight: 800 }}>+${o.financials.tipAmount.toFixed(2)} Tip</span>}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
 
     </div>
   );
