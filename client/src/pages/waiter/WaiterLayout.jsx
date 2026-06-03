@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { tablesApi } from '../../api/tables.api';
 import { menuApi } from '../../api/menu.api';
 import { ordersApi } from '../../api/orders.api';
+import { formatCurrency } from '../../lib/utils';
 import {
   LayoutDashboard, Bell, LogOut, CheckCircle, 
   Minus, Plus, ShoppingBag, Utensils, X, Clock, Coffee, User, BarChart2, History
@@ -400,7 +401,7 @@ export default function WaiterLayout() {
         
         <div className="waiter-nav-stats">
            <div className="wn-stat"><span>Today's Orders:</span> <strong>{myServedOrders.length}</strong></div>
-           <div className="wn-stat"><span>Sales:</span> <strong>${totalSales.toFixed(2)}</strong></div>
+           <div className="wn-stat"><span>Sales:</span> <strong>{formatCurrency(totalSales)}</strong></div>
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -507,7 +508,7 @@ export default function WaiterLayout() {
                       return (
                         <button key={item._id} className="pos-menu-btn" onClick={() => handleItemClick(item)}>
                           <div className="pos-menu-name">{item.name}</div>
-                          <div className="pos-menu-price">${item.price.toFixed(2)}</div>
+                          <div className="pos-menu-price">{formatCurrency(item.price)}</div>
                           {hasSizes && <div className="pos-menu-mod-badge">Options</div>}
                         </button>
                       );
@@ -529,11 +530,11 @@ export default function WaiterLayout() {
                         {c.selectedModifiers?.length > 0 && (
                            <div className="cart-item-mods">
                              {c.selectedModifiers.map((sm, sx) => (
-                               <span key={sx}>{sm.optionName}{sm.extraPrice > 0 ? ` (+$${sm.extraPrice})` : ''}</span>
+                               <span key={sx}>{sm.optionName}{sm.extraPrice > 0 ? ` (+${formatCurrency(sm.extraPrice)})` : ''}</span>
                              ))}
                            </div>
                         )}
-                        <div className="cart-item-price">${(c.unitPrice * c.quantity).toFixed(2)}</div>
+                        <div className="cart-item-price">{formatCurrency(c.unitPrice * c.quantity)}</div>
                       </div>
                       <div className="cart-item-qty">
                         <button onClick={() => updateQuantity(c.cartId, -1)}><Minus size={16}/></button>
@@ -547,7 +548,7 @@ export default function WaiterLayout() {
                 <div className="pos-cart-footer">
                   <div className="cart-total">
                     <span>Total</span>
-                    <span>${cart.reduce((sum, c) => sum + (c.unitPrice * c.quantity), 0).toFixed(2)}</span>
+                    <span>{formatCurrency(cart.reduce((sum, c) => sum + (c.unitPrice * c.quantity), 0))}</span>
                   </div>
                   <button 
                     className="btn btn-primary pos-submit-btn" 
@@ -792,8 +793,8 @@ export default function WaiterLayout() {
                     <span style={{ color: '#64748b', fontSize: 12 }}>{new Date(o.createdAt).toLocaleDateString()} at {new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <strong style={{ color: '#059669', fontSize: 16 }}>${(o.totalAmount || 0).toFixed(2)}</strong>
-                    {o.financials?.tipAmount > 0 && <span style={{ color: '#6366f1', fontSize: 12, fontWeight: 800 }}>+${o.financials.tipAmount.toFixed(2)} Tip</span>}
+                    <strong style={{ color: '#059669', fontSize: 16 }}>{formatCurrency(o.totalAmount || 0)}</strong>
+                    {o.financials?.tipAmount > 0 && <span style={{ color: '#6366f1', fontSize: 12, fontWeight: 800 }}>+{formatCurrency(o.financials.tipAmount)} Tip</span>}
                   </div>
                 </div>
               </div>
