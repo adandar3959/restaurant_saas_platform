@@ -36,6 +36,9 @@ export const customerApi = {
   
   // Tables
   getTables: (rid) => api.get(`/restaurants/${rid}/tables/public`),
+
+  // Reviews (requires auth)
+  submitReview: (rid, data) => api.post(`/restaurants/${rid}/crm/reviews`, data),
 };
 
 export default api;

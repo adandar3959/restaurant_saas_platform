@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { customerApi } from '../../api/customer.api';
 import '../../styles/customer.css';
 import { formatCurrency } from '../../lib/utils';
+import { useAuth } from '../../context/AuthContext';
 
 const STEPS = [
   { key: 'Pending',         label: 'Order Received',    desc: 'We got your order!', emoji: '📋' },
@@ -25,10 +26,40 @@ const STATUS_COLORS = {
 
 export default function OrderTrackingPage() {
   const { restaurantId, orderId } = useParams();
+  const { user } = useAuth();
   const [order, setOrder]         = useState(null);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
   const [lastRefresh, setLastRefresh] = useState(new Date());
+
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(
+    localStorage.getItem(`reviewed_order_${orderId}`) === 'true'
+  );
+  const [reviewError, setReviewError] = useState('');
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    setSubmittingReview(true);
+    setReviewError('');
+    try {
+      await customerApi.submitReview(restaurantId, {
+        orderId,
+        rating,
+        comment,
+      });
+      setReviewSubmitted(true);
+      localStorage.setItem(`reviewed_order_${orderId}`, 'true');
+    } catch (err) {
+      setReviewError(err.response?.data?.message || 'Failed to submit review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const fetchOrder = useCallback(async () => {
     if (!restaurantId || !orderId) return;
@@ -140,6 +171,96 @@ export default function OrderTrackingPage() {
                 </div>
               )}
             </div>
+
+            {/* Leave a Review Card */}
+            {order.status === 'Completed' && (
+              <div className="c-track-detail-card" style={{ border: '1.5px solid var(--c-primary-light)', background: 'linear-gradient(135deg, #fdfeff, #f5f3ff)' }}>
+                <div className="c-track-detail-title" style={{ color: 'var(--c-primary-dark)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  ⭐ Rate Your Experience
+                </div>
+                
+                {reviewSubmitted ? (
+                  <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--c-green)', fontWeight: 700 }}>
+                    ❤️ Thank you for your feedback! Your review helps us improve.
+                  </div>
+                ) : (!user || user.role !== 'Customer') ? (
+                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: 14, marginBottom: 12 }}>
+                      {!user 
+                        ? 'Please log in to write a review for this order.' 
+                        : `Staff accounts (${user.role}) are not allowed to submit reviews. Please log in with a customer account.`}
+                    </p>
+                    <Link 
+                      to={`/login?restaurantId=${restaurantId}&returnTo=${encodeURIComponent(window.location.pathname)}`}
+                      className="c-btn-primary"
+                      style={{ display: 'inline-block', padding: '8px 20px', textDecoration: 'none', fontSize: 13 }}
+                    >
+                      {!user ? 'Log In to Review' : 'Switch to Customer Account'}
+                    </Link>
+                  </div>
+                ) : (
+                  <form onSubmit={handleReviewSubmit} style={{ marginTop: 12 }}>
+                    {reviewError && (
+                      <div style={{ color: 'var(--c-red)', fontSize: 13, marginBottom: 10, fontWeight: 600 }}>
+                        ⚠️ {reviewError}
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '8px 0 16px' }}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          style={{
+                            fontSize: 32,
+                            color: star <= (hoverRating || rating) ? '#F59E0B' : '#E2E8F0',
+                            transition: 'color 0.15s ease',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+
+                    <textarea
+                      placeholder="Tell us about the food, service, or delivery... (Optional)"
+                      value={comment}
+                      onChange={e => setComment(e.target.value)}
+                      maxLength={1000}
+                      rows={3}
+                      style={{
+                        width: '100%',
+                        padding: 12,
+                        borderRadius: 10,
+                        border: '1px solid var(--c-border)',
+                        fontSize: 14,
+                        fontFamily: 'inherit',
+                        resize: 'none',
+                        outline: 'none',
+                        background: '#fff',
+                        marginBottom: 12
+                      }}
+                    />
+
+                    <button
+                      type="submit"
+                      className="c-btn-primary"
+                      disabled={submittingReview}
+                      style={{ width: '100%', padding: '12px' }}
+                    >
+                      {submittingReview ? 'Submitting...' : 'Submit Feedback'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {/* Order details */}
             <div className="c-track-detail-card">

@@ -7,7 +7,7 @@ const reviewSchema = new mongoose.Schema(
     orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
     menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem', default: null },
 
-    overallRating: { type: Number, required: true, min: 1, max: 5 },
+    rating: { type: Number, required: true, min: 1, max: 5 },
     foodRating: { type: Number, min: 1, max: 5 },
     serviceRating: { type: Number, min: 1, max: 5 },
     deliveryRating: { type: Number, min: 1, max: 5 },

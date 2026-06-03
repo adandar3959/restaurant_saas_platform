@@ -246,10 +246,10 @@ export default function CRM() {
 
                     {r.comment && <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.7, marginTop: 'var(--space-3)', fontStyle: 'italic' }}>"{r.comment}"</p>}
 
-                    {r.response ? (
+                    {r.response?.text ? (
                       <div style={{ background: 'rgba(56,189,248,0.05)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', borderLeft: '4px solid var(--neon-cyan)', marginTop: 'var(--space-4)' }}>
                         <div style={{ fontSize: 10, fontWeight: 900, color: 'var(--neon-cyan)', marginBottom: 6, letterSpacing: '0.08em' }}>OFFICIAL RESPONSE</div>
-                        <p className="text-sm" style={{ color: 'var(--text)', opacity: 0.9 }}>{r.response}</p>
+                        <p className="text-sm" style={{ color: 'var(--text)', opacity: 0.9 }}>{r.response.text}</p>
                       </div>
                     ) : (
                       <div style={{ marginTop: 'var(--space-4)' }}>
