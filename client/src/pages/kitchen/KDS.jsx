@@ -258,23 +258,14 @@ export default function KDS() {
               </div>
             </div>
 
-            <button
-              className="btn btn-ghost btn-circle"
-              style={{ color: soundEnabled ? 'var(--neon-emerald)' : 'var(--text-subtle)' }}
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              title="Toggle Sound Alerts"
-            >
-              {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
-            </button>
-
             {lastAction && (
-              <button 
-                className="btn btn-sm btn-outline" 
+              <button
+                className="btn btn-sm btn-outline"
                 onClick={handleUndoAction}
-                style={{ 
-                  color: 'var(--neon-cyan)', 
-                  borderColor: 'var(--neon-cyan)', 
-                  background: 'rgba(6, 182, 212, 0.05)', 
+                style={{
+                  color: 'var(--neon-cyan)',
+                  borderColor: 'var(--neon-cyan)',
+                  background: 'rgba(6, 182, 212, 0.05)',
                   borderRadius: 12,
                   display: 'flex',
                   alignItems: 'center',
@@ -291,6 +282,15 @@ export default function KDS() {
             </button>
 
             <div className="kds-clock">{formatTime(time)}</div>
+
+            <button
+              className="btn btn-ghost btn-circle"
+              style={{ color: soundEnabled ? 'var(--neon-emerald)' : 'var(--text-subtle)' }}
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              title="Toggle Sound Alerts"
+            >
+              {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
+            </button>
 
             <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 8px' }} />
 
@@ -419,31 +419,31 @@ export default function KDS() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Email</label>
-                  <input 
-                    type="email" 
-                    value={profileForm.email} 
-                    onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} 
+                  <input
+                    type="email"
+                    value={profileForm.email}
+                    onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
                     style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
                   />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Full Name</label>
-                  <input 
-                    type="text" 
-                    value={profileForm.name} 
-                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} 
-                    required 
+                  <input
+                    type="text"
+                    value={profileForm.name}
+                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                    required
                     style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
                   />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Contact No</label>
-                  <input 
-                    type="text" 
-                    value={profileForm.phone} 
-                    onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} 
+                  <input
+                    type="text"
+                    value={profileForm.phone}
+                    onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
                     style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', width: '100%', outline: 'none' }}
                   />
                 </div>
@@ -474,21 +474,21 @@ export default function KDS() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '12px', marginTop: '4px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Current Password</label>
-                      <input 
-                        type="password" 
-                        value={pwdForm.oldPassword} 
-                        onChange={e => setPwdForm({ ...pwdForm, oldPassword: e.target.value })} 
-                        placeholder="Enter current password" 
+                      <input
+                        type="password"
+                        value={pwdForm.oldPassword}
+                        onChange={e => setPwdForm({ ...pwdForm, oldPassword: e.target.value })}
+                        placeholder="Enter current password"
                         style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', width: '100%', outline: 'none' }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>New Password</label>
-                      <input 
-                        type="password" 
-                        value={pwdForm.newPassword} 
-                        onChange={e => setPwdForm({ ...pwdForm, newPassword: e.target.value })} 
-                        placeholder="Enter new password" 
+                      <input
+                        type="password"
+                        value={pwdForm.newPassword}
+                        onChange={e => setPwdForm({ ...pwdForm, newPassword: e.target.value })}
+                        placeholder="Enter new password"
                         style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', width: '100%', outline: 'none' }}
                       />
                     </div>
@@ -509,16 +509,16 @@ export default function KDS() {
                   </div>
                 )}
 
-                <button type="submit" style={{ 
-                  background: '#0f172a', 
-                  color: '#ffffff', 
-                  border: 'none', 
-                  borderRadius: '8px', 
-                  padding: '12px', 
-                  fontSize: '14px', 
-                  fontWeight: 700, 
-                  cursor: 'pointer', 
-                  marginTop: '12px', 
+                <button type="submit" style={{
+                  background: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  marginTop: '12px',
                   width: '100%',
                   textAlign: 'center',
                   transition: 'background 0.2s'
@@ -578,7 +578,7 @@ function KDSColumn({ title, orders, icon, colColor, time, activeStation, onActio
 
 function OrderCard({ order, time, activeStation, onAction, actionBtn, onItemToggle }) {
   const { display: timeDisplay, timeClass } = getElapsedTimeInfo(order.createdAt, time);
-  
+
   const diffMs = Math.max(0, time - new Date(order.createdAt));
   const isRecent = diffMs < 15000; // 15 seconds
 

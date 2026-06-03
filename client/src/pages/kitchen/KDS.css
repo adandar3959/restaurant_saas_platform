@@ -140,9 +140,8 @@
   padding: 20px;
   overflow-x: auto;
   overflow-y: hidden;
-  background: var(--bg);
+  background: #eef0f6;
   min-height: 0;
-  /* Critical for nested flex scrolling */
 }
 
 .kds-column {
@@ -161,23 +160,25 @@
 
 .kds-col-header {
   padding: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 16px 16px 0 0;
 }
 
 .kds-col-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text);
+  letter-spacing: 1px;
+  color: #374151;
 }
 
 .kds-col-count {
-  background: var(--bg-surface-2);
-  color: var(--text);
+  background: #e0e7ff;
+  color: #4338ca;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 14px;
@@ -207,21 +208,21 @@
 }
 
 .kds-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
   flex-shrink: 0;
-  /* Never squash the cards */
   width: 100%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .kds-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 20px var(--neon-cyan-glow);
+  transform: translateY(-3px);
+  border-color: #3b82f6;
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.15);
 }
 
 @keyframes kdsFlash {
@@ -244,32 +245,35 @@
 }
 
 .kds-card-header {
-  padding: 12px;
+  padding: 14px 14px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #eff6ff, #f8faff);
+  border-radius: 14px 14px 0 0;
 }
 
 .kds-card-title {
   font-family: monospace;
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
+  color: #1e3a5f;
 }
 
 .kds-table-badge {
-  background: var(--primary);
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: #fff;
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 800;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .kds-type-badge {
-  background: #334155;
-  color: #e2e8f0;
+  background: #e0f2fe;
+  color: #0369a1;
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -288,9 +292,17 @@
 }
 
 @keyframes kdsPulseRed {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .kds-card-time.urgent {
@@ -319,9 +331,8 @@
   gap: 8px;
   font-size: 16px;
   max-height: 350px;
-  /* Prevent single card from taking over the column */
   overflow-y: auto;
-  background: rgba(0, 0, 0, 0.15);
+  background: #f8fafc;
 }
 
 .kds-card-items::-webkit-scrollbar {
@@ -339,7 +350,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px dashed #334155;
+  border-bottom: 1px dashed #cbd5e1;
   transition: opacity 0.2s;
 }
 
@@ -376,14 +387,18 @@
 .kds-item-name {
   flex: 1;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #1e293b;
 }
 
 .kds-item-mods {
   font-size: 14px;
-  color: #fbbf24;
+  color: #d97706;
   margin-top: 4px;
-  font-weight: 500;
+  font-weight: 600;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .kds-item-note {
@@ -402,8 +417,9 @@
   display: flex;
   padding: 12px;
   gap: 8px;
-  background: #1e293b;
-  border-top: 1px solid #334155;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0 0 14px 14px;
 }
 
 .kds-btn {
@@ -433,7 +449,7 @@
 }
 
 .kds-btn-start {
-  background: var(--border-hover);
+  background: var(--primary);
   color: #fff;
 }
 
@@ -452,8 +468,8 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: #0f172a;
-  color: #f8fafc;
+  background: #f8fafc;
+  color: #1e293b;
   flex-direction: column;
   gap: 16px;
   font-size: 20px;
@@ -883,7 +899,8 @@
 }
 
 .kds-stat-divider {
-  display: none; /* Removed as we use gaps and borders now */
+  display: none;
+  /* Removed as we use gaps and borders now */
 }
 
 .kds-edit-form {
