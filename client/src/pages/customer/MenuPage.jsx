@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { customerApi } from '../../api/customer.api';
 import { CartProvider, useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import CartSidebar from './components/CartSidebar';
 import '../../styles/customer.css';
 import { formatCurrency } from '../../lib/utils';
@@ -23,6 +24,74 @@ function getEmoji(name = '') {
 }
 
 const SCRIPT_WORDS = ['Culinary', 'Freshness', 'Artisan', 'Symphony', 'Heritage', 'Savor', 'Delight', 'Fusion', 'Crafted', 'Baked'];
+
+// ── Auth Prompt Modal ─────────────────────────────────────────────
+function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
+  return (
+    <div className="mz-modal-overlay" style={{ zIndex: 99999 }}>
+      <div className="mz-modal-sheet" style={{ maxWidth: 420, padding: 24, textAlign: 'center', position: 'relative' }}>
+        <button
+          className="mz-modal-close"
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            background: 'none',
+            border: 'none',
+            fontSize: 20,
+            color: '#fff',
+            cursor: 'pointer',
+            opacity: 0.7
+          }}
+        >
+          ✕
+        </button>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🍽️</div>
+        <h2 style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, color: '#fff', fontSize: 24, marginBottom: 8, letterSpacing: '0.05em' }}>
+          Welcome to {restaurantName || 'our Restaurant'}!
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+          Log in or sign up to earn loyalty points, save delivery addresses, and track your orders.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Link
+            to={`/customer/login?restaurantId=${restaurantId}&returnTo=${encodeURIComponent(window.location.pathname)}`}
+            className="c-btn-primary"
+            style={{
+              display: 'block',
+              padding: '12px',
+              borderRadius: 8,
+              background: 'var(--mz-mid)',
+              color: '#fff',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: 14,
+              border: '1px solid var(--mz-light)'
+            }}
+          >
+            Log In / Sign Up
+          </Link>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '12px',
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer'
+            }}
+          >
+            Continue as Guest
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Item Detail Modal ─────────────────────────────────────────────
 function ItemModal({ item, onClose, onAdded }) {
@@ -235,6 +304,23 @@ function MenuContent({ restaurantId, tableNo }) {
   const [isCartOpen, setIsCartOpen] = useState(searchParams.get('cart') === 'open');
   const { totalItems } = useCart();
 
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user && !sessionStorage.getItem('dismissed_auth_prompt')) {
+      const timer = setTimeout(() => {
+        setShowAuthModal(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, user]);
+
+  const handleCloseAuthModal = () => {
+    sessionStorage.setItem('dismissed_auth_prompt', 'true');
+    setShowAuthModal(false);
+  };
+
   // Clone-based infinite carousel state
   const [displayIdx, setDisplayIdx] = useState(2); // 2..n+1 = real, 0..1=clones-left, n+2..n+3=clones-right
   const trackRef = useRef(null);
@@ -291,8 +377,8 @@ function MenuContent({ restaurantId, tableNo }) {
     const cardColor = b.cardColor || defaultSage;
 
     // Check if the colors match the default green Mezami theme
-    const isDefaultGreen = 
-      primary.toLowerCase() === '#2d6a4f' && 
+    const isDefaultGreen =
+      primary.toLowerCase() === '#2d6a4f' &&
       secondary.toLowerCase() === '#1b4332';
 
     if (isDefaultGreen) {
@@ -482,12 +568,55 @@ function MenuContent({ restaurantId, tableNo }) {
             {restaurant?.restaurantName || 'Restaurant'}
             <span>Oriental Fusion</span>
           </div>
-          <div
-            className="mz-nav-cart"
-            onClick={() => setIsCartOpen(true)}
-            style={{ cursor: 'pointer' }}
-          >
-            🛒 {totalItems > 0 ? `Cart (${totalItems})` : 'Cart'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {user ? (
+              <Link
+                to="/account"
+                style={{
+                  color: 'var(--mz-cream)',
+                  textDecoration: 'none',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.06)'
+                }}
+              >
+                👤 {user.name || 'Account'}
+              </Link>
+            ) : (
+              <Link
+                to={`/customer/login?restaurantId=${restaurantId}`}
+                style={{
+                  color: 'var(--mz-cream)',
+                  textDecoration: 'none',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.06)'
+                }}
+              >
+                👤 Log In
+              </Link>
+            )}
+            <div
+              className="mz-nav-cart"
+              onClick={() => setIsCartOpen(true)}
+              style={{ cursor: 'pointer' }}
+            >
+              🛒 {totalItems > 0 ? `Cart (${totalItems})` : 'Cart'}
+            </div>
           </div>
         </div>
         {/* Row 2: Category links */}
@@ -693,6 +822,14 @@ function MenuContent({ restaurantId, tableNo }) {
         >
           <span>🎁</span> DEALS
         </button>
+      )}
+      {/* ── Auth Prompt Modal ────────────────────────────── */}
+      {showAuthModal && (
+        <AuthPromptModal
+          restaurantName={restaurant?.restaurantName}
+          restaurantId={restaurantId}
+          onClose={handleCloseAuthModal}
+        />
       )}
     </div>
   );
