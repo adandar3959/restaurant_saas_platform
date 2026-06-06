@@ -28,8 +28,31 @@ const SCRIPT_WORDS = ['Culinary', 'Freshness', 'Artisan', 'Symphony', 'Heritage'
 // ── Auth Prompt Modal ─────────────────────────────────────────────
 function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
   return (
-    <div className="mz-modal-overlay" style={{ zIndex: 99999 }}>
-      <div className="mz-modal-sheet" style={{ maxWidth: 420, padding: 24, textAlign: 'center', position: 'relative' }}>
+    <div 
+      className="mz-modal-overlay" 
+      style={{ 
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px'
+      }}
+    >
+      <div 
+        className="mz-modal-sheet" 
+        style={{ 
+          maxWidth: 420, 
+          padding: '32px 24px 28px', 
+          textAlign: 'center', 
+          position: 'relative',
+          borderRadius: 16,
+          background: 'var(--mz-dark)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+          color: '#fff',
+          margin: 'auto'
+        }}
+      >
         <button
           className="mz-modal-close"
           onClick={onClose}
@@ -40,7 +63,7 @@ function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
             background: 'none',
             border: 'none',
             fontSize: 20,
-            color: '#fff',
+            color: 'var(--mz-cream)',
             cursor: 'pointer',
             opacity: 0.7
           }}
@@ -48,10 +71,10 @@ function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
           ✕
         </button>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🍽️</div>
-        <h2 style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, color: '#fff', fontSize: 24, marginBottom: 8, letterSpacing: '0.05em' }}>
+        <h2 style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, color: '#fff', fontSize: 24, marginBottom: 12, letterSpacing: '0.05em' }}>
           Welcome to {restaurantName || 'our Restaurant'}!
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.6, marginBottom: 28 }}>
           Log in or sign up to earn loyalty points, save delivery addresses, and track your orders.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -67,7 +90,8 @@ function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
               textDecoration: 'none',
               fontWeight: 700,
               fontSize: 14,
-              border: '1px solid var(--mz-light)'
+              border: '1px solid var(--mz-light)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
             }}
           >
             Log In / Sign Up
@@ -82,7 +106,8 @@ function AuthPromptModal({ restaurantName, restaurantId, onClose }) {
               color: '#fff',
               fontWeight: 600,
               fontSize: 13,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'background 0.2s ease'
             }}
           >
             Continue as Guest
