@@ -67,10 +67,10 @@ export function AuthProvider({ children }) {
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, restaurantId = null) => {
     dispatch({ type: 'LOADING' });
     try {
-      const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
+      const res = await axios.post(`${API_BASE}/auth/login`, { email, password, restaurantId });
       const { user, token } = res.data.data;
 
       localStorage.setItem('rms_token', token);

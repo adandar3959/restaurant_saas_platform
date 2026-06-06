@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', default: null },
 
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true, select: false },
 
     role: {
@@ -83,5 +83,10 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 userSchema.index({ restaurantId: 1, role: 1 });
+userSchema.index({ email: 1, restaurantId: 1 }, { unique: true });
+
+mongoose.connection.on('connected', () => {
+  mongoose.connection.db.collection('users').dropIndex('email_1').catch(() => {});
+});
 
 module.exports = mongoose.model('User', userSchema);

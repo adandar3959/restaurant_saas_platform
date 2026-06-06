@@ -8,7 +8,7 @@ const signToken = (id) =>
 exports.register = async (data) => {
   if (!data.role || data.role === 'Customer') {
     data.role = 'Customer';
-    const existing = await User.findOne({ email: data.email });
+    const existing = await User.findOne({ email: data.email.toLowerCase(), restaurantId: data.restaurantId || null });
     if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
     const user = await User.create(data);
     const token = signToken(user._id);
@@ -28,7 +28,7 @@ exports.register = async (data) => {
       throw Object.assign(new Error('This invite token was issued for a different email'), { statusCode: 403 });
     }
 
-    const existing = await User.findOne({ email: data.email });
+    const existing = await User.findOne({ email: data.email.toLowerCase() });
     if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
 
     const user = await User.create(data);
@@ -45,7 +45,7 @@ exports.register = async (data) => {
 };
 
 exports.onboard = async (data) => {
-  const existing = await User.findOne({ email: data.email });
+  const existing = await User.findOne({ email: data.email.toLowerCase() });
   if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
 
   const Tenant = require('../../tenant/models/tenant_model');
@@ -123,8 +123,14 @@ exports.createStaff = async (data, createdBy) => {
   return user;
 };
 
-exports.login = async (email, password) => {
-  const user = await User.findOne({ email }).select('+passwordHash');
+exports.login = async (email, password, restaurantId = null) => {
+  let user;
+  if (restaurantId) {
+    user = await User.findOne({ email: email.toLowerCase(), restaurantId, role: 'Customer' }).select('+passwordHash');
+  }
+  if (!user) {
+    user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+  }
   if (!user || !(await user.comparePassword(password))) {
     throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
   }

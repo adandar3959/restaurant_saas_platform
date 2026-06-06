@@ -27,9 +27,9 @@ exports.customerRegister = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 6 characters' });
   }
 
-  const exists = await User.findOne({ email: email.toLowerCase() });
+  const exists = await User.findOne({ email: email.toLowerCase(), restaurantId: restaurantId || null });
   if (exists) {
-    return res.status(400).json({ message: 'Email already in use' });
+    return res.status(400).json({ message: 'Email already in use at this restaurant' });
   }
 
   const user = await User.create({
@@ -72,7 +72,7 @@ exports.revokeInvite = asyncHandler(async (req, res) => {
 });
 
 exports.login = asyncHandler(async (req, res) => {
-  const { user, token } = await userService.login(req.body.email, req.body.password);
+  const { user, token } = await userService.login(req.body.email, req.body.password, req.body.restaurantId);
   sendSuccess(res, { user, token }, 'Login successful');
 });
 

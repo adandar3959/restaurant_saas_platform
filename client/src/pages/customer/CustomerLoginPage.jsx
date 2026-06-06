@@ -24,7 +24,7 @@ export default function CustomerLoginPage() {
     setLocalErr('');
 
     if (mode === 'login') {
-      const res = await login(email, password);
+      const res = await login(email, password, restaurantId);
       if (res.success) {
         navigate(returnTo, { replace: true });
       } else {
