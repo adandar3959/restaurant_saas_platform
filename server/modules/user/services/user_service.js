@@ -127,10 +127,18 @@ exports.login = async (email, password, restaurantId = null) => {
   let user;
   if (restaurantId) {
     user = await User.findOne({ email: email.toLowerCase(), restaurantId, role: 'Customer' }).select('+passwordHash');
-  }
-  if (!user) {
+    if (!user) {
+      // If no customer exists for this restaurant, allow global non-customer accounts (admins/staff) to log in if needed.
+      // But do NOT fall back to a customer from a different restaurant!
+      const globalUser = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+      if (globalUser && globalUser.role !== 'Customer') {
+        user = globalUser;
+      }
+    }
+  } else {
     user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
   }
+
   if (!user || !(await user.comparePassword(password))) {
     throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
   }
