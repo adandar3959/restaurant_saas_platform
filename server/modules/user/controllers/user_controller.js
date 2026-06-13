@@ -115,3 +115,12 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   await userService.deleteUser(req.params.id);
   sendSuccess(res, null, 'User deleted');
 });
+
+exports.logout = asyncHandler(async (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  });
+  sendSuccess(res, null, 'Logged out successfully');
+});

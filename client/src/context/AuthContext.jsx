@@ -148,6 +148,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    axios.post(`${API_BASE}/auth/logout`).catch(err => console.error('Failed to log out on server:', err));
     localStorage.removeItem('rms_token');
     localStorage.removeItem('rms_user');
     delete axios.defaults.headers.common['Authorization'];

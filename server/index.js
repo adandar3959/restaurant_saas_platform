@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./utils/db');
 const settingsService  = require('./modules/settings/services/settings_service');
 const maintenanceMode  = require('./middlewares/maintenanceMode');
@@ -8,7 +9,7 @@ const errorHandler     = require('./utils/errorHandler');
 
 const app = express();
 
-// Connect DB then pre-load maintenance mode cache
+app.use(cookieParser());
 connectDB().then(() => settingsService.loadCache().catch(console.error));
 
 app.use(cors({

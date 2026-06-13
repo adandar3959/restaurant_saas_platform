@@ -6,6 +6,7 @@ const { validateRegister, validateLogin, validateUpdateUser, validateInvite, val
 router.post('/register', validateRegister, ctrl.register);
 router.post('/login', validateLogin, ctrl.login);
 router.post('/onboard', validateOnboard, ctrl.onboard);
+router.post('/logout', ctrl.logout);
 
 // Customer self-registration (no auth, no invite needed)
 const { checkLimit } = require('../../../utils/plan.middleware');

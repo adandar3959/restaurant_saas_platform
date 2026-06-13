@@ -21,7 +21,7 @@ module.exports = async (req, res, next) => {
 
   // Allow SuperAdmin through even during maintenance
   try {
-    const token   = req.headers.authorization?.split(' ')[1] || req.cookies?.rms_token;
+    const token   = req.cookies?.token || req.headers.authorization?.split(' ')[1] || req.cookies?.rms_token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // JWT only contains { id }, must query DB to get role

@@ -4,7 +4,9 @@ const User = require('../modules/user/models/user_model');
 
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
-  if (req.headers.authorization?.startsWith('Bearer')) {
+  if (req.cookies?.token) {
+    token = req.cookies.token;
+  } else if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
   if (!token) return res.status(401).json({ success: false, message: 'Not authorized, no token' });
@@ -32,7 +34,9 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
 exports.optionalAuth = asyncHandler(async (req, res, next) => {
   let token;
-  if (req.headers.authorization?.startsWith('Bearer')) {
+  if (req.cookies?.token) {
+    token = req.cookies.token;
+  } else if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
   if (token) {
