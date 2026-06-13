@@ -168,10 +168,18 @@ export function AuthProvider({ children }) {
     return '/';
   };
 
-  const updateUser = (userData) => {
-    const newUser = { ...state.user, ...userData };
-    localStorage.setItem('rms_user', JSON.stringify(newUser));
-    dispatch({ type: 'UPDATE_USER', payload: userData });
+  const updateUser = async (userData) => {
+    try {
+      const res = await axios.patch(`${API_BASE}/auth/me`, userData);
+      const updatedUser = res.data?.data || res.data;
+      const newUser = { ...state.user, ...updatedUser };
+      localStorage.setItem('rms_user', JSON.stringify(newUser));
+      dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      return { success: false, error: err.response?.data?.message || 'Update failed' };
+    }
   };
 
   return (

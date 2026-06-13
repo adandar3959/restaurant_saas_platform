@@ -355,6 +355,7 @@ function MenuContent({ restaurantId, tableNo }) {
   // ── fetch all data ──────────────────────────────────────────
   useEffect(() => {
     if (!restaurantId) return;
+    localStorage.setItem('rms_last_restaurant_id', restaurantId);
     setLoading(true);
     Promise.all([
       customerApi.getRestaurant(restaurantId).catch(() => ({ data: null })),
