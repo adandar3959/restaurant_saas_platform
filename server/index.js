@@ -3,9 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./utils/db');
-const settingsService  = require('./modules/settings/services/settings_service');
-const maintenanceMode  = require('./middlewares/maintenanceMode');
-const errorHandler     = require('./utils/errorHandler');
+const settingsService = require('./modules/settings/services/settings_service');
+const maintenanceMode = require('./middlewares/maintenanceMode');
+const errorHandler = require('./utils/errorHandler');
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow server-to-server or REST client requests
     if (!origin) return callback(null, true);
-    
+
     const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.vercel.app');
     if (isAllowed) {
       callback(null, true);
